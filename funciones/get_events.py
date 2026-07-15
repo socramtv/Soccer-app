@@ -21,7 +21,7 @@ def extraer_eventos(url_eventos):
         soup = BeautifulSoup(respuesta.text, 'html.parser')
         base_url = "https://www.futbolenlatv.es"
         
-        # --- DETECTOR ADAPTATIVO DE FILAS DE PARTIDOS ---
+        # 1. Localizar todas las filas que contienen un formato de hora (ej: 21:00)
         elementos_hora = []
         for el in soup.find_all(['td', 'div', 'span', 'p', 'time']):
             texto = el.text.strip()
@@ -39,11 +39,8 @@ def extraer_eventos(url_eventos):
         if not tarjetas:
             tarjetas = soup.select('tr.partido, div.partido, .partido-box, tr')
 
-        print(f"🔍 Procesando {len(tarjetas)} filas de encuentros localizadas...")
-
         for tarjeta in tarjetas:
             try:
-                # 1. Extraer la Hora
                 hora_match = re.search(r'\d{2}:\d{2}', tarjeta.text)
                 if not hora_match:
                     continue
@@ -68,32 +65,34 @@ def extraer_eventos(url_eventos):
                             break
                     temp = temp.find_previous(['h2', 'h3', 'div', 'tr', 'p'])
 
-                # 3. EXTRAER LA COMPETICIÓN / LIGA (Evitando coger el bloque de la fecha)
+                # 3. EXTRAER LA COMPETICIÓN / DEPORTE (Con freno de seguridad de fecha)
                 liga = "Otros Deportes"
-                temp_liga = tarjeta.find_previous(['div', 'tr', 'h3', 'h4'])
+                temp_liga = tarjeta.find_previous(['div', 'tr', 'h2', 'h3', 'h4'])
                 while temp_liga:
-                    clases_l = "".join(temp_liga.get('class', [])).lower() if temp_liga.get('class') else ""
                     txt_l = temp_liga.text.strip()
+                    clases_l = "".join(temp_liga.get('class', [])).lower() if temp_liga.get('class') else ""
                     
-                    # Buscamos clases típicas de ligas o torneos
-                    if any(x in clases_l for x in ['torneo', 'liga', 'competicion', 'copete']):
+                    # FRENO DE SEGURIDAD: Si chocamos con la cabecera del día, dejamos de subir
+                    if txt_l == fecha:
+                        break
+                    
+                    # CRITERIO DE MATCH: Detectar si es una cabecera real de liga o deporte
+                    es_etiqueta_header = temp_liga.name in ['h2', 'h3', 'h4']
+                    tiene_clase_deporte = any(x in clases_l for x in ['torneo', 'liga', 'competicion', 'copete', 'deporte', 'deportes', 'titulo', 'head', 'cabecera', 'categoria'])
+                    
+                    if (es_etiqueta_header or tiene_clase_deporte) and len(txt_l) < 80 and " - " not in txt_l and not re.match(r'^\s*\d{2}:\d{2}\s*$', txt_l):
                         img_torneo = temp_liga.find('img')
-                        if img_torneo:
+                        if img_torneo and img_torneo.get('alt'):
                             liga = img_torneo.get('alt', '').strip()
                         else:
                             liga = txt_l
                         break
-                    
-                    # Si tiene un encabezado de texto normal que no coincide con la fecha
-                    if txt_l != fecha and any(x in clases_l for x in ['titulo', 'head', 'cabecera']) and len(txt_l) < 80 and " - " not in txt_l:
-                        liga = txt_l
-                        break
                         
-                    temp_liga = temp_liga.find_previous(['div', 'tr', 'h3', 'h4'])
+                    temp_liga = temp_liga.find_previous(['div', 'tr', 'h2', 'h3', 'h4'])
                 
                 liga = re.sub(r'\s+', ' ', liga).strip()
 
-                # 4. Extraer equipos y logotipos
+                # 4. Extraer equipos, escudos y canales
                 equipo_local = "Equipo Local"
                 equipo_visitante = "Equipo Visitante"
                 logo_local = ""
@@ -101,7 +100,6 @@ def extraer_eventos(url_eventos):
                 canales = []
 
                 tds = tarjeta.find_all('td') if tarjeta.name == 'tr' else []
-                
                 locales_el = tarjeta.select_one('.local, .equipo-local, span[class*="local"]')
                 visitantes_el = tarjeta.select_one('.visitante, .equipo-visitante, span[class*="visitante"]')
                 
@@ -112,7 +110,6 @@ def extraer_eventos(url_eventos):
                     img_v = visitantes_el.find('img')
                     if img_l: logo_local = img_l.get('src', '')
                     if img_v: logo_visitante = img_v.get('src', '')
-                    
                 elif len(tds) >= 2:
                     for td in tds:
                         txt = td.text.strip()
@@ -136,10 +133,9 @@ def extraer_eventos(url_eventos):
                             equipo_visitante = partes[1].strip()
                             break
 
-                # Clasificar imágenes de forma inteligente (Escudos vs Canales TV)
+                # Separar imágenes (Escudos vs Canales)
                 imagenes = tarjeta.find_all('img')
                 escudos_libres = []
-                
                 for img in imagenes:
                     src = img.get('src', '')
                     alt = img.get('alt', '').lower()
@@ -186,7 +182,7 @@ def extraer_eventos(url_eventos):
             except Exception:
                 continue
 
-        # Eliminar duplicados de eventos
+        # Eliminar duplicados
         eventos_unicos = []
         vistos_ev = set()
         for ev in eventos:
@@ -195,7 +191,7 @@ def extraer_eventos(url_eventos):
                 eventos_unicos.append(ev)
                 vistos_ev.add(clave)
 
-        print(f"✅ Extracción finalizada. {len(eventos_unicos)} partidos estructurados.")
+        print(f"✅ Extracción finalizada. {len(eventos_unicos)} partidos estructurados por separado.")
         return eventos_unicos
 
     except Exception as e:
