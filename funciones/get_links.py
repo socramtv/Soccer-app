@@ -2,10 +2,20 @@ from playwright.sync_api import sync_playwright
 
 def extraer_enlaces(url_enlaces):
     with sync_playwright() as p:
-        # CAMBIO AQUÍ: Cambiamos 'webkit' por 'chromium'
-        browser = p.chromium.launch(headless=True)
+        # Optimizaciones extremas de memoria para servidores sin pantalla (Headless)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote",
+                "--single-process"
+            ]
+        )
         page = browser.new_page()
-        page.goto(url_enlaces)
+        page.goto(url_enlaces, timeout=45000)
         
         # Esperamos a que cargue la lista
         elemento = page.wait_for_selector('div.lista-plana-content', timeout=30000)
