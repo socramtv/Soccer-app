@@ -5,21 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Agenda Deportiva</title>
     <style>
-        /* Estilos Premium Dark optimizados para móvil */
         body {
             background-color: #121212;
             color: #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            padding-top: 140px; /* Espacio para la barra fija superior */
+            padding-top: 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* Barra Superior Fija (Sticky Header) */
+        /* Barra Superior Fija */
         .top-bar {
             position: fixed;
             top: 0;
@@ -56,7 +55,6 @@
             font-weight: normal;
         }
 
-        /* Buscador Avanzado */
         .search-container {
             width: 100%;
             max-width: 800px;
@@ -87,7 +85,6 @@
             margin-bottom: 70px;
         }
 
-        /* Tarjetas por Liga / Secciones */
         .competition-card {
             background-color: #1e1e1e;
             border-radius: 12px;
@@ -109,7 +106,6 @@
             gap: 8px;
         }
 
-        /* Tablas de Partidos */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -154,19 +150,18 @@
             white-space: nowrap;
         }
 
-        .partido {
+        .partino-box {
             color: #ffffff;
             font-weight: 500;
         }
 
         .canal-texto-vacio {
-            color: #666666;
+            color: #555555;
             font-size: 0.8rem;
             display: inline-block;
             margin: 2px 0;
         }
 
-        /* Botones de Canales en la Tabla */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -181,7 +176,7 @@
             border: 1px solid #333333;
         }
 
-        /* NUEVO: Cuadrícula de Accesos Directos de Canales al Final */
+        /* Cuadrícula de Accesos Directos de Canales al Final */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -217,12 +212,11 @@
             color: #121212;
             border-color: #00ff88;
         }
-        
+
         .btn-canal-directo:active .ico-play {
             color: #121212;
         }
 
-        /* Botón Flotante Actualizar */
         .btn-recargar {
             position: fixed;
             bottom: 20px;
@@ -275,8 +269,8 @@
                             {% for evento in partidos %}
                             <tr class="fila-partido">
                                 <td class="hora">{{ evento.hora }}</td>
-                                <td class="partido">{{ evento.equipos }}</td>
-                                <td class="canales-td">{{ eventos_html or evento.canales_html | safe }}</td>
+                                <td class="partido-box">{{ evento.equipos }}</td>
+                                <td class="canales-td">{{ evento.canales_html | safe }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -288,7 +282,7 @@
 
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #00ff88;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
-                📺 Mis Canales (Acceso Directo Manual)
+                📺 Mis Canales Disponibles (Acceso Directo)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
@@ -308,11 +302,10 @@
 
     <script>
         function filtrarTodo() {
-            // Cogemos el texto del buscador, limpio y troceado por espacios
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // 1. FILTRAR PARTIDOS Y COMPETICIONES
+            // 1. Filtrar filas de partidos (Aislado de la columna de la Hora)
             let tarjetasLigas = document.querySelectorAll('#seccion-partidos .competition-card');
             
             tarjetasLigas.forEach(tarjeta => {
@@ -321,11 +314,13 @@
                 let nombreLiga = tarjeta.getAttribute('data-liga');
 
                 filas.forEach(fila => {
-                    // Juntamos todo el texto de la fila (partido, hora, canales) y la liga
-                    let textoCelda = fila.textContent.toLowerCase() + " " + nombreLiga;
+                    let partidoText = fila.querySelector('.partido-box').textContent.toLowerCase();
+                    let canalesText = fila.querySelector('.canales-td').textContent.toLowerCase();
                     
-                    # Verificamos si CADA UNA de las palabras buscadas está en el texto
-                    let coincide = palabrasBusqueda.every(palabra => textoCelda.includes(palabra));
+                    // Contruimos el texto cruzando solo los datos limpios (Equipos, Canales y Liga)
+                    let textoFila = partidoText + " " + canalesText + " " + nombreLiga;
+                    
+                    let coincide = palabrasBusqueda.every(palabra => textoFila.includes(palabra));
 
                     if (coincide) {
                         fila.style.display = '';
@@ -335,7 +330,6 @@
                     }
                 });
 
-                // Si no hay partidos que coincidan en esta liga, escondemos la tarjeta entera
                 if (encuentrosVisibles > 0) {
                     tarjeta.style.display = '';
                 } else {
@@ -343,7 +337,7 @@
                 }
             });
 
-            // 2. FILTRAR LA NUEVA CUADRÍCULA DE CANALES DIRECTOS
+            // 2. Filtrar el bloque de canales directos inferior
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
@@ -359,7 +353,6 @@
                 }
             });
 
-            // Si se busca algo y no queda ningún canal libre, se podría ocultar el bloque completo
             let bloqueCanales = document.getElementById('card-canales-sistema');
             if (palabrasBusqueda.length > 0 && canalesVisibles === 0) {
                 bloqueCanales.style.display = 'none';
