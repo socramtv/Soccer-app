@@ -5,57 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Agenda Deportiva</title>
     <style>
-        /* Estilos base inspirados en Andrenalina (Premium Dark) */
+        /* Estilos Premium Dark optimizados para móvil */
         body {
             background-color: #121212;
             color: #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
+            padding-top: 140px; /* Espacio para que la barra fija superior no tape contenido */
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        .container {
+        /* Barra Superior Fija (Sticky Header) */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
+            padding: 12px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            border-bottom: 1px solid #2a2a2a;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar-content {
             width: 100%;
             max-width: 800px;
-            margin-bottom: 70px; /* Espacio para que el botón flotante no tape contenido */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: linear-gradient(145deg, #1f1f1f, #151515);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #2a2a2a;
-        }
-
-        h1 {
-            font-size: 1.4rem;
+        .top-bar h1 {
+            font-size: 1.1rem;
             margin: 0;
             color: #ffffff;
         }
 
-        h1 span {
+        .top-bar h1 span {
             color: #00ff88;
-            font-size: 0.9rem;
-            display: block;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            font-weight: normal;
         }
 
-        /* Contenedor adaptativo de tablas heredado de Andrenalina */
+        /* Estilos del Buscador Avanzado */
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #222222;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+            background-color: #282828;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 70px;
+        }
+
+        /* Secciones/Tarjetas por Liga */
+        .competition-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .competition-header {
+            background-color: #252525;
+            color: #00ff88;
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #333333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Tablas Adaptativas sin columna de Liga */
         .table-container {
             width: 100%;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
-            background-color: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            border: 1px solid #2a2a2a;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
@@ -63,18 +121,18 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 0.9rem;
-            min-width: 450px; /* Mantiene la estructura interna intacta en pantallas pequeñas */
+            min-width: 400px;
         }
 
         th {
-            background-color: #252525;
-            color: #00ff88;
-            padding: 12px 10px;
+            background-color: #1a1a1a;
+            color: #888888;
+            padding: 10px;
             font-weight: 600;
-            border-bottom: 2px solid #2a2a2a;
-            text-transform: uppercase;
             font-size: 0.75rem;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         td {
@@ -91,17 +149,10 @@
             background-color: #161616;
         }
 
-        /* Estilos para textos informativos */
         .hora {
             font-weight: bold;
             color: #ffffff;
             white-space: nowrap;
-        }
-
-        .liga {
-            color: #aaa;
-            font-size: 0.8rem;
-            font-weight: bold;
         }
 
         .partido {
@@ -110,13 +161,13 @@
         }
 
         .canal-texto-vacio {
-            color: #777777;
+            color: #666666;
             font-size: 0.8rem;
             display: inline-block;
             margin: 2px 0;
         }
 
-        /* Botones táctiles premium para los enlaces AceStream */
+        /* Botones de Canales */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -130,7 +181,6 @@
             font-weight: bold;
             border: 1px solid #333333;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .btn-canal:active {
@@ -140,7 +190,7 @@
             border-color: #00ff88;
         }
 
-        /* Botón Flotante para Limpiar Caché */
+        /* Botón Flotante Actualizar */
         .btn-recargar {
             position: fixed;
             bottom: 20px;
@@ -158,51 +208,87 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: transform 0.2s;
             z-index: 999;
-        }
-
-        .btn-recargar:active {
-            transform: scale(0.9);
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Eventos Deportivos <span>Actualizado: {{ fecha }}</span></h1>
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <h1>🎯 Agenda Deportiva</h1>
+            <h1><span>📅 {{ fecha }}</span></h1>
         </div>
-        
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%">Hora</th>
-                        <th style="width: 25%">Competición</th>
-                        <th style="width: 35%">Encuentro</th>
-                        <th style="width: 25%">Enlaces Disponibles</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for evento in eventos %}
-                    <tr>
-                        <td class="hora">{{ evento.hora }}</td>
-                        <td class="liga">{{ evento.liga }}</td>
-                        <td class="partido">{{ evento.equipos }}</td>
-                        <td>
-                            {{ evento.canales_html | safe }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="search-container">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar por equipo, competición o canal..." onkeyup="filtrarContenido()">
         </div>
+    </div>
+
+    <div class="container" id="lista-eventos">
+        {% for liga, partidos in eventos_agrupados.items() %}
+        <div class="competition-card" data-liga="{{ liga | lower }}">
+            <div class="competition-header">🏆 {{ liga }}</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Hora</th>
+                            <th style="width: 55%">Encuentro</th>
+                            <th style="width: 30%">Enlaces Directos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in partidos %}
+                        <tr>
+                            <td class="hora">{{ evento.hora }}</td>
+                            <td class="partido">{{ evento.equipos }}</td>
+                            <td class="canales-td">{{ evento.canales_html | safe }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
     <a href="/recargar" class="btn-recargar">
         🔄 Forzar Actualización
     </a>
+
+    <script>
+        function filtrarContenido() {
+            // Obtenemos el texto introducido en minúsculas
+            let query = document.getElementById('buscador').value.toLowerCase().trim();
+            let tarjetas = document.querySelectorAll('.competition-card');
+
+            tarjetas.forEach(tarjeta => {
+                let filas = tarjeta.querySelectorAll('tbody tr');
+                let partidosVisibles EnTarjeta = 0;
+                let nombreLiga = tarjeta.getAttribute('data-liga');
+
+                filas.forEach(fila => {
+                    let textoPartido = fila.querySelector('.partido').textContent.toLowerCase();
+                    let textoCanales = fila.querySelector('.canales-td').textContent.toLowerCase();
+
+                    // Si la búsqueda coincide con los equipos, los canales o el propio nombre de la liga
+                    if (textoPartido.includes(query) || textoCanales.includes(query) || nombreLiga.includes(query)) {
+                        fila.style.display = ''; // Mostrar fila
+                        partidosVisiblesEnTarjeta++;
+                    } else {
+                        fila.style.display = 'none'; // Ocultar fila
+                    }
+                });
+
+                // MEJORA: Si una liga no tiene ningún partido coincidente, ocultamos la tarjeta entera
+                if (partidosVisiblesEnTarjeta > 0) {
+                    tarjeta.style.display = '';
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>
