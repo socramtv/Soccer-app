@@ -11,7 +11,7 @@ from funciones.obtener_enlaces import obtener_enlaces
 app = Flask(__name__)
 
 # Configuración de URLs
-URL_ENLACES = 'https://vacaionesenelmar.xo.je/hashes.json'
+URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
 # VARIABLES DE CACHÉ (Evitan saturar el servidor de Render)
