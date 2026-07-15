@@ -2,215 +2,207 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Evita que el móvil haga zoom raro y adapta la escala al 100% -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eventos Deportivos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Agenda Deportiva</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        /* Estilos base inspirados en Andrenalina (Premium Dark) */
         body {
+            background-color: #121212;
+            color: #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 0;
             padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
-            color: #333;
         }
-        
+
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 70px; /* Espacio para que el botón flotante no tape contenido */
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 20px;
-            color: white;
-            padding: 10px 0;
+            padding: 10px;
+            background: linear-gradient(145deg, #1f1f1f, #151515);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #2a2a2a;
         }
-        
-        .header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+
+        h1 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #ffffff;
         }
-        
-        .header p {
+
+        h1 span {
+            color: #00ff88;
             font-size: 0.9rem;
-            opacity: 0.85;
+            display: block;
+            margin-top: 5px;
         }
-        
+
+        /* Contenedor adaptativo de tablas heredado de Andrenalina */
         .table-container {
-            background: transparent; /* En móvil preferimos fondo transparente para las tarjetas */
-            box-shadow: none;
-            border-radius: 0;
-            overflow: visible;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            min-width: 450px; /* Mantiene la estructura interna intacta en pantallas pequeñas */
         }
 
-        /* --- ESTILOS PARA ORDENADOR (PANTALLAS GRANDES) --- */
-        @media (min-width: 769px) {
-            .table-container {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-                overflow: hidden;
-            }
-            thead {
-                background: #1e3c72;
-            }
-            th {
-                color: white;
-                padding: 15px;
-                text-align: left;
-                text-transform: uppercase;
-                font-size: 0.85rem;
-                letter-spacing: 0.5px;
-            }
-            td {
-                padding: 15px;
-                border-bottom: 1px solid #f0f0f0;
-                background: white;
-            }
-            tbody tr:nth-child(even) td {
-                background-color: #f8f9fa;
-            }
-        }
-
-        /* --- DISEÑO MÓVIL (PANTALLAS PEQUEÑAS) --- */
-        @media (max-width: 768px) {
-            /* Forzamos a la tabla a comportarse como bloques individuales (Tarjetas) */
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            
-            /* Escondemos la cabecera de la tabla (no tiene sentido en tarjetas) */
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            
-            /* Cada fila se convierte en una tarjeta independiente */
-            tr {
-                background: white;
-                margin-bottom: 15px;
-                border-radius: 12px;
-                padding: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                border: 1px solid rgba(255,255,255,0.1);
-            }
-            
-            td {
-                border: none;
-                padding: 4px 0;
-                position: relative;
-            }
-
-            /* Diseñamos cada campo de la tarjeta de forma única */
-            td:nth-of-type(1) { /* Hora */
-                display: inline-block;
-                font-weight: 700;
-                color: #e74c3c;
-                font-size: 0.95rem;
-                margin-right: 10px;
-                background: #fdf2f2;
-                padding: 2px 8px;
-                border-radius: 4px;
-            }
-            
-            td:nth-of-type(2) { /* Liga */
-                display: inline-block;
-                background: #eef2f7;
-                color: #4a5568;
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                font-weight: bold;
-            }
-            
-            td:nth-of-type(3) { /* Partido / Equipos */
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: #2c3e50;
-                margin: 8px 0;
-            }
-            
-            td:nth-of-type(4) { /* Canales */
-                border-top: 1px solid #f0f0f0;
-                padding-top: 12px;
-                margin-top: 8px;
-            }
-        }
-
-        /* --- BOTONES DE CANALES (ZONA DE PULSACIÓN AGRANDADA) --- */
-        .canales {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .canales a {
-            color: #1e3c72;
-            text-decoration: none;
-            padding: 10px 16px; /* Botones más altos y anchos para dedos grandes */
-            background: #f0f4f8;
-            border-radius: 8px;
-            font-size: 0.85rem;
+        th {
+            background-color: #252525;
+            color: #00ff88;
+            padding: 12px 10px;
             font-weight: 600;
+            border-bottom: 2px solid #2a2a2a;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #2a2a2a;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #161616;
+        }
+
+        /* Estilos para textos informativos */
+        .hora {
+            font-weight: bold;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+        .liga {
+            color: #aaa;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .partido {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .canal-texto-vacio {
+            color: #777777;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin: 2px 0;
+        }
+
+        /* Botones táctiles premium para los enlaces AceStream */
+        .btn-canal {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            border: 1px solid #d9e2ec;
+            background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%);
+            color: #00ff88;
+            padding: 6px 12px;
+            margin: 3px 4px 3px 0;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid #333333;
             transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent; /* Elimina el flash azul al pulsar en iOS */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
-        .canales a:hover, .canales a:active {
-            background: #1e3c72;
-            color: white;
-            border-color: #1e3c72;
-            transform: scale(0.96); /* Efecto feedback visual al pulsar */
+
+        .btn-canal:active {
+            transform: scale(0.95);
+            background: #00ff88;
+            color: #121212;
+            border-color: #00ff88;
+        }
+
+        /* Botón Flotante para Limpiar Caché */
+        .btn-recargar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
+            color: #121212;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+            z-index: 999;
+        }
+
+        .btn-recargar:active {
+            transform: scale(0.9);
         }
     </style>
 </head>
 <body>
+
     <div class="container">
         <div class="header">
-            <h1>🎯 Fútbol & Deportes</h1>
-            <p>{{ fecha }} · Actualizado al instante</p>
+            <h1>🎯 Eventos Deportivos <span>Actualizado: {{ fecha }}</span></h1>
         </div>
         
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Hora</th>
-                        <th>Liga</th>
-                        <th>Partido</th>
-                        <th>Canales</th>
+                        <th style="width: 15%">Hora</th>
+                        <th style="width: 25%">Competición</th>
+                        <th style="width: 35%">Encuentro</th>
+                        <th style="width: 25%">Enlaces Disponibles</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for evento in eventos %}
                     <tr>
-                        <td>{{ evento.hora }}</td>
-                        <td>{{ evento.liga }}</td>
-                        <td>{{ evento.equipos }}</td>
-                        <td class="canales">{{ evento.canales_html | safe }}</td>
+                        <td class="hora">{{ evento.hora }}</td>
+                        <td class="liga">{{ evento.liga }}</td>
+                        <td class="partido">{{ evento.equipos }}</td>
+                        <td>
+                            {{ evento.canales_html | safe }}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
+    <a href="/recargar" class="btn-recargar">
+        🔄 Forzar Actualización
+    </a>
+
 </body>
 </html>
