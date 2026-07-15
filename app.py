@@ -1,158 +1,94 @@
-from flask import Flask, render_template
-from datetime import datetime
 import re
 import time
+from datetime import datetime
+from flask import Flask, render_template, redirect, url_for
+import requests
 
-# Importamos tus funciones existentes
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
-from funciones.obtener_enlaces import obtener_enlaces
 
 app = Flask(__name__)
 
-# Configuración de URLs
-URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/hashes.json'
+# Tus URLs seguras
+URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
-# VARIABLES DE CACHÉ (Evitan saturar el servidor de Render)
+# Sistema de Caché Inteligente
 cache_eventos = None
 ultimo_scraping = 0
-CACHE_EXPIRACION = 600  # Tiempo de vida de la caché: 10 minutos (600 segundos)
+CACHE_EXPIRACION = 600  # 10 minutos
+
+def normalizar_cadena(texto):
+    """Limpia tildes, símbolos y estandariza nombres de canales para cruzarlos"""
+    texto = texto.lower().strip()
+    texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
+    # Quitar acentos comunes
+    texto = texto.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+    # Eliminar caracteres especiales y símbolos de calidad
+    texto = re.sub(r'[\(\)\-\[\]\*\_\|\+]', '', texto)
+    return " ".join(texto.split())
+
+def vincular_canales_automatico(canales_evento, lista_enlaces):
+    """Busca de forma automática y dinámica los hashes correctos sin usar if/elif"""
+    html_resultado = ""
+    
+    for canal in canales_evento:
+        canal_limpio = canal.strip()
+        canal_norm = normalizar_cadena(canal_limpio)
+        
+        # Extraer palabras clave ignorando conectores y calidades
+        palabras_web = [w for w in canal_norm.split() if w not in ['hd', 'sd', '1080p', '720p', 'la', 'el', 'los', 'de', 'en']]
+        
+        if not palabras_web:
+            html_resultado += f'<span class="canal-texto">{canal_limpio}</span><br>'
+            continue
+            
+        es_bar = "bar" in canal_norm
+        matches_encontrados = []
+        
+        # Buscar coincidencias en tu hashes.json
+        for enc in lista_enlaces:
+            nombre_json_norm = normalizar_cadena(enc['name'])
+            
+            # Control estricto de canales "BAR"
+            if es_bar and "bar" not in nombre_json_norm:
+                continue
+            if not es_bar and "bar" in nombre_json_norm:
+                continue
+                
+            # Si todas las palabras clave de la web están en el canal del JSON, es un Match
+            if all(palabra in nombre_json_norm for palabra in palabras_web):
+                acestream_url = f"acestream://{enc['id']}"
+                # Distinguir visualmente si es canal principal (*) o respaldo (**)
+                icono = "★" if "**" in enc['name'] else "⚡"
+                matches_encontrados.append(
+                    f'<a href="{acestream_url}" class="btn-canal" title="{enc["name"]}">{icono} {enc["name"]}</a>'
+                )
+        
+        # Si encontramos enlaces Acestream los añadimos, si no, dejamos el texto normal
+        if matches_encontrados:
+            html_resultado += "".join(matches_encontrados)
+        else:
+            html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
+            
+    return html_resultado
 
 def procesar_eventos():
     global cache_eventos, ultimo_scraping
     ahora = time.time()
-
-    # Si ya tenemos datos guardados y han pasado menos de 10 minutos, los devolvemos al instante
+    
+    # Retornar caché si sigue vigente
     if cache_eventos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
-        print("🔄 [Caché] Cargando eventos guardados (carga instantánea)")
         return cache_eventos
-
-    print("🌐 [Live] Iniciando scraping en vivo (esto puede tardar unos segundos)...")
+        
+    print("🌐 Iniciando actualización de datos en segundo plano...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
-
+    
+    # Procesar y vincular automáticamente cada partido
     for i in range(len(eventos)):
-        # Inicializamos el campo para evitar errores
-        eventos[i]['canales_html'] = ""
+        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
         
-        for canal in eventos[i]['canales']:
-            if re.search(r"dazn 1\b", canal, re.IGNORECASE) and "bar" not in canal.lower():
-                a = obtener_enlaces(enlaces, r"^dazn 1(?!\s+bar)\b")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn 2\b", canal, re.IGNORECASE) and "bar" not in canal.lower():
-                a = obtener_enlaces(enlaces, r"^dazn 2(?!\s+bar)\b")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn 3\b", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"^dazn 3\b")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn 4\b", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"^dazn 4\b")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn 1.*bar", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"dazn 1\s+bar")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn 2.*bar", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"dazn 2\s+bar")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn.*liga\s+[^\d]", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"dazn.*liga\s+1")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn.*liga\s+2", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"dazn.*liga\s+2")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*liga\s+\(", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*liga\s+[^\d]")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*liga\s+2", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*liga\s+2")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*liga\s+3", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*liga\s+3")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*liga\s+4", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*liga\s+4")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"campeones\s+\(", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"campeones\s+[^\d]")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"campeones\s+2", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"campeones\s+2")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"campeones\s+3", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"campeones\s+3")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"campeones\s+4", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"campeones\s+4")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"campeones\s+5", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"campeones\s+5")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"movistar plus\+?\s+\(", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"movistar plus\+?\s+[^\d]")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"movistar plus\+?\s+2", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"movistar plus\+?\s+2")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*deportes\s+[^\d]", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+[^\d]")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*deportes\s+2", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+2")
-                eventos[i]['canales_html'] += a + '<br>\n'
-                
-            elif re.search(r"m.*deportes\s+3", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+3")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*deportes\s+4", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+4")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*deportes\s+5", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+5")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*deportes\s+6", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*deportes\s+6")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"m.*vamos\s+\(", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"m.*vamos\s+[^\d]")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"tennis\s+channel", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"tennis\s+channel")
-                eventos[i]['canales_html'] += a + '<br>\n'
-
-            elif re.search(r"dazn\s+f1", canal, re.IGNORECASE):
-                a = obtener_enlaces(enlaces, r"dazn\s+f1")
-                eventos[i]['canales_html'] += a + '<br>\n'
-                
-            else: 
-                eventos[i]['canales_html'] += canal + '<br>\n'
-                
-    # Guardamos el resultado en caché
     cache_eventos = eventos
     ultimo_scraping = ahora
     return eventos
@@ -162,6 +98,15 @@ def home():
     eventos = procesar_eventos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
     return render_template('index.html', eventos=eventos, fecha=fecha_actual)
+
+@app.route('/recargar')
+def recargar():
+    """Ruta especial heredada de Andrenalina para forzar la limpieza de la caché"""
+    global cache_eventos, ultimo_scraping
+    cache_eventos = None
+    ultimo_scraping = 0
+    print("♻️ Caché del servidor vaciada manualmente por el usuario.")
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
