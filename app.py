@@ -13,7 +13,7 @@ app = Flask(__name__)
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
-# Sistema de Caché Unificado para evitar desincronizaciones
+# Sistema de Caché Unificado
 cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 600  # 10 minutos
@@ -27,35 +27,53 @@ def normalizar_cadena(texto):
     return " ".join(texto.split())
 
 def vincular_canales_automatico(canales_evento, lista_enlaces):
-    """Busca de forma automática y dinámica los hashes correctos sin usar if/elif"""
+    """Algoritmo inteligente bidireccional y tolerante a nombres con operadores y diales"""
     html_resultado = ""
+    
+    # Palabras de ruido absoluto que se limpian para el cruce de datos
+    STOPWORDS = {'hd', 'sd', '1080p', '720p', 'la', 'el', 'los', 'de', 'en', 'ver', 'directo', 'orange', 'tv', 'vodafone', 'movistar', 'plus'}
     
     for canal in canales_evento:
         canal_limpio = canal.strip()
-        canal_norm = normalizar_cadena(canal_limpio)
         
-        palabras_web = [w for w in canal_norm.split() if w not in ['hd', 'sd', '1080p', '720p', 'la', 'el', 'los', 'de', 'en']]
+        # 1. Eliminar por completo el contenido entre paréntesis de la web (ej: "(Ver en directo)", "(131)")
+        canal_sin_paren = re.sub(r'\(.*?\)', '', canal_limpio)
+        canal_norm = normalizar_cadena(canal_sin_paren)
+        
+        # Obtener las palabras clave esenciales y los dígitos de la web por separado
+        palabras_web = [w for w in canal_norm.split() if w not in STOPWORDS and not w.isdigit()]
+        digitos_web = [w for w in canal_norm.split() if w.isdigit()]
         
         if not palabras_web:
-            html_resultado += f'<span class="canal-texto">{canal_limpio}</span><br>'
-            continue
+            palabras_web = [w for w in canal_norm.split() if w.strip()]
             
         es_bar = "bar" in canal_norm
         matches_encontrados = []
         
         for enc in lista_enlaces:
-            nombre_json_norm = normalizar_cadena(enc['name'])
+            nombre_json = enc['name']
+            nombre_json_norm = normalizar_cadena(nombre_json)
             
-            if es_bar and "bar" not in nombre_json_norm:
-                continue
-            if not es_bar and "bar" in nombre_json_norm:
+            # Control estricto de canales BAR
+            if es_bar != ("bar" in nombre_json_norm):
                 continue
                 
-            if all(palabra in nombre_json_norm for palabra in palabras_web):
+            palabras_json = [w for w in nombre_json_norm.split() if w not in STOPWORDS and not w.isdigit()]
+            digitos_json = [w for w in nombre_json_norm.split() if w.isdigit()]
+            
+            # Coincidencia inteligente en ambas direcciones (A en B o B en A)
+            coincide_palabras = all(p in nombre_json_norm for p in palabras_web) or all(p in canal_norm for p in palabras_json)
+            
+            # Control estricto de números de canales (ej: Evita que DAZN 1 empareje con DAZN 2)
+            coincide_numeros = True
+            if digitos_web:
+                coincide_numeros = any(d in digitos_json for d in digitos_web)
+            
+            if coincide_palabras and coincide_numeros:
                 acestream_url = f"acestream://{enc['id']}"
-                icono = "★" if "**" in enc['name'] else "⚡"
+                icono = "★" if "**" in nombre_json else "⚡"
                 matches_encontrados.append(
-                    f'<a href="{acestream_url}" class="btn-canal" title="{enc["name"]}">{icono} {enc["name"]}</a>'
+                    f'<a href="{acestream_url}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
                 )
         
         if matches_encontrados:
@@ -76,11 +94,9 @@ def obtener_datos_completos():
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     
-    # Vincular canales automáticos a los partidos
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
         
-    # Agrupar los partidos por liga/competición
     eventos_agrupados = {}
     for ev in eventos:
         liga = ev.get('liga', 'Otras Competiciones').strip()
@@ -88,7 +104,6 @@ def obtener_datos_completos():
             eventos_agrupados[liga] = []
         eventos_agrupados[liga].append(ev)
         
-    # Guardamos todo en la estructura de caché
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
         'canales_puros': enlaces
@@ -100,8 +115,6 @@ def obtener_datos_completos():
 def home():
     datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
-    
-    # Enviamos los partidos organizados y los canales puros al HTML
     return render_template(
         'index.html', 
         eventos_agrupados=datos['eventos_agrupados'], 
@@ -114,7 +127,6 @@ def recargar():
     global cache_datos, ultimo_scraping
     cache_datos = None
     ultimo_scraping = 0
-    print("♻️ Caché del servidor vaciada por completo.")
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
