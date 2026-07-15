@@ -85,21 +85,43 @@
             margin-bottom: 70px;
         }
 
+        /* Cabecera Especial para Separar por Días */
+        .day-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+        }
+
+        .day-header {
+            width: 100%;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #00ff88;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-left: 5px solid #00ff88;
+            box-sizing: border-box;
+        }
+
         .competition-card {
             background-color: #1e1e1e;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             border: 1px solid #2a2a2a;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             overflow: hidden;
         }
 
         .competition-header {
             background-color: #252525;
-            color: #00ff88;
-            padding: 12px 15px;
+            color: #ffffff;
+            padding: 11px 15px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             border-bottom: 1px solid #333333;
             display: flex;
             align-items: center;
@@ -117,7 +139,7 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 0.9rem;
-            min-width: 480px; /* Un poco más ancho para albergar los escudos cómodamente */
+            min-width: 480px;
         }
 
         th {
@@ -150,7 +172,6 @@
             white-space: nowrap;
         }
 
-        /* Estructura Flexbox Premium para el Marcador de Equipos */
         .marcador-box {
             display: flex;
             align-items: center;
@@ -169,14 +190,12 @@
             width: 22px;
             height: 22px;
             object-fit: contain;
-            background-color: transparent;
         }
 
         .vs-separador {
             color: #666666;
             font-size: 0.8rem;
             font-weight: bold;
-            padding: 0 4px;
         }
 
         .canal-texto-vacio {
@@ -200,7 +219,7 @@
             border: 1px solid #333333;
         }
 
-        /* Cuadrícula de Canales */
+        /* Cuadrícula de Canales Directos */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -221,7 +240,6 @@
             font-weight: bold;
             border: 1px solid #333333;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
         }
 
         .btn-canal-directo .ico-play {
@@ -266,54 +284,60 @@
             <h1><span>📅 {{ fecha }}</span></h1>
         </div>
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo (ej: sevilla, madrid...)" onkeyup="filtrarTodo()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Filtra por partido (ej: sevilla, betis, madrid...)" onkeyup="filtrarTodo()">
         </div>
     </div>
 
     <div class="container">
         
         <div id="seccion-partidos">
-            {% for liga, partidos in eventos_agrupados.items() %}
-            <div class="competition-card">
-                <div class="competition-header">🏆 {{ liga }}</div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 15%">Hora</th>
-                                <th style="width: 55%">Encuentro</th>
-                                <th style="width: 30%">Enlaces Directos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for evento in partidos %}
-                            <tr class="fila-partido">
-                                <td class="hora">{{ evento.hora }}</td>
-                                <td>
-                                    <div class="marcador-box">
-                                        <div class="bloque-equipo">
-                                            <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
-                                            <span class="txt-local">{{ evento.equipo_local }}</span>
+            {% for fecha, competiciones in eventos_agrupados.items() %}
+            <div class="day-section" data-fecha="{{ fecha | lower }}">
+                <div class="day-header">📅 {{ fecha }}</div>
+                
+                {% for liga, partidos in competiciones.items() %}
+                <div class="competition-card">
+                    <div class="competition-header">🏆 {{ liga }}</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%">Hora</th>
+                                    <th style="width: 55%">Encuentro</th>
+                                    <th style="width: 30%">Enlaces Directos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for evento in partidos %}
+                                <tr class="fila-partido">
+                                    <td class="hora">{{ evento.hora }}</td>
+                                    <td>
+                                        <div class="marcador-box">
+                                            <div class="bloque-equipo">
+                                                <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
+                                                <span class="txt-local">{{ evento.equipo_local }}</span>
+                                            </div>
+                                            <span class="vs-separador">vs</span>
+                                            <div class="bloque-equipo">
+                                                <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
+                                                <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
+                                            </div>
                                         </div>
-                                        <span class="vs-separador">vs</span>
-                                        <div class="bloque-equipo">
-                                            <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
-                                            <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="canales-td">{{ evento.canales_html | safe }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="canales-td">{{ evento.canales_html | safe }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
             {% endfor %}
         </div>
 
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #00ff88;">
-            <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
+            <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
@@ -337,34 +361,45 @@
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // 1. Filtrar filas de partidos apuntando de forma exacta al texto de los equipos
-            let tarjetasLigas = document.querySelectorAll('#seccion-partidos .competition-card');
+            // 1. Filtrar filas de partidos apuntando a la jerarquía: Día -> Tarjetas -> Filas
+            let seccionesDias = document.querySelectorAll('#seccion-partidos .day-section');
             
-            tarjetasLigas.forEach(tarjeta => {
-                let filas = tarjeta.querySelectorAll('.fila-partido');
-                let encuentrosVisibles = 0;
+            seccionesDias.forEach(seccion => {
+                let tarjetasLigas = seccion.querySelectorAll('.competition-card');
+                let ligasVisiblesEnDia = 0;
 
-                filas.forEach(fila => {
-                    // Extraemos exclusivamente el contenido de texto de ambos equipos de la fila
-                    let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
-                    let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
-                    let partidoCompleto = localText + " " + visitanteText;
-                    
-                    // Comprobamos si cada palabra clave está en el partido
-                    let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
+                tarjetasLigas.forEach(tarjeta => {
+                    let filas = tarjeta.querySelectorAll('.fila-partido');
+                    let encuentrosVisiblesEnLiga = 0;
 
-                    if (coincide) {
-                        fila.style.display = '';
-                        encuentrosVisibles++;
+                    filas.forEach(fila => {
+                        let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
+                        let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
+                        let partidoCompleto = localText + " " + visitanteText;
+                        
+                        let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
+
+                        if (coincide) {
+                            fila.style.display = '';
+                            encuentrosVisiblesEnLiga++;
+                        } else {
+                            fila.style.display = 'none';
+                        }
+                    });
+
+                    if (encuentrosVisiblesEnLiga > 0) {
+                        tarjeta.style.display = '';
+                        ligasVisiblesEnDia++;
                     } else {
-                        fila.style.display = 'none';
+                        tarjeta.style.display = 'none';
                     }
                 });
 
-                if (encuentrosVisibles > 0) {
-                    tarjeta.style.display = '';
+                // Si no queda ninguna liga con partidos visibles hoy, ocultamos la cabecera de ese día
+                if (ligasVisiblesEnDia > 0) {
+                    seccion.style.display = '';
                 } else {
-                    tarjeta.style.display = 'none';
+                    seccion.style.display = 'none';
                 }
             });
 
