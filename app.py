@@ -13,8 +13,8 @@ app = Flask(__name__)
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
-# Sistema de Caché Inteligente
-cache_eventos = None
+# Sistema de Caché Unificado para evitar desincronizaciones
+cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 600  # 10 minutos
 
@@ -65,29 +65,22 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
             
     return html_resultado
 
-def procesar_eventos():
-    global cache_eventos, ultimo_scraping
+def obtener_datos_completos():
+    global cache_datos, ultimo_scraping
     ahora = time.time()
     
-    if cache_eventos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
-        return cache_eventos
+    if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
+        return cache_datos
         
-    print("🌐 Actualizando datos deportivos...")
+    print("🌐 Descargando y organizando canales y cartelera...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     
+    # Vincular canales automáticos a los partidos
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
         
-    cache_eventos = eventos
-    ultimo_scraping = ahora
-    return eventos
-
-@app.route('/')
-def home():
-    eventos = procesar_eventos()
-    
-    # MEJORA: Agrupar los partidos por liga/competición en un diccionario
+    # Agrupar los partidos por liga/competición
     eventos_agrupados = {}
     for ev in eventos:
         liga = ev.get('liga', 'Otras Competiciones').strip()
@@ -95,17 +88,33 @@ def home():
             eventos_agrupados[liga] = []
         eventos_agrupados[liga].append(ev)
         
+    # Guardamos todo en la estructura de caché
+    cache_datos = {
+        'eventos_agrupados': eventos_agrupados,
+        'canales_puros': enlaces
+    }
+    ultimo_scraping = ahora
+    return cache_datos
+
+@app.route('/')
+def home():
+    datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
     
-    # Enviamos la estructura agrupada al HTML
-    return render_template('index.html', eventos_agrupados=eventos_agrupados, fecha=fecha_actual)
+    # Enviamos los partidos organizados y los canales puros al HTML
+    return render_template(
+        'index.html', 
+        eventos_agrupados=datos['eventos_agrupados'], 
+        canales_puros=datos['canales_puros'], 
+        fecha=fecha_actual
+    )
 
 @app.route('/recargar')
 def recargar():
-    global cache_eventos, ultimo_scraping
-    cache_eventos = None
+    global cache_datos, ultimo_scraping
+    cache_datos = None
     ultimo_scraping = 0
-    print("♻️ Caché del servidor vaciada manualmente.")
+    print("♻️ Caché del servidor vaciada por completo.")
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
