@@ -12,7 +12,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            padding-top: 140px; /* Espacio para que la barra fija superior no tape contenido */
+            padding-top: 140px; /* Espacio para la barra fija superior */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -56,7 +56,7 @@
             font-weight: normal;
         }
 
-        /* Estilos del Buscador Avanzado */
+        /* Buscador Avanzado */
         .search-container {
             width: 100%;
             max-width: 800px;
@@ -64,7 +64,7 @@
 
         .search-input {
             width: 100%;
-            padding: 10px 15px;
+            padding: 11px 15px;
             background-color: #222222;
             color: #ffffff;
             border: 1px solid #3a3a3a;
@@ -87,7 +87,7 @@
             margin-bottom: 70px;
         }
 
-        /* Secciones/Tarjetas por Liga */
+        /* Tarjetas por Liga / Secciones */
         .competition-card {
             background-color: #1e1e1e;
             border-radius: 12px;
@@ -109,7 +109,7 @@
             gap: 8px;
         }
 
-        /* Tablas Adaptativas sin columna de Liga */
+        /* Tablas de Partidos */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -131,7 +131,6 @@
             font-weight: 600;
             font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             border-bottom: 1px solid #2a2a2a;
         }
 
@@ -167,7 +166,7 @@
             margin: 2px 0;
         }
 
-        /* Botones de Canales */
+        /* Botones de Canales en la Tabla */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -180,14 +179,47 @@
             font-size: 0.8rem;
             font-weight: bold;
             border: 1px solid #333333;
-            transition: all 0.2s ease;
         }
 
-        .btn-canal:active {
+        /* NUEVO: Cuadrícula de Accesos Directos de Canales al Final */
+        .grid-canales {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+            padding: 15px;
+            background-color: #151515;
+        }
+
+        .btn-canal-directo {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #252525 0%, #1c1c1c 100%);
+            color: #ffffff;
+            padding: 11px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: 1px solid #333333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .btn-canal-directo .ico-play {
+            color: #00ff88;
+            margin-right: 8px;
+            font-size: 0.75rem;
+        }
+
+        .btn-canal-directo:active {
             transform: scale(0.95);
             background: #00ff88;
             color: #121212;
             border-color: #00ff88;
+        }
+        
+        .btn-canal-directo:active .ico-play {
+            color: #121212;
         }
 
         /* Botón Flotante Actualizar */
@@ -220,36 +252,54 @@
             <h1><span>📅 {{ fecha }}</span></h1>
         </div>
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar por equipo, competición o canal..." onkeyup="filtrarContenido()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Filtra por equipo, liga o canal..." onkeyup="filtrarTodo()">
         </div>
     </div>
 
-    <div class="container" id="lista-eventos">
-        {% for liga, partidos in eventos_agrupados.items() %}
-        <div class="competition-card" data-liga="{{ liga | lower }}">
-            <div class="competition-header">🏆 {{ liga }}</div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 15%">Hora</th>
-                            <th style="width: 55%">Encuentro</th>
-                            <th style="width: 30%">Enlaces Directos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for evento in partidos %}
-                        <tr>
-                            <td class="hora">{{ evento.hora }}</td>
-                            <td class="partido">{{ evento.equipos }}</td>
-                            <td class="canales-td">{{ evento.canales_html | safe }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="container">
+        
+        <div id="seccion-partidos">
+            {% for liga, partidos in eventos_agrupados.items() %}
+            <div class="competition-card" data-liga="{{ liga | lower }}">
+                <div class="competition-header">🏆 {{ liga }}</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Hora</th>
+                                <th style="width: 55%">Encuentro</th>
+                                <th style="width: 30%">Enlaces Directos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in partidos %}
+                            <tr class="fila-partido">
+                                <td class="hora">{{ evento.hora }}</td>
+                                <td class="partido">{{ evento.equipos }}</td>
+                                <td class="canales-td">{{ eventos_html or evento.canales_html | safe }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #00ff88;">
+            <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
+                📺 Mis Canales (Acceso Directo Manual)
+            </div>
+            <div class="grid-canales">
+                {% for canal in canales_puros %}
+                <a href="acestream://{{ canal.id }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                    <span class="ico-play">▶</span>
+                    <span>{{ canal.name }}</span>
+                </a>
+                {% endfor %}
             </div>
         </div>
-        {% endfor %}
+
     </div>
 
     <a href="/recargar" class="btn-recargar">
@@ -257,36 +307,65 @@
     </a>
 
     <script>
-        function filtrarContenido() {
-            // Obtenemos el texto introducido en minúsculas
+        function filtrarTodo() {
+            // Cogemos el texto del buscador, limpio y troceado por espacios
             let query = document.getElementById('buscador').value.toLowerCase().trim();
-            let tarjetas = document.querySelectorAll('.competition-card');
+            let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            tarjetas.forEach(tarjeta => {
-                let filas = tarjeta.querySelectorAll('tbody tr');
-                let partidosVisibles EnTarjeta = 0;
+            // 1. FILTRAR PARTIDOS Y COMPETICIONES
+            let tarjetasLigas = document.querySelectorAll('#seccion-partidos .competition-card');
+            
+            tarjetasLigas.forEach(tarjeta => {
+                let filas = tarjeta.querySelectorAll('.fila-partido');
+                let encuentrosVisibles = 0;
                 let nombreLiga = tarjeta.getAttribute('data-liga');
 
                 filas.forEach(fila => {
-                    let textoPartido = fila.querySelector('.partido').textContent.toLowerCase();
-                    let textoCanales = fila.querySelector('.canales-td').textContent.toLowerCase();
+                    // Juntamos todo el texto de la fila (partido, hora, canales) y la liga
+                    let textoCelda = fila.textContent.toLowerCase() + " " + nombreLiga;
+                    
+                    # Verificamos si CADA UNA de las palabras buscadas está en el texto
+                    let coincide = palabrasBusqueda.every(palabra => textoCelda.includes(palabra));
 
-                    // Si la búsqueda coincide con los equipos, los canales o el propio nombre de la liga
-                    if (textoPartido.includes(query) || textoCanales.includes(query) || nombreLiga.includes(query)) {
-                        fila.style.display = ''; // Mostrar fila
-                        partidosVisiblesEnTarjeta++;
+                    if (coincide) {
+                        fila.style.display = '';
+                        encuentrosVisibles++;
                     } else {
-                        fila.style.display = 'none'; // Ocultar fila
+                        fila.style.display = 'none';
                     }
                 });
 
-                // MEJORA: Si una liga no tiene ningún partido coincidente, ocultamos la tarjeta entera
-                if (partidosVisiblesEnTarjeta > 0) {
+                // Si no hay partidos que coincidan en esta liga, escondemos la tarjeta entera
+                if (encuentrosVisibles > 0) {
                     tarjeta.style.display = '';
                 } else {
                     tarjeta.style.display = 'none';
                 }
             });
+
+            // 2. FILTRAR LA NUEVA CUADRÍCULA DE CANALES DIRECTOS
+            let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
+            let canalesVisibles = 0;
+
+            botonesCanales.forEach(boton => {
+                let nombreCanal = boton.getAttribute('data-canal-name');
+                let coincideCanal = palabrasBusqueda.every(palabra => nombreCanal.includes(palabra));
+
+                if (coincideCanal) {
+                    boton.style.display = '';
+                    canalesVisibles++;
+                } else {
+                    boton.style.display = 'none';
+                }
+            });
+
+            // Si se busca algo y no queda ningún canal libre, se podría ocultar el bloque completo
+            let bloqueCanales = document.getElementById('card-canales-sistema');
+            if (palabrasBusqueda.length > 0 && canalesVisibles === 0) {
+                bloqueCanales.style.display = 'none';
+            } else {
+                bloqueCanales.style.display = '';
+            }
         }
     </script>
 
