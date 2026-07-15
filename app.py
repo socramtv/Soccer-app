@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from datetime import datetime
 import re
+import time
 
 # Importamos tus funciones existentes
 from funciones.get_links import extraer_enlaces
@@ -13,8 +14,21 @@ app = Flask(__name__)
 URL_ENLACES = 'https://ipfs.io/ipns/k2k4r8lm8tkmuxbc8lkmq1in3v0oya1p6pe9o5bu0hu30br5ko08k2gb/?tab=lista'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
+# VARIABLES DE CACHÉ (Evitan saturar el servidor de Render)
+cache_eventos = None
+ultimo_scraping = 0
+CACHE_EXPIRACION = 600  # Tiempo de vida de la caché: 10 minutos (600 segundos)
+
 def procesar_eventos():
-    """Obtiene los eventos y genera el HTML de los canales de forma dinámica"""
+    global cache_eventos, ultimo_scraping
+    ahora = time.time()
+
+    # Si ya tenemos datos guardados y han pasado menos de 10 minutos, los devolvemos al instante
+    if cache_eventos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
+        print("🔄 [Caché] Cargando eventos guardados (carga instantánea)")
+        return cache_eventos
+
+    print("🌐 [Live] Iniciando scraping en vivo (esto puede tardar unos segundos)...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
 
@@ -138,17 +152,16 @@ def procesar_eventos():
             else: 
                 eventos[i]['canales_html'] += canal + '<br>\n'
                 
+    # Guardamos el resultado en caché
+    cache_eventos = eventos
+    ultimo_scraping = ahora
     return eventos
 
 @app.route('/')
 def home():
-    # Obtenemos los eventos actualizados al cargar la web
     eventos = procesar_eventos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
-    
-    # Renderizamos la plantilla HTML pasándole los datos dinámicos
     return render_template('index.html', eventos=eventos, fecha=fecha_actual)
 
 if __name__ == '__main__':
-    # Ejecuta el servidor local en modo desarrollo
     app.run(debug=True, port=5000)
