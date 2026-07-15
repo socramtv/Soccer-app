@@ -2,7 +2,8 @@ from playwright.sync_api import sync_playwright
 
 def extraer_enlaces(url_enlaces):
     with sync_playwright() as p:
-        browser = p.webkit.launch(headless=True)
+        # CAMBIO AQUÍ: Cambiamos 'webkit' por 'chromium'
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(url_enlaces)
         
