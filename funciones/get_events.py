@@ -6,7 +6,6 @@ def extraer_eventos(url_eventos):
     eventos = []
     
     try:
-        # Cabecera para simular un navegador real y evitar bloqueos de red
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
@@ -23,7 +22,6 @@ def extraer_eventos(url_eventos):
         base_url = "https://www.futbolenlatv.es"
         
         # --- DETECTOR ADAPTATIVO DE FILAS DE PARTIDOS ---
-        # Buscamos cualquier elemento de texto que sea estrictamente una hora (ej: 20:45)
         elementos_hora = []
         for el in soup.find_all(['td', 'div', 'span', 'p', 'time']):
             texto = el.text.strip()
@@ -33,13 +31,11 @@ def extraer_eventos(url_eventos):
         tarjetas = []
         vistos = set()
         for el_hora in elementos_hora:
-            # Subimos al contenedor fila más inmediato (un tr, un div o un li)
             fila = el_hora.find_parent(['tr', 'div', 'li'])
             if fila and fila not in vistos and len(fila.text) < 1500:
                 tarjetas.append(fila)
                 vistos.add(fila)
 
-        # Respaldo clásico si fallara el detector de horas
         if not tarjetas:
             tarjetas = soup.select('tr.partido, div.partido, .partido-box, tr')
 
@@ -47,34 +43,65 @@ def extraer_eventos(url_eventos):
 
         for tarjeta in tarjetas:
             try:
-                # 1. Extraer la Hora exacta
+                # 1. Extraer la Hora
                 hora_match = re.search(r'\d{2}:\d{2}', tarjeta.text)
                 if not hora_match:
                     continue
                 hora = hora_match.group(0)
                 
-                # 2. Extraer la Competición / Liga (Buscamos el encabezado superior más cercano)
-                liga = ""
-                previo = tarjeta.find_previous(['h2', 'h3', 'h4', 'div', 'tr'], class_=re.compile(r'torneo|liga|competicion|titulo|date|fecha|thead'))
-                if previo:
-                    liga = previo.text.strip()
-                if not liga or len(liga) > 80:
-                    img_torneo = tarjeta.find('img', class_=re.compile(r'torneo|liga'))
-                    liga = img_torneo.get('alt', '').strip() if img_torneo else "Otros Deportes"
+                # 2. EXTRAER LA FECHA/DÍA (Buscando hacia atrás)
+                dias_semana = ['lunes', 'martes', 'miércoles', 'miercoles', 'jueves', 'viernes', 'sábado', 'sabado', 'domingo', 'hoy', 'mañana', 'ayer']
+                fecha = "Hoy"
+                temp = tarjeta.find_previous(['h2', 'h3', 'div', 'tr', 'p'])
+                while temp:
+                    txt_temp = temp.text.lower().strip()
+                    clases = "".join(temp.get('class', [])).lower() if temp.get('class') else ""
+                    
+                    contiene_dia = any(d in txt_temp for d in dias_semana)
+                    es_clase_fecha = any(x in clases for x in ['fecha', 'date', 'day', 'thead'])
+                    contiene_mes = any(m in txt_temp for m in ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'])
+                    
+                    if (contiene_dia or es_clase_fecha or contiene_mes) and len(txt_temp) < 100:
+                        if not re.match(r'^\s*\d{2}:\d{2}\s*$', txt_temp) and " - " not in temp.text:
+                            fecha = temp.text.strip()
+                            fecha = re.sub(r'\s+', ' ', fecha).strip()
+                            break
+                    temp = temp.find_previous(['h2', 'h3', 'div', 'tr', 'p'])
+
+                # 3. EXTRAER LA COMPETICIÓN / LIGA (Evitando coger el bloque de la fecha)
+                liga = "Otros Deportes"
+                temp_liga = tarjeta.find_previous(['div', 'tr', 'h3', 'h4'])
+                while temp_liga:
+                    clases_l = "".join(temp_liga.get('class', [])).lower() if temp_liga.get('class') else ""
+                    txt_l = temp_liga.text.strip()
+                    
+                    # Buscamos clases típicas de ligas o torneos
+                    if any(x in clases_l for x in ['torneo', 'liga', 'competicion', 'copete']):
+                        img_torneo = temp_liga.find('img')
+                        if img_torneo:
+                            liga = img_torneo.get('alt', '').strip()
+                        else:
+                            liga = txt_l
+                        break
+                    
+                    # Si tiene un encabezado de texto normal que no coincide con la fecha
+                    if txt_l != fecha and any(x in clases_l for x in ['titulo', 'head', 'cabecera']) and len(txt_l) < 80 and " - " not in txt_l:
+                        liga = txt_l
+                        break
+                        
+                    temp_liga = temp_liga.find_previous(['div', 'tr', 'h3', 'h4'])
                 
                 liga = re.sub(r'\s+', ' ', liga).strip()
 
-                # 3. Inicializar variables de equipos
+                # 4. Extraer equipos y logotipos
                 equipo_local = "Equipo Local"
                 equipo_visitante = "Equipo Visitante"
                 logo_local = ""
                 logo_visitante = ""
                 canales = []
 
-                # Separación por celdas si es una fila de tabla (tr)
                 tds = tarjeta.find_all('td') if tarjeta.name == 'tr' else []
                 
-                # Método A: Intentar por clases específicas de la web (.local y .visitante)
                 locales_el = tarjeta.select_one('.local, .equipo-local, span[class*="local"]')
                 visitantes_el = tarjeta.select_one('.visitante, .equipo-visitante, span[class*="visitante"]')
                 
@@ -86,7 +113,6 @@ def extraer_eventos(url_eventos):
                     if img_l: logo_local = img_l.get('src', '')
                     if img_v: logo_visitante = img_v.get('src', '')
                     
-                # Método B: Analizar celdas de tabla buscando el separador " - " o " vs "
                 elif len(tds) >= 2:
                     for td in tds:
                         txt = td.text.strip()
@@ -100,7 +126,6 @@ def extraer_eventos(url_eventos):
                                 logo_visitante = imgs[1].get('src', '')
                             break
                 
-                # Método C: Ruptura de cadenas general por líneas de texto limpio
                 if equipo_local == "Equipo Local" or not equipo_visitante:
                     texto_cuerpo = tarjeta.text.replace(hora, "").strip()
                     lineas = [l.strip() for l in texto_cuerpo.split('\n') if l.strip()]
@@ -111,7 +136,7 @@ def extraer_eventos(url_eventos):
                             equipo_visitante = partes[1].strip()
                             break
 
-                # 4. Clasificar imágenes de la fila de forma inteligente (Escudos vs Canales TV)
+                # Clasificar imágenes de forma inteligente (Escudos vs Canales TV)
                 imagenes = tarjeta.find_all('img')
                 escudos_libres = []
                 
@@ -121,7 +146,6 @@ def extraer_eventos(url_eventos):
                     title = img.get('title', '').lower()
                     clase = "".join(img.get('class', [])).lower()
                     
-                    # Si el alt o título contiene palabras de televisión, va a canales
                     if any(x in alt or x in title or x in clase for x in ['canal', 'tv', 'tele', 'logo', 'movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'vodafone', 'orange']):
                         nombre_c = img.get('alt', '').strip() or img.get('title', '').strip()
                         if nombre_c and nombre_c not in canales:
@@ -130,31 +154,25 @@ def extraer_eventos(url_eventos):
                         if src and src not in escudos_libres:
                             escudos_libres.append(src)
 
-                # Asignar escudos libres encontrados en la fila si no se capturaron antes
-                if not logo_local and len(escudos_libres) >= 1:
-                    logo_local = escudos_libres[0]
-                if not logo_visitante and len(escudos_libres) >= 2:
-                    logo_visitante = escudos_libres[1]
+                if not logo_local and len(escudos_libres) >= 1: logo_local = escudos_libres[0]
+                if not logo_visitante and len(escudos_libres) >= 2: logo_visitante = escudos_libres[1]
 
-                # Convertir rutas de imágenes locales a enlaces absolutos
                 if logo_local and logo_local.startswith('/'): logo_local = base_url + logo_local
                 if logo_visitante and logo_visitante.startswith('/'): logo_visitante = base_url + logo_visitante
 
-                # 5. Extraer canales por texto si la fila no usaba logotipos de televisión
                 if not canales:
                     for c_el in tarjeta.select('.canal, .tele, .canales, span[class*="canal"], td[class*="canal"]'):
                         c_txt = c_el.text.strip()
                         if c_txt and len(c_txt) < 40 and c_txt not in canales:
                             canales.append(c_txt)
 
-                # Limpieza final de espacios residuales
                 equipo_local = re.sub(r'\s+', ' ', equipo_local).strip()
                 equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
 
-                # Guardar el partido si es válido y contiene datos
                 if equipo_local and equipo_local != "Equipo Local":
                     eventos.append({
                         'hora': hora,
+                        'fecha': fecha,
                         'liga': liga if liga else "Otros Deportes",
                         'equipos': f"{equipo_local} - {equipo_visitante}",
                         'equipo_local': equipo_local,
@@ -168,7 +186,7 @@ def extraer_eventos(url_eventos):
             except Exception:
                 continue
 
-        # Eliminar duplicados si la estructura HTML repite elementos
+        # Eliminar duplicados de eventos
         eventos_unicos = []
         vistos_ev = set()
         for ev in eventos:
@@ -177,7 +195,7 @@ def extraer_eventos(url_eventos):
                 eventos_unicos.append(ev)
                 vistos_ev.add(clave)
 
-        print(f"✅ Extracción finalizada. {len(eventos_unicos)} partidos estructurados con éxito.")
+        print(f"✅ Extracción finalizada. {len(eventos_unicos)} partidos estructurados.")
         return eventos_unicos
 
     except Exception as e:
