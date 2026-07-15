@@ -77,32 +77,35 @@ def obtener_datos_completos():
     if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
         return cache_datos
         
-    print("🌐 Descargando y organizando canales y cartelera con escudos...")
+    print("🌐 Actualizando cartelera deportiva con estructuración por días...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     
-    # Procesar eventos y asegurar la existencia de campos para escudos
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
         
-        # Separación de seguridad por si el scraper no dividió los equipos
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
             partes = eventos[i]['equipos'].split(' - ')
             eventos[i]['equipo_local'] = partes[0].strip() if len(partes) >= 1 else eventos[i]['equipos']
             eventos[i]['equipo_visitante'] = partes[1].strip() if len(partes) == 2 else ""
             
-        # Fallback de imagen por si no tiene escudo extraído
         if not eventos[i].get('logo_local'):
             eventos[i]['logo_local'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
+    # DOBLE AGRUPACIÓN: 1º Día -> 2º Liga
     eventos_agrupados = {}
     for ev in eventos:
+        fecha = ev.get('fecha', 'Hoy').strip()
         liga = ev.get('liga', 'Otras Competiciones').strip()
-        if liga not in eventos_agrupados:
-            eventos_agrupados[liga] = []
-        eventos_agrupados[liga].append(ev)
+        
+        if fecha not in eventos_agrupados:
+            eventos_agrupados[fecha] = {}
+        if liga not in eventos_agrupados[fecha]:
+            eventos_agrupados[fecha][liga] = []
+            
+        eventos_agrupados[fecha][liga].append(ev)
         
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
@@ -115,7 +118,12 @@ def obtener_datos_completos():
 def home():
     datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
-    return render_template('index.html', eventos_agrupados=datos['eventos_agrupados'], canales_puros=datos['canales_puros'], fecha=fecha_actual)
+    return render_template(
+        'index.html', 
+        eventos_agrupados=datos['eventos_agrupados'], 
+        canales_puros=datos['canales_puros'], 
+        fecha=fecha_actual
+    )
 
 @app.route('/recargar')
 def recargar():
