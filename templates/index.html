@@ -117,7 +117,7 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 0.9rem;
-            min-width: 400px;
+            min-width: 480px; /* Un poco más ancho para albergar los escudos cómodamente */
         }
 
         th {
@@ -150,9 +150,33 @@
             white-space: nowrap;
         }
 
-        .partino-box {
+        /* Estructura Flexbox Premium para el Marcador de Equipos */
+        .marcador-box {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
             color: #ffffff;
-            font-weight: 500;
+        }
+
+        .bloque-equipo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .escudo-team {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            background-color: transparent;
+        }
+
+        .vs-separador {
+            color: #666666;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0 4px;
         }
 
         .canal-texto-vacio {
@@ -176,7 +200,7 @@
             border: 1px solid #333333;
         }
 
-        /* Cuadrícula de Accesos Directos de Canales al Final */
+        /* Cuadrícula de Canales */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -213,10 +237,6 @@
             border-color: #00ff88;
         }
 
-        .btn-canal-directo:active .ico-play {
-            color: #121212;
-        }
-
         .btn-recargar {
             position: fixed;
             bottom: 20px;
@@ -246,7 +266,7 @@
             <h1><span>📅 {{ fecha }}</span></h1>
         </div>
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Filtra por equipo, liga o canal..." onkeyup="filtrarTodo()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo (ej: sevilla, madrid...)" onkeyup="filtrarTodo()">
         </div>
     </div>
 
@@ -254,7 +274,7 @@
         
         <div id="seccion-partidos">
             {% for liga, partidos in eventos_agrupados.items() %}
-            <div class="competition-card" data-liga="{{ liga | lower }}">
+            <div class="competition-card">
                 <div class="competition-header">🏆 {{ liga }}</div>
                 <div class="table-container">
                     <table>
@@ -269,7 +289,19 @@
                             {% for evento in partidos %}
                             <tr class="fila-partido">
                                 <td class="hora">{{ evento.hora }}</td>
-                                <td class="partido-box">{{ evento.equipos }}</td>
+                                <td>
+                                    <div class="marcador-box">
+                                        <div class="bloque-equipo">
+                                            <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
+                                            <span class="txt-local">{{ evento.equipo_local }}</span>
+                                        </div>
+                                        <span class="vs-separador">vs</span>
+                                        <div class="bloque-equipo">
+                                            <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
+                                            <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="canales-td">{{ evento.canales_html | safe }}</td>
                             </tr>
                             {% endfor %}
@@ -282,7 +314,7 @@
 
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #00ff88;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
-                📺 Mis Canales Disponibles (Acceso Directo)
+                📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
@@ -305,22 +337,21 @@
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // 1. Filtrar filas de partidos (Aislado de la columna de la Hora)
+            // 1. Filtrar filas de partidos apuntando de forma exacta al texto de los equipos
             let tarjetasLigas = document.querySelectorAll('#seccion-partidos .competition-card');
             
             tarjetasLigas.forEach(tarjeta => {
                 let filas = tarjeta.querySelectorAll('.fila-partido');
                 let encuentrosVisibles = 0;
-                let nombreLiga = tarjeta.getAttribute('data-liga');
 
                 filas.forEach(fila => {
-                    let partidoText = fila.querySelector('.partido-box').textContent.toLowerCase();
-                    let canalesText = fila.querySelector('.canales-td').textContent.toLowerCase();
+                    // Extraemos exclusivamente el contenido de texto de ambos equipos de la fila
+                    let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
+                    let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
+                    let partidoCompleto = localText + " " + visitanteText;
                     
-                    // Contruimos el texto cruzando solo los datos limpios (Equipos, Canales y Liga)
-                    let textoFila = partidoText + " " + canalesText + " " + nombreLiga;
-                    
-                    let coincide = palabrasBusqueda.every(palabra => textoFila.includes(palabra));
+                    // Comprobamos si cada palabra clave está en el partido
+                    let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
 
                     if (coincide) {
                         fila.style.display = '';
