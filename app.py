@@ -57,11 +57,16 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
                 coincide_numeros = any(d in digitos_json for d in digitos_web)
             
             if coincide_palabras and coincide_numeros:
-                acestream_url = f"acestream://{enc['id']}"
-                icono = "★" if "**" in nombre_json else "⚡"
-                matches_encontrados.append(
-                    f'<a href="{acestream_url}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
-                )
+                # LIMPIEZA AUTOMÁTICA: Extrae solo los 40 caracteres del hash, ignore prefijos
+                hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
+                if hash_match:
+                    hash_puro = hash_match.group(1)
+                    stream_url = f"http://127.0.0.1:6878/ace/getstream?id={hash_puro}"
+                    icono = "★" if "**" in nombre_json else "⚡"
+                    # Transforma el enlace en una acción directa para el reproductor interactivo
+                    matches_encontrados.append(
+                        f'<button onclick="abrirReproductor(\'{stream_url}\', \'{nombre_json}\')" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</button>'
+                    )
         
         if matches_encontrados:
             html_resultado += "".join(matches_encontrados)
@@ -77,7 +82,7 @@ def obtener_datos_completos():
     if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
         return cache_datos
         
-    print("🌐 Actualizando cartelera deportiva con estructuración por días...")
+    print("🌐 Cargando cartelera unificada por días...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     
@@ -94,18 +99,12 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-    # DOBLE AGRUPACIÓN: 1º Día -> 2º Liga
     eventos_agrupados = {}
     for ev in eventos:
         fecha = ev.get('fecha', 'Hoy').strip()
-        liga = ev.get('liga', 'Otras Competiciones').strip()
-        
         if fecha not in eventos_agrupados:
-            eventos_agrupados[fecha] = {}
-        if liga not in eventos_agrupados[fecha]:
-            eventos_agrupados[fecha][liga] = []
-            
-        eventos_agrupados[fecha][liga].append(ev)
+            eventos_agrupados[fecha] = []
+        eventos_agrupados[fecha].append(ev)
         
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
@@ -118,10 +117,23 @@ def obtener_datos_completos():
 def home():
     datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
+    
+    # MEJORA: Limpiar también los hashes de la lista de acceso directo de abajo
+    canales_directos_limpios = []
+    for c in datos['canales_puros']:
+        hash_match = re.search(r'([a-fA-F0-9]{40})', c['id'])
+        if hash_match:
+            hash_puro = hash_match.group(1)
+            stream_url = f"http://127.0.0.1:6878/ace/getstream?id={hash_puro}"
+            canales_directos_limpios.append({
+                'name': c['name'],
+                'stream_url': stream_url
+            })
+            
     return render_template(
         'index.html', 
         eventos_agrupados=datos['eventos_agrupados'], 
-        canales_puros=datos['canales_puros'], 
+        canales_puros=canales_directos_limpios, 
         fecha=fecha_actual
     )
 
