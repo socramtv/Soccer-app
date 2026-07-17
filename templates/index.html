@@ -85,7 +85,7 @@
             margin-bottom: 70px;
         }
 
-        /* Cabecera de Separación por Días */
+        /* Cabeceras por Días Únicos */
         .day-section {
             width: 100%;
             display: flex;
@@ -107,7 +107,7 @@
             box-sizing: border-box;
         }
 
-        /* Tabla Única de Eventos */
+        /* Contenedor Unificado de Tablas Diarias */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -156,6 +156,7 @@
             white-space: nowrap;
         }
 
+        /* Estructura del Marcador Premium */
         .marcador-box {
             display: flex;
             align-items: center;
@@ -189,7 +190,7 @@
             margin: 2px 0;
         }
 
-        /* Botones de Canales en la Tabla */
+        /* Botones de la Agenda */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -202,9 +203,6 @@
             font-size: 0.8rem;
             font-weight: bold;
             border: 1px solid #333333;
-            cursor: pointer;
-            font-family: inherit;
-            outline: none;
         }
 
         .btn-canal:active {
@@ -213,7 +211,7 @@
             color: #121212;
         }
 
-        /* Cuadrícula de Canales Directos */
+        /* Cuadrícula de Canales del JSON */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -234,11 +232,6 @@
             font-weight: bold;
             border: 1px solid #333333;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            cursor: pointer;
-            font-family: inherit;
-            text-align: left;
-            width: 100%;
-            outline: none;
         }
 
         .btn-canal-directo .ico-play {
@@ -252,10 +245,6 @@
             background: #00ff88;
             color: #121212;
             border-color: #00ff88;
-        }
-
-        .btn-canal-directo:active .ico-play {
-            color: #121212;
         }
 
         /* Botón Actualizar */
@@ -279,85 +268,25 @@
             z-index: 999;
         }
 
-        /* ==========================================================
-           REPRODUCTOR MODAL PREMIUM (ESTILO SOCRAMFLIX)
-        ========================================================== */
-        #player-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.96);
-            z-index: 2000;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        .player-window {
-            width: 100%;
-            max-width: 720px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .player-topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5px;
-        }
-
-        .player-topbar h3 {
-            margin: 0;
-            color: #ffffff;
-            font-size: 1.05rem;
-            font-weight: 600;
-        }
-
-        .btn-close-player {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 7px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-        }
-
-        .btn-close-player:active {
-            background-color: #cc0000;
-        }
-
-        .video-wrapper {
-            width: 100%;
-            background-color: #000000;
-            border-radius: 10px;
+        .competition-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
+            margin-bottom: 15px;
             overflow: hidden;
-            border: 1px solid #2d2d2d;
-            aspect-ratio: 16/9;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .competition-header {
+            background-color: #252525;
+            color: #ffffff;
+            padding: 11px 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #333333;
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        #video-player {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            outline: none;
-        }
-
-        .player-footer-text {
-            color: #666666;
-            font-size: 0.75rem;
-            text-align: center;
-            margin: 0;
+            gap: 8px;
         }
     </style>
 </head>
@@ -370,7 +299,7 @@
             <h1><span>📅 {{ fecha }}</span></h1>
         </div>
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo (ej: sevilla, betis, nadal...)" onkeyup="filtrarTodo()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo para filtrar..." onkeyup="filtrarTodo()">
         </div>
     </div>
 
@@ -380,6 +309,7 @@
         <div id="seccion-partidos">
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
+                <!-- Encabezado de Día -->
                 <div class="day-header">📅 {{ fecha }}</div>
                 
                 <div class="table-container">
@@ -396,6 +326,7 @@
                             <tr class="fila-partido">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
+                                    <!-- Columna Encuentros donde lee el Buscador de forma exclusiva -->
                                     <div class="marcador-box">
                                         <div class="bloque-equipo">
                                             <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
@@ -418,69 +349,30 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR: Lista de canales con acceso directo interactivo -->
+        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
-                <button onclick="abrirReproductor('{{ canal.stream_url }}', '{{ canal.name }}')" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                <a href="/reproductor?url={{ canal.stream_url }}&name={{ canal.name }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
                     <span class="ico-play">▶</span>
                     <span>{{ canal.name }}</span>
-                </button>
+                </a>
                 {% endfor %}
             </div>
         </div>
 
     </div>
 
-    <!-- REPRODUCTOR MODAL FLOTANTE (SOCRAMFLIX STYLE) -->
-    <div id="player-modal">
-        <div class="player-window">
-            <div class="player-topbar">
-                <h3 id="player-title">📺 Reproduciendo Canal</h3>
-                <button onclick="cerrarReproductor()" class="btn-close-player">❌ Cerrar</button>
-            </div>
-            <div class="video-wrapper">
-                <video id="video-player" controls autoplay playsinline></video>
-            </div>
-            <p class="player-footer-text">Nota: Asegúrate de tener la aplicación Ace Stream Engine abierta en segundo plano.</p>
-        </div>
-    </div>
-
-    <!-- Botón flotante actualizar -->
+    <!-- Botón flotante -->
     <a href="/recargar" class="btn-recargar">
         🔄 Forzar Actualización
     </a>
 
+    <!-- Buscador en tiempo real de Alta Precisión -->
     <script>
-        // --- FUNCIONES DEL REPRODUCTOR ---
-        function abrirReproductor(url, nombreCanal) {
-            let modal = document.getElementById('player-modal');
-            let video = document.getElementById('video-player');
-            let title = document.getElementById('player-title');
-            
-            title.textContent = "📺 Leyendo: " + nombreCanal;
-            video.src = url;
-            modal.style.display = 'flex';
-            
-            // Intenta reproducir el flujo local
-            video.play().catch(err => {
-                console.log("Esperando flujo de buffer local de AceStream...");
-            });
-        }
-
-        function cerrarReproductor() {
-            let modal = document.getElementById('player-modal');
-            let video = document.getElementById('video-player');
-            
-            video.pause();
-            video.src = ""; // Resetea el buffer
-            modal.style.display = 'none';
-        }
-
-        // --- BUSCADOR FILTRADO EN TIEMPO REAL ---
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
@@ -492,6 +384,7 @@
                 let encuentrosVisiblesEnDia = 0;
 
                 filas.forEach(fila => {
+                    // Extraemos estrictamente los nombres de los dos equipos ignorando horas o canales
                     let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
                     let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
                     let partidoCompleto = localText + " " + visitanteText;
@@ -506,6 +399,7 @@
                     }
                 });
 
+                // Si no queda ningún encuentro en todo el día, ocultamos la fecha completa
                 if (encuentrosVisiblesEnDia > 0) {
                     seccion.style.display = '';
                 } else {
@@ -513,6 +407,7 @@
                 }
             });
 
+            // Filtrado de la lista inferior de canales directos
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
