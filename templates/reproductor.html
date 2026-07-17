@@ -34,23 +34,51 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 5px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         h2 {
             margin: 0;
             font-size: 1.2rem;
             color: #ffffff;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .btn-volver {
+        .actions-box {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
             background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%);
-            color: #00ff88;
+            color: #e0e0e0;
             border: 1px solid #333;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 9px 16px;
+            border-radius: 8px;
             text-decoration: none;
             font-size: 0.85rem;
             font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        /* Botón Enviar a TV Premium estilo SocramFlix */
+        .btn-cast {
+            background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
+            color: #121212;
+            border-color: #00ff88;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+        }
+
+        .btn-cast:active {
+            transform: scale(0.95);
         }
 
         .video-wrapper {
@@ -74,7 +102,93 @@
             text-align: center;
             color: #555;
             font-size: 0.8rem;
-            margin-top: 10px;
+            margin: 0;
+            margin-top: 5px;
+        }
+
+        /* ==========================================================
+           MODAL DESPLEGABLE DE TRANSMISIÓN A TV
+        ========================================================== */
+        #cast-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .cast-window {
+            background-color: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+            padding-bottom: 10px;
+        }
+
+        .cast-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #00ff88;
+        }
+
+        .btn-close-cast {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .cast-options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-cast-option {
+            width: 100%;
+            padding: 12px;
+            background: #202020;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .btn-cast-option:active {
+            background: #282828;
+            border-color: #00ff88;
+        }
+
+        .btn-cast-option .icon-opt {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
         }
     </style>
 </head>
@@ -82,37 +196,135 @@
 
     <div class="player-container">
         <div class="top-bar">
-            <h2>📺 Viendo: {{ canal_name }}</h2>
-            <a href="/" class="btn-volver">⬅ Volver a la Agenda</a>
+            <!-- Título limpio decodificado automáticamente -->
+            <h2 id="titulo-streaming">📺 Viendo: Cargando...</h2>
+            
+            <div class="actions-box">
+                <!-- Botón Enviar a TV -->
+                <button onclick="abrirMenuTv()" class="btn-action btn-cast">
+                    📺 Enviar a TV
+                </button>
+                <a href="/" class="btn-action">⬅ Agenda</a>
+            </div>
         </div>
 
         <div class="video-wrapper">
             <video id="player" controls autoplay playsinline></video>
         </div>
 
-        <p class="info-footer">Asegúrate de tener la app Ace Stream Engine abierta en segundo plano en tu dispositivo.</p>
+        <p class="info-footer">Asegúrate de mantener el motor Ace Stream Engine ejecutándose en segundo plano en tu móvil.</p>
+    </div>
+
+    <!-- PANEL MODAL: ENVIAR A TELEVISIÓN -->
+    <div id="cast-modal" onclick="cerrarMenuTvExterno(event)">
+        <div class="cast-window" id="cast-window-box">
+            <div class="cast-header">
+                <h3>📺 Transmitir en Smart TV</h3>
+                <button onclick="cerrarMenuTv()" class="btn-close-cast">✕</button>
+            </div>
+            
+            <div class="cast-options-list">
+                <!-- Opción 1: Lanzar Web Video Caster -->
+                <a id="link-wvc" href="#" class="btn-cast-option">
+                    <span class="icon-opt">🌐</span>
+                    <div>
+                        <div style="color: #fff;">Web Video Caster</div>
+                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Recomendado para LG, Samsung, Chromecast</div>
+                    </div>
+                </a>
+
+                <!-- Opción 2: Lanzar VLC Player -->
+                <a id="link-vlc" href="#" class="btn-cast-option">
+                    <span class="icon-opt">🧡</span>
+                    <div>
+                        <div style="color: #fff;">VLC Media Player</div>
+                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Casteo mediante botón de Chromecast integrado</div>
+                    </div>
+                </a>
+
+                <!-- Opción 3: Copiar enlace de transmisión -->
+                <button onclick="copiarEnlaceHls()" class="btn-cast-option">
+                    <span class="icon-opt">📋</span>
+                    <div>
+                        <div style="color: #fff;">Copiar Enlace HLS (.m3u8)</div>
+                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Para pegar en apps IPTV de tu Smart TV</div>
+                    </div>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
+        let streamRawUrl = "{{ stream_url | safe }}";
+        let canalRawName = "{{ canal_name | safe }}";
+
+        // Decodificar parámetros URL para que no muestren símbolos raros en pantalla (%20, etc)
+        let streamUrlClean = decodeURIComponent(streamRawUrl);
+        let canalNameClean = decodeURIComponent(canalRawName);
+
+        document.getElementById('titulo-streaming').textContent = "📺 Viendo: " + canalNameClean;
+
+        // --- REPRODUCCIÓN WEB HLS NATURAl ---
         document.addEventListener("DOMContentLoaded", function() {
             let video = document.getElementById('player');
-            let streamUrl = "{{ stream_url | safe }}";
 
             if (Hls.isSupported()) {
                 let hls = new Hls();
-                hls.loadSource(streamUrl);
+                hls.loadSource(streamUrlClean);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     video.play();
                 });
             } 
             else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrl;
+                video.src = streamUrlClean;
                 video.addEventListener('loadedmetadata', function() {
                     video.play();
                 });
             }
-        } );
+
+            // --- CONFIGURACIÓN DE INTENTS / LANZADORES EXTERNOS ---
+            // Quitamos el protocolo "http://" inicial para construir el Intent de Android de forma limpia
+            let urlSinProtocolo = streamUrlClean.replace(/^https?:\/\//, '');
+
+            // Intent para Web Video Caster
+            document.getElementById('link-wvc').href = "intent://" + urlSinProtocolo + "#Intent;scheme=http;package=com.instantbits.cast.webvideo;end;";
+            
+            // Intent para VLC Player
+            document.getElementById('link-vlc').href = "intent://" + urlSinProtocolo + "#Intent;scheme=http;package=org.videolan.vlc;end;";
+        });
+
+        // --- FUNCIONES DEL PANEL MODAL TV ---
+        function abrirMenuTv() {
+            document.getElementById('cast-modal').style.display = 'flex';
+        }
+
+        function cerrarMenuTv() {
+            document.getElementById('cast-modal').style.display = 'none';
+        }
+
+        function cerrarMenuTvExterno(e) {
+            if (e.target.id === "cast-modal") {
+                cerrarMenuTv();
+            }
+        }
+
+        function copiarEnlaceHls() {
+            navigator.clipboard.writeText(streamUrlClean).then(function() {
+                alert("📋 Enlace de transmisión copiado al portapapeles. ¡Listo para pegar en tu Smart TV!");
+                cerrarMenuTv();
+            }).catch(function() {
+                // Fallback por si el navegador bloquea el portapapeles por seguridad
+                let tempInput = document.createElement("input");
+                tempInput.value = streamUrlClean;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                alert("📋 Enlace de transmisión copiado con éxito.");
+                cerrarMenuTv();
+            });
+        }
     </script>
 
 </body>
