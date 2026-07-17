@@ -50,9 +50,33 @@
         }
 
         .top-bar h1 span {
-            color: #00ff88;
+            color: #888888;
             font-size: 0.8rem;
             font-weight: normal;
+            margin-left: 5px;
+        }
+
+        /* NUEVO: Botón de acceso directo en la barra superior */
+        .btn-directo-canales {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .btn-directo-canales:active {
+            background: #00ff88;
+            color: #121212;
+            transform: scale(0.95);
         }
 
         .search-container {
@@ -227,7 +251,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* SOLUCIÓN AL CLIC MÓVIL: Hace que los textos internos no bloqueen el toque táctil */
         .btn-canal-directo * {
             pointer-events: none;
         }
@@ -287,8 +310,9 @@
     <!-- Barra Superior Fija -->
     <div class="top-bar">
         <div class="top-bar-content">
-            <h1>🎯 Agenda Deportiva</h1>
-            <h1><span>📅 {{ fecha }}</span></h1>
+            <h1>🎯 Agenda Deportiva<span>{{ fecha }}</span></h1>
+            <!-- NUEVO: Botón táctil para bajar directo sin hacer scroll manual -->
+            <button onclick="bajarACanales()" class="btn-directo-canales">📺 Canales</button>
         </div>
         <div class="search-container">
             <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo para filtrar..." onkeyup="filtrarTodo()">
@@ -339,14 +363,13 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS protegidos -->
+        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
-                <!-- SOLUCIÓN DE SEGURIDAD: Se añade el filtro urlencode para no corromper la URL con espacios o símbolos -->
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
                     <span class="ico-play">▶</span>
                     <span>{{ canal.name }}</span>
@@ -363,6 +386,19 @@
     </a>
 
     <script>
+        // NUEVO: Función para bajar suavemente calculando el margen de la barra fija superior
+        function bajarACanales() {
+            const target = document.getElementById('card-canales-sistema');
+            const offset = 140; // Altura exacta en píxeles de nuestra top-bar fija
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+            
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+        }
+
+        // Buscador en tiempo real
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
