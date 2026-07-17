@@ -85,7 +85,7 @@
             margin-bottom: 70px;
         }
 
-        /* Cabeceras por Días Únicos */
+        /* Cabecera de Separación por Días */
         .day-section {
             width: 100%;
             display: flex;
@@ -107,7 +107,7 @@
             box-sizing: border-box;
         }
 
-        /* Contenedor Unificado de Tablas Diarias */
+        /* Tabla Única de Eventos */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -156,7 +156,6 @@
             white-space: nowrap;
         }
 
-        /* Estructura del Marcador Premium */
         .marcador-box {
             display: flex;
             align-items: center;
@@ -190,7 +189,7 @@
             margin: 2px 0;
         }
 
-        /* Botones de la Agenda */
+        /* Botones de Canales en la Tabla */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -205,13 +204,7 @@
             border: 1px solid #333333;
         }
 
-        .btn-canal:active {
-            transform: scale(0.95);
-            background: #00ff88;
-            color: #121212;
-        }
-
-        /* Cuadrícula de Canales del JSON */
+        /* Cuadrícula de Canales Directos */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -234,10 +227,9 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        .btn-canal-directo .ico-play {
-            color: #00ff88;
-            margin-right: 8px;
-            font-size: 0.75rem;
+        /* SOLUCIÓN AL CLIC MÓVIL: Hace que los textos internos no bloqueen el toque táctil */
+        .btn-canal-directo * {
+            pointer-events: none;
         }
 
         .btn-canal-directo:active {
@@ -309,7 +301,6 @@
         <div id="seccion-partidos">
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
-                <!-- Encabezado de Día -->
                 <div class="day-header">📅 {{ fecha }}</div>
                 
                 <div class="table-container">
@@ -326,7 +317,6 @@
                             <tr class="fila-partido">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
-                                    <!-- Columna Encuentros donde lee el Buscador de forma exclusiva -->
                                     <div class="marcador-box">
                                         <div class="bloque-equipo">
                                             <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
@@ -349,14 +339,15 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS -->
+        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS protegidos -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
-                <a href="/reproductor?url={{ canal.stream_url }}&name={{ canal.name }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                <!-- SOLUCIÓN DE SEGURIDAD: Se añade el filtro urlencode para no corromper la URL con espacios o símbolos -->
+                <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
                     <span class="ico-play">▶</span>
                     <span>{{ canal.name }}</span>
                 </a>
@@ -371,7 +362,6 @@
         🔄 Forzar Actualización
     </a>
 
-    <!-- Buscador en tiempo real de Alta Precisión -->
     <script>
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
@@ -384,7 +374,6 @@
                 let encuentrosVisiblesEnDia = 0;
 
                 filas.forEach(fila => {
-                    // Extraemos estrictamente los nombres de los dos equipos ignorando horas o canales
                     let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
                     let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
                     let partidoCompleto = localText + " " + visitanteText;
@@ -399,7 +388,6 @@
                     }
                 });
 
-                // Si no queda ningún encuentro en todo el día, ocultamos la fecha completa
                 if (encuentrosVisiblesEnDia > 0) {
                     seccion.style.display = '';
                 } else {
@@ -407,7 +395,6 @@
                 }
             });
 
-            // Filtrado de la lista inferior de canales directos
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
