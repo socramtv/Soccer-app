@@ -85,7 +85,7 @@
             margin-bottom: 70px;
         }
 
-        /* Cabecera Especial para Separar por Días */
+        /* Cabecera de Separación por Días */
         .day-section {
             width: 100%;
             display: flex;
@@ -101,37 +101,21 @@
             font-weight: bold;
             padding: 12px 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border-left: 5px solid #00ff88;
             box-sizing: border-box;
         }
 
-        .competition-card {
-            background-color: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            border: 1px solid #2a2a2a;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        .competition-header {
-            background-color: #252525;
-            color: #ffffff;
-            padding: 11px 15px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border-bottom: 1px solid #333333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        /* Tabla Única de Eventos */
         .table-container {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
         }
 
         table {
@@ -205,6 +189,7 @@
             margin: 2px 0;
         }
 
+        /* Botones de Canales en la Tabla */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -217,6 +202,15 @@
             font-size: 0.8rem;
             font-weight: bold;
             border: 1px solid #333333;
+            cursor: pointer;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .btn-canal:active {
+            transform: scale(0.95);
+            background: #00ff88;
+            color: #121212;
         }
 
         /* Cuadrícula de Canales Directos */
@@ -240,6 +234,11 @@
             font-weight: bold;
             border: 1px solid #333333;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            width: 100%;
+            outline: none;
         }
 
         .btn-canal-directo .ico-play {
@@ -255,6 +254,11 @@
             border-color: #00ff88;
         }
 
+        .btn-canal-directo:active .ico-play {
+            color: #121212;
+        }
+
+        /* Botón Actualizar */
         .btn-recargar {
             position: fixed;
             bottom: 20px;
@@ -274,136 +278,241 @@
             gap: 8px;
             z-index: 999;
         }
+
+        /* ==========================================================
+           REPRODUCTOR MODAL PREMIUM (ESTILO SOCRAMFLIX)
+        ========================================================== */
+        #player-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.96);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .player-window {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        .player-topbar h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .btn-close-player {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .btn-close-player:active {
+            background-color: #cc0000;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            background-color: #000000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #2d2d2d;
+            aspect-ratio: 16/9;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            outline: none;
+        }
+
+        .player-footer-text {
+            color: #666666;
+            font-size: 0.75rem;
+            text-align: center;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Barra Superior Fija -->
     <div class="top-bar">
         <div class="top-bar-content">
             <h1>🎯 Agenda Deportiva</h1>
             <h1><span>📅 {{ fecha }}</span></h1>
         </div>
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Filtra por partido (ej: sevilla, betis, madrid...)" onkeyup="filtrarTodo()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo (ej: sevilla, betis, nadal...)" onkeyup="filtrarTodo()">
         </div>
     </div>
 
     <div class="container">
         
+        <!-- Bloque Principal de Partidos por Días -->
         <div id="seccion-partidos">
-            {% for fecha, competiciones in eventos_agrupados.items() %}
-            <div class="day-section" data-fecha="{{ fecha | lower }}">
+            {% for fecha, partidos in eventos_agrupados.items() %}
+            <div class="day-section">
                 <div class="day-header">📅 {{ fecha }}</div>
                 
-                {% for liga, partidos in competiciones.items() %}
-                <div class="competition-card">
-                    <div class="competition-header">🏆 {{ liga }}</div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 15%">Hora</th>
-                                    <th style="width: 55%">Encuentro</th>
-                                    <th style="width: 30%">Enlaces Directos</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for evento in partidos %}
-                                <tr class="fila-partido">
-                                    <td class="hora">{{ evento.hora }}</td>
-                                    <td>
-                                        <div class="marcador-box">
-                                            <div class="bloque-equipo">
-                                                <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
-                                                <span class="txt-local">{{ evento.equipo_local }}</span>
-                                            </div>
-                                            <span class="vs-separador">vs</span>
-                                            <div class="bloque-equipo">
-                                                <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
-                                                <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
-                                            </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Hora</th>
+                                <th style="width: 55%">Encuentro</th>
+                                <th style="width: 30%">Enlaces Directos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evento in partidos %}
+                            <tr class="fila-partido">
+                                <td class="hora">{{ evento.hora }}</td>
+                                <td>
+                                    <div class="marcador-box">
+                                        <div class="bloque-equipo">
+                                            <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
+                                            <span class="txt-local">{{ evento.equipo_local }}</span>
                                         </div>
-                                    </td>
-                                    <td class="canales-td">{{ evento.canales_html | safe }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                        <span class="vs-separador">vs</span>
+                                        <div class="bloque-equipo">
+                                            <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
+                                            <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="canales-td">{{ evento.canales_html | safe }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                {% endfor %}
             </div>
             {% endfor %}
         </div>
 
-        <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #00ff88;">
-            <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold;">
+        <!-- SECCIÓN INFERIOR: Lista de canales con acceso directo interactivo -->
+        <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
+            <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
-                <a href="acestream://{{ canal.id }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                <button onclick="abrirReproductor('{{ canal.stream_url }}', '{{ canal.name }}')" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
                     <span class="ico-play">▶</span>
                     <span>{{ canal.name }}</span>
-                </a>
+                </button>
                 {% endfor %}
             </div>
         </div>
 
     </div>
 
+    <!-- REPRODUCTOR MODAL FLOTANTE (SOCRAMFLIX STYLE) -->
+    <div id="player-modal">
+        <div class="player-window">
+            <div class="player-topbar">
+                <h3 id="player-title">📺 Reproduciendo Canal</h3>
+                <button onclick="cerrarReproductor()" class="btn-close-player">❌ Cerrar</button>
+            </div>
+            <div class="video-wrapper">
+                <video id="video-player" controls autoplay playsinline></video>
+            </div>
+            <p class="player-footer-text">Nota: Asegúrate de tener la aplicación Ace Stream Engine abierta en segundo plano.</p>
+        </div>
+    </div>
+
+    <!-- Botón flotante actualizar -->
     <a href="/recargar" class="btn-recargar">
         🔄 Forzar Actualización
     </a>
 
     <script>
+        // --- FUNCIONES DEL REPRODUCTOR ---
+        function abrirReproductor(url, nombreCanal) {
+            let modal = document.getElementById('player-modal');
+            let video = document.getElementById('video-player');
+            let title = document.getElementById('player-title');
+            
+            title.textContent = "📺 Leyendo: " + nombreCanal;
+            video.src = url;
+            modal.style.display = 'flex';
+            
+            // Intenta reproducir el flujo local
+            video.play().catch(err => {
+                console.log("Esperando flujo de buffer local de AceStream...");
+            });
+        }
+
+        function cerrarReproductor() {
+            let modal = document.getElementById('player-modal');
+            let video = document.getElementById('video-player');
+            
+            video.pause();
+            video.src = ""; // Resetea el buffer
+            modal.style.display = 'none';
+        }
+
+        // --- BUSCADOR FILTRADO EN TIEMPO REAL ---
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // 1. Filtrar filas de partidos apuntando a la jerarquía: Día -> Tarjetas -> Filas
             let seccionesDias = document.querySelectorAll('#seccion-partidos .day-section');
             
             seccionesDias.forEach(seccion => {
-                let tarjetasLigas = seccion.querySelectorAll('.competition-card');
-                let ligasVisiblesEnDia = 0;
+                let filas = seccion.querySelectorAll('.fila-partido');
+                let encuentrosVisiblesEnDia = 0;
 
-                tarjetasLigas.forEach(tarjeta => {
-                    let filas = tarjeta.querySelectorAll('.fila-partido');
-                    let encuentrosVisiblesEnLiga = 0;
+                filas.forEach(fila => {
+                    let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
+                    let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
+                    let partidoCompleto = localText + " " + visitanteText;
+                    
+                    let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
 
-                    filas.forEach(fila => {
-                        let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
-                        let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
-                        let partidoCompleto = localText + " " + visitanteText;
-                        
-                        let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
-
-                        if (coincide) {
-                            fila.style.display = '';
-                            encuentrosVisiblesEnLiga++;
-                        } else {
-                            fila.style.display = 'none';
-                        }
-                    });
-
-                    if (encuentrosVisiblesEnLiga > 0) {
-                        tarjeta.style.display = '';
-                        ligasVisiblesEnDia++;
+                    if (coincide) {
+                        fila.style.display = '';
+                        encuentrosVisiblesEnDia++;
                     } else {
-                        tarjeta.style.display = 'none';
+                        fila.style.display = 'none';
                     }
                 });
 
-                // Si no queda ninguna liga con partidos visibles hoy, ocultamos la cabecera de ese día
-                if (ligasVisiblesEnDia > 0) {
+                if (encuentrosVisiblesEnDia > 0) {
                     seccion.style.display = '';
                 } else {
                     seccion.style.display = 'none';
                 }
             });
 
-            // 2. Filtrar el bloque de canales directos inferior
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
