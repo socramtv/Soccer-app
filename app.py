@@ -1,22 +1,24 @@
 import re
 import time
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for
-import requests
+from flask import Flask, render_template, redirect, url_for, request
 
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
 app = Flask(__name__)
 
+# Tus URLs seguras de canales y eventos
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
+# Sistema de Caché Unificado (10 minutos)
 cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 600
 
 def normalizar_cadena(texto):
+    """Limpia tildes, símbolos y estandariza nombres de canales para cruzarlos"""
     texto = texto.lower().strip()
     texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
     texto = texto.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
@@ -24,6 +26,7 @@ def normalizar_cadena(texto):
     return " ".join(texto.split())
 
 def vincular_canales_automatico(canales_evento, lista_enlaces):
+    """Algoritmo inteligente bidireccional que enlaza directo a la nueva pantalla hls"""
     html_resultado = ""
     STOPWORDS = {'hd', 'sd', '1080p', '720p', 'la', 'el', 'los', 'de', 'en', 'ver', 'directo', 'orange', 'tv', 'vodafone', 'movistar', 'plus'}
     
@@ -57,15 +60,17 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
                 coincide_numeros = any(d in digitos_json for d in digitos_web)
             
             if coincide_palabras and coincide_numeros:
-                # LIMPIEZA AUTOMÁTICA: Extrae solo los 40 caracteres del hash, ignore prefijos
+                # LIMPIEZA AUTOMÁTICA DEL HASH (Extrae solo los 40 caracteres correctos)
                 hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
                 if hash_match:
                     hash_puro = hash_match.group(1)
-                    stream_url = f"http://127.0.0.1:6878/ace/getstream?id={hash_puro}"
+                    # Formato HLS local definitivo
+                    stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                     icono = "★" if "**" in nombre_json else "⚡"
-                    # Transforma el enlace en una acción directa para el reproductor interactivo
+                    
+                    # MEJORA: Abre directamente redirigiendo a la pantalla del reproductor nuevo
                     matches_encontrados.append(
-                        f'<button onclick="abrirReproductor(\'{stream_url}\', \'{nombre_json}\')" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</button>'
+                        f'<a href="/reproductor?url={stream_url}&name={nombre_json}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
                     )
         
         if matches_encontrados:
@@ -99,6 +104,7 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
+    # Agrupación exclusiva por FECHA (Misma categoría corrida cronológicamente)
     eventos_agrupados = {}
     for ev in eventos:
         fecha = ev.get('fecha', 'Hoy').strip()
@@ -118,13 +124,13 @@ def home():
     datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
     
-    # MEJORA: Limpiar también los hashes de la lista de acceso directo de abajo
+    # Limpieza automática de la lista inferior de accesos directos
     canales_directos_limpios = []
     for c in datos['canales_puros']:
         hash_match = re.search(r'([a-fA-F0-9]{40})', c['id'])
         if hash_match:
             hash_puro = hash_match.group(1)
-            stream_url = f"http://127.0.0.1:6878/ace/getstream?id={hash_puro}"
+            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
             canales_directos_limpios.append({
                 'name': c['name'],
                 'stream_url': stream_url
@@ -136,6 +142,13 @@ def home():
         canales_puros=canales_directos_limpios, 
         fecha=fecha_actual
     )
+
+@app.route('/reproductor')
+def reproductor():
+    """Carga de forma nativa e independiente el reproductor.html"""
+    stream_url = request.args.get('url', '')
+    canal_name = request.args.get('name', 'Canal Deportivo')
+    return render_template('reproductor.html', stream_url=stream_url, canal_name=canal_name)
 
 @app.route('/recargar')
 def recargar():
