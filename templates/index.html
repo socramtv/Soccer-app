@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Sσcяαм Tν + Acεѕтяεαм</title>
-    <!-- Vinculación del manifiesto PWA -->
-    <link rel="manifest" href="/manifest.json">
+    <title>Sσcяαм Tν + Acεѕтяεαм</title>
     <style>
         body {
             background-color: #121212;
@@ -13,14 +11,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 215px;
+            padding-top: 215px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* Barra Superior Fija Ultra-Compacta */
         .top-bar {
             position: fixed;
             top: 0;
@@ -45,7 +42,7 @@
             align-items: center;
         }
 
-        /* Logo Principal Superior */
+        /* Logo Principal Superior Grande */
         .main-logo {
             width: 76px;
             height: 76px;
@@ -287,7 +284,7 @@
             align-items: center;
             background: linear-gradient(135deg, #252525 0%, #1c1c1c 100%);
             color: #ffffff;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-radius: 5px;
             text-decoration: none;
             font-size: 0.7rem;
@@ -313,32 +310,6 @@
             z-index: 999;
         }
 
-        /* Botón de Instalar Flotante Izquierdo */
-        .btn-instalar {
-            position: fixed;
-            bottom: 12px;
-            left: 12px;
-            background: linear-gradient(135deg, #1e2937 0%, #111827 100%);
-            color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            padding: 8px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            cursor: pointer;
-            display: none; 
-            align-items: center;
-            gap: 5px;
-            z-index: 999;
-        }
-
-        .btn-instalar img {
-            width: 14px;
-            height: 14px;
-            object-fit: contain;
-        }
-
         .competition-card {
             background-color: #1e1e1e;
             border-radius: 8px;
@@ -362,7 +333,7 @@
     <!-- Barra Superior Fija -->
     <div class="top-bar">
         <div class="top-bar-title-row">
-            <img src="/icon-512.png" class="main-logo" alt="Socram Logo">
+            <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-512.png" class="main-logo" alt="Socram Logo">
             <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
             <span class="subtitle">by Masp</span>
         </div>
@@ -383,7 +354,7 @@
 
     <div class="container">
         
-        <!-- SECCIÓN DESTACADOS (SEVILLA / BETIS) -->
+        <!-- SECCIÓN DESTACADOS -->
         {% if destacados %}
         <div class="day-section" id="seccion-destacados">
             <div class="day-header" style="background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); color: #ffffff; border-left: 5px solid #ffcc00;">⭐ Partidos Destacados</div>
@@ -499,12 +470,6 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE DE INSTALACIÓN -->
-    <button id="btn-instalar-app" class="btn-instalar" onclick="ejecutarInstalacionPWA()">
-        <img src="/icon-192.png" alt="App Icon">
-        <span>Instalar App</span>
-    </button>
-
     <!-- Botón flotante actualizar -->
     <a href="/recargar" class="btn-recargar">
         🔄 Actualizar
@@ -512,38 +477,6 @@
 
     <script>
         let ocultarSinEnlace = true;
-        let eventoInstalacionManejado;
-
-        // REGISTRO DEL SERVICE WORKER (Obligatorio para que funcione la instalación)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-                    .catch(err => console.error('Error al registrar el Service Worker:', err));
-            });
-        }
-
-        // Captura de instalación PWA nativa
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            eventoInstalacionManejado = e;
-            const botonInstalar = document.getElementById('btn-instalar-app');
-            if (botonInstalar) {
-                botonInstalar.style.display = 'flex'; 
-            }
-        });
-
-        function ejecutarInstalacionPWA() {
-            if (!eventoInstalacionManejado) return;
-            eventoInstalacionManejado.prompt();
-            eventoInstalacionManejado.userChoice.then((resultado) => {
-                if (resultado.outcome === 'accepted') {
-                    console.log('El usuario instaló Socram Tv');
-                }
-                eventoInstalacionManejado = null;
-                document.getElementById('btn-instalar-app').style.display = 'none';
-            });
-        }
 
         function descargarListaM3U() {
             let m3uTexto = "#EXTM3U\n";
