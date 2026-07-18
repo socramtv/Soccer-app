@@ -90,10 +90,9 @@ def extraer_eventos(url_eventos):
                         src = img.get('src', '')
                         alt = img.get('alt', '').lower()
                         title = img.get('title', '').lower()
-                        clase = "".join(img.get('class', [])).lower()
                         
-                        # Si es un logotipo de TV, lo descartamos de los escudos deportivos
-                        es_tv = any(x in alt or x in title or x in clase or x in src.lower() for x in ['canal', 'tv', 'tele', 'logo', 'movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar'])
+                        # SOLUCIÓN: Eliminamos 'logo' y 'tv' de este filtro para que no rompa los escudos de los equipos
+                        es_tv = any(x in alt or x in title or x in src.lower() for x in ['movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar', 'canal', 'tele'])
                         
                         if src and not es_tv:
                             if src.startswith('/'):
@@ -123,12 +122,10 @@ def extraer_eventos(url_eventos):
                     lineas_equipos = []
                     for linea in lineas_raw:
                         linea_lower = linea.lower()
-                        # Ignoramos la hora, la liga detectada y los nombres de los canales
                         if linea == hora or linea_lower == liga.lower():
                             continue
                         if any(c.lower() in linea_lower for c in canales):
                             continue
-                        # Ignoramos si la línea entera contiene palabras de competición/categorías
                         if any(kw in linea_lower for kw in keywords_competicion):
                             continue
                         if len(linea) > 50:
@@ -142,37 +139,28 @@ def extraer_eventos(url_eventos):
                     logo_local = ""
                     logo_visitante = ""
 
-                    # Caso A: Es un partido/enfrentamiento normal (Tenemos 2 rivales claros)
                     if len(lineas_equipos) >= 2:
                         equipo_local = lineas_equipos[0]
                         equipo_visitante = lineas_equipos[1]
                         
-                        # Si tenemos los escudos correspondientes, se los asignamos secuencialmente
                         if len(escudos_validos) >= 1: logo_local = escudos_validos[0]
-                        if len(escudos_validos) >= 2: logo_visitante = escudos_validos[2] if len(escudos_validos) > 2 and escudos_validos[0] == escudos_validos[1] else escudos_validos[1]
-                    
-                    # Caso B: Es un evento individual o una carrera (F1, Ciclismo, Moto GP, Golf)
+                        if len(escudos_validos) >= 2: logo_visitante = escudos_validos[1]
                     else:
-                        # Re-construimos una descripción limpia uniendo la Liga y los detalles de la sesión
                         detalles_evento = []
                         for l in lineas_raw:
                             if l != hora and not any(c.lower() in l.lower() for c in canales) and len(l) < 60:
                                 if l not in detalles_evento:
                                     detalles_evento.append(l)
                         
-                        # Lo unificamos todo como un único título descriptivo en el lado local
                         equipo_local = " - ".join(detalles_evento)
-                        equipo_visitante = "" # Queda vacío para ocultar el "vs" en la web
+                        equipo_visitante = ""
                         
-                        # Si hay algún escudo de la competición o bandera disponible, se lo ponemos
                         if len(escudos_validos) >= 1: 
                             logo_local = escudos_validos[0]
 
-                    # Limpieza final de espacios en blanco
                     equipo_local = re.sub(r'\s+', ' ', equipo_local).strip()
                     equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
 
-                    # Guardamos el evento si es totalmente legible
                     if equipo_local and equipo_local != "Equipo Local" and equipo_local != equipo_visitante:
                         eventos.append({
                             'hora': hora,
