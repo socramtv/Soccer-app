@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 175px; /* Ajustado para dar espacio al nuevo logo superior */
+            padding-top: 175px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -43,7 +43,7 @@
             align-items: center;
         }
 
-        /* DISEÑO: Logo Principal Superior */
+        /* Logo Principal Superior (Misma carpeta) */
         .main-logo {
             width: 38px;
             height: 38px;
@@ -294,7 +294,6 @@
             gap: 4px;
         }
 
-        /* DISEÑO: Botón de Actualizar Flotante Derecho */
         .btn-recargar {
             position: fixed;
             bottom: 12px;
@@ -312,7 +311,7 @@
             z-index: 999;
         }
 
-        /* DISEÑO: Nuevo Botón de Instalar Flotante Izquierdo */
+        /* Botón de Instalar Flotante Izquierdo Corregido */
         .btn-instalar {
             position: fixed;
             bottom: 12px;
@@ -326,7 +325,7 @@
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             cursor: pointer;
-            display: none; /* Se activa dinámicamente por JS */
+            display: none; 
             align-items: center;
             gap: 5px;
             z-index: 999;
@@ -361,8 +360,8 @@
     <!-- Barra Superior Fija -->
     <div class="top-bar">
         <div class="top-bar-title-row">
-            <!-- LOGO SUPERIOR IMPLEMENTADO -->
-            <img src="/static/icon-512.png" class="main-logo" alt="Socram Logo">
+            <!-- RUTA CORREGIDA: En la misma carpeta -->
+            <img src="icon-512.png" class="main-logo" alt="Socram Logo">
             <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
             <span class="subtitle">by Masp</span>
         </div>
@@ -434,6 +433,7 @@
 
         <!-- Bloque Principal por Días -->
         <div id="seccion-partidos">
+            {% for fecha, partidos in eventos_agrapados.items() if eventos_agrupados %}
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
                 <div class="day-header">📅 {{ fecha }}</div>
@@ -480,6 +480,7 @@
                 </div>
             </div>
             {% endfor %}
+            {% endfor %}
         </div>
 
         <!-- SECCIÓN INFERIOR -->
@@ -488,6 +489,7 @@
                 📺 Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
+                {% Dynamic Channels mapping %}
                 {% for canal in canales_puros %}
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
                     <span>▶</span>
@@ -499,9 +501,9 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE DE INSTALACIÓN (ABAJO A LA IZQUIERDA) -->
+    <!-- BOTÓN FLOTANTE DE INSTALACIÓN CORREGIDO (ABAJO A LA IZQUIERDA) -->
     <button id="btn-instalar-app" class="btn-instalar" onclick="ejecutarInstalacionPWA()">
-        <img src="/static/icon-192.png" alt="App Icon">
+        <img src="icon-192.png" alt="App Icon">
         <span>Instalar App</span>
     </button>
 
@@ -514,13 +516,13 @@
         let ocultarSinEnlace = true;
         let eventoInstalacionManejado;
 
-        // LÓGICA: Captura y ejecución de instalación nativa PWA
+        // Captura de instalación PWA nativa (Ahora validará bien al cargar los iconos locales)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             eventoInstalacionManejado = e;
             const botonInstalar = document.getElementById('btn-instalar-app');
             if (botonInstalar) {
-                botonInstalar.style.display = 'flex'; // Muestra el botón abajo a la izquierda si es instalable
+                botonInstalar.style.display = 'flex'; 
             }
         });
 
