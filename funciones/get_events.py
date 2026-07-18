@@ -84,22 +84,6 @@ def extraer_eventos(url_eventos):
                             if c_txt and len(c_txt) < 40 and c_txt not in canales:
                                 canales.append(c_txt)
 
-                    # --- RECOLECTAR TODAS LAS IMÁGENES QUE SEAN ESCUDOS O BANDERAS REALES ---
-                    escudos_validos = []
-                    for img in el.find_all('img'):
-                        src = img.get('src', '')
-                        alt = img.get('alt', '').lower()
-                        title = img.get('title', '').lower()
-                        
-                        # SOLUCIÓN: Eliminamos 'logo' y 'tv' de este filtro para que no rompa los escudos de los equipos
-                        es_tv = any(x in alt or x in title or x in src.lower() for x in ['movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar', 'canal', 'tele'])
-                        
-                        if src and not es_tv:
-                            if src.startswith('/'):
-                                src = base_url + src
-                            if src not in escudos_validos:
-                                escudos_validos.append(src)
-
                     # --- DETERMINAR LA COMPETICIÓN/LIGA DE ESTA FILA ---
                     liga = current_global_liga
                     liga_interna = el.select_one('h3, h4, h5, .torneo, .competicion, .titulo-torneo')
@@ -136,27 +120,52 @@ def extraer_eventos(url_eventos):
                     # --- CLASIFICACIÓN FINAL DEL EVENTO (VERSUS VS INDIVIDUAL) ---
                     equipo_local = ""
                     equipo_visitante = ""
-                    logo_local = ""
-                    logo_visitante = ""
-
+                    
                     if len(lineas_equipos) >= 2:
                         equipo_local = lineas_equipos[0]
                         equipo_visitante = lineas_equipos[1]
-                        
-                        if len(escudos_validos) >= 1: logo_local = escudos_validos[0]
-                        if len(escudos_validos) >= 2: logo_visitante = escudos_validos[1]
                     else:
                         detalles_evento = []
                         for l in lineas_raw:
                             if l != hora and not any(c.lower() in l.lower() for c in canales) and len(l) < 60:
                                 if l not in detalles_evento:
                                     detalles_evento.append(l)
-                        
                         equipo_local = " - ".join(detalles_evento)
                         equipo_visitante = ""
-                        
-                        if len(escudos_validos) >= 1: 
-                            logo_local = escudos_validos[0]
+
+                    # --- EXTRACCIÓN QUIRÚRGICA DE ESCUDOS/BANDERAS REALES ---
+                    logo_local = ""
+                    logo_visitante = ""
+
+                    # Buscamos de manera exacta dentro de los contenedores .local y .visitante
+                    local_el = el.select_one('.local')
+                    if local_el:
+                        img_l = local_el.find('img')
+                        if img_l and img_l.get('src'):
+                            src_l = img_l.get('src')
+                            logo_local = base_url + src_l if src_l.startswith('/') else src_l
+
+                    visitante_el = el.select_one('.visitante')
+                    if visitante_el:
+                        img_v = visitante_el.find('img')
+                        if img_v and img_v.get('src'):
+                            src_v = img_v.get('src')
+                            logo_visitante = base_url + src_v if src_v.startswith('/') else src_v
+
+                    # Fallback exclusivo para eventos individuales (F1, Carreras) que no usan las clases .local/.visitante
+                    if not logo_local:
+                        for img in el.find_all('img'):
+                            src = img.get('src', '')
+                            alt = img.get('alt', '').lower()
+                            title = img.get('title', '').lower()
+                            
+                            # Ignorar por completo si la imagen está dentro del contenedorImgCompeticion
+                            es_competicion = any('contenedorimgcompeticion' in "".join(p.get('class', [])).lower() for p in img.parents if p.name != '[document]' and p.get('class'))
+                            es_tv = any(x in alt or x in title or x in src.lower() for x in ['canal', 'tv', 'tele', 'logo', 'movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar'])
+                            
+                            if src and not es_competicion and not es_tv:
+                                logo_local = base_url + src if src.startswith('/') else src
+                                break
 
                     equipo_local = re.sub(r'\s+', ' ', equipo_local).strip()
                     equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
