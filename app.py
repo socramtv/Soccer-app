@@ -26,55 +26,82 @@ def normalizar_cadena(texto):
     return " ".join(texto.split())
 
 def vincular_canales_automatico(canales_evento, lista_enlaces):
-    """Algoritmo inteligente bidireccional que enlaza directo a la nueva pantalla hls"""
+    """Algoritmo de cruce avanzado por descomposición de tokens y exclusión de categorías"""
     html_resultado = ""
-    STOPWORDS = {'hd', 'sd', '1080p', '720p', 'la', 'el', 'los', 'de', 'en', 'ver', 'directo', 'orange', 'tv', 'vodafone', 'movistar', 'plus'}
     
+    def simplificar_canal(texto):
+        """Limpia el canal aislando sus palabras clave reales de los números y del ruido"""
+        texto = texto.lower().strip()
+        # Estandarizar cadenas comunes para que coincidan sin importar cómo estén escritas
+        texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
+        texto = texto.replace("la liga", "laliga").replace("la liga", "laliga")
+        
+        # Eliminar contenido entre paréntesis por completo
+        texto = re.sub(r'\(.*?\)', '', texto)
+        # Convertir todos los símbolos extraños en espacios limpios
+        texto = re.sub(r'[\-\[\]\*\_\|\+\(\)\.\,\/\:\?]', ' ', texto)
+        
+        palabras = texto.split()
+        # Ruido puro que no aporta valor al nombre del canal
+        stopwords_ruido = {'hd', 'sd', '1080p', '720p', 'el', 'los', 'de', 'en', 'ver', 'directo', 'orange', 'tv', 'vodafone', 'plus', 'dial', 'channel'}
+        palabras_limpias = [w for w in palabras if w not in stopwords_ruido]
+        
+        # Separamos las letras de los números identificadores de diales/canales
+        letras = [w for w in palabras_limpias if not w.isdigit()]
+        digitos = [w for w in palabras_limpias if w.isdigit()]
+        return letras, digitos
+
     for canal in canales_evento:
         canal_limpio = canal.strip()
-        canal_sin_paren = re.sub(r'\(.*?\)', '', canal_limpio)
-        canal_norm = normalizar_cadena(canal_sin_paren)
+        web_letras, web_digitos = simplificar_canal(canal_limpio)
         
-        palabras_web = [w for w in canal_norm.split() if w not in STOPWORDS and not w.isdigit()]
-        digitos_web = [w for w in canal_norm.split() if w.isdigit()]
-        
-        if not palabras_web:
-            palabras_web = [w for w in canal_norm.split() if w.strip()]
+        # Si la celda está vacía o no tiene texto legible, la saltamos
+        if not web_letras and not web_digitos:
+            html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
+            continue
             
-        es_bar = "bar" in canal_norm
+        es_bar = "bar" in canal_limpio.lower()
         matches_encontrados = []
         
         for enc in lista_enlaces:
             nombre_json = enc['name']
-            nombre_json_norm = normalizar_cadena(nombre_json)
+            json_letras, json_digitos = simplificar_canal(nombre_json)
             
-            if es_bar != ("bar" in nombre_json_norm):
+            # 1. Filtro estricto para canales BAR
+            if es_bar != ("bar" in json_letras or "bar" in nombre_json.lower()):
                 continue
                 
-            palabras_json = [w for w in nombre_json_norm.split() if w not in STOPWORDS and not w.isdigit()]
-            digitos_json = [w for w in nombre_json_norm.split() if w.isdigit()]
+            # 2. Control de palabras clave críticas (Evita que DAZN 1 sintonice DAZN LaLiga o DAZN F1)
+            KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2'}
+            conflicto_detectado = False
+            for kw in KEYWORDS_CRITICOS:
+                if (kw in web_letras) != (kw in json_letras):
+                    conflicto_detectado = True
+                    break
+            if conflicto_detectado:
+                continue
+                
+            # 3. Comprobar coincidencia de marcas (ej: 'movistar', 'dazn', 'eurosport'...)
+            coincide_letras = all(w in json_letras for w in web_letras) or all(w in web_letras for w in json_letras)
             
-            coincide_palabras = all(p in nombre_json_norm for p in palabras_web) or all(p in canal_norm for p in palabras_json)
+            # 4. Control estricto de números de canales (ej: Multi-canales o diales diferentes)
             coincide_numeros = True
-            if digitos_web:
-                coincide_numeros = any(d in digitos_json for d in digitos_web)
-            
-            if coincide_palabras and coincide_numeros:
-                # LIMPIEZA AUTOMÁTICA DEL HASH (Extrae solo los 40 caracteres correctos)
+            if web_digitos:
+                coincide_numeros = any(d in json_digitos for d in web_digitos)
+
+            if coincide_letras and coincide_numeros:
                 hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
                 if hash_match:
                     hash_puro = hash_match.group(1)
-                    # Formato HLS local definitivo
                     stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                     icono = "★" if "**" in nombre_json else "⚡"
-                    
-                    # MEJORA: Abre directamente redirigiendo a la pantalla del reproductor nuevo
                     matches_encontrados.append(
                         f'<a href="/reproductor?url={stream_url}&name={nombre_json}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
                     )
         
         if matches_encontrados:
-            html_resultado += "".join(matches_encontrados)
+            # Eliminamos duplicados y ordenamos alfabéticamente los botones resultantes
+            html_resultado += "".join(sorted(list(set(matches_encontrados))))
         else:
             html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
             
@@ -104,7 +131,7 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-    # Agrupación exclusiva por FECHA (Misma categoría corrida cronológicamente)
+    # Agrupamos única y exclusivamente por FECHA
     eventos_agrupados = {}
     for ev in eventos:
         fecha = ev.get('fecha', 'Hoy').strip()
