@@ -30,37 +30,23 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
     html_resultado = ""
     
     def simplificar_canal(texto):
-        """Aísla la identidad del canal eliminando ruido de operadores, diales y calidades"""
         texto = texto.lower().strip()
-        
-        # 1. Eliminar por completo el contenido entre paréntesis (Diales de operadores, "Ver en directo", etc.)
         texto = re.sub(r'\(.*?\)', '', texto)
-        
-        # 2. Aplicar equivalencias de escritura y fusiones para unificar criterios
         texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
         texto = texto.replace("la liga", "laliga").replace("la 1", "la1").replace("la 2", "la2")
-        
-        # 3. Eliminar términos de calidad de video de forma limpia
         texto = re.sub(r'\b(hd|sd|1080p|720p|4k|1080|720)\b', '', texto)
-        
-        # 4. Limpiar símbolos de puntuación y asteriscos (*, **) por completo
         texto = re.sub(r'[\-\[\]\*\_\|\+\(\)\.\,\/\:\?\#\§]', ' ', texto)
-        
         palabras = texto.split()
         
-        # Palabras de ruido/operadores que no aportan identidad al canal y se deben obviar
         stopwords_ruido = {'tv', 'orange', 'vodafone', 'cat', 'de', 'la', 'el', 'los', 'en', 'y', 'plus', 'dial', 'channel', 'tve', 'play', 'rtve'}
         palabras_limpias = [w for w in palabras if w not in stopwords_ruido]
         
-        # REGLA ESPECIAL: Si es DAZN Mundial y no tiene número asignado, forzar coincidencia con el canal 1
         if "dazn" in palabras_limpias and "mundial" in palabras_limpias:
             if not any(w.isdigit() for w in palabras_limpias):
                 palabras_limpias.append("1")
                 
-        # Separar letras (marcas) de dígitos (identificadores de canales numéricos)
         letras = [w for w in palabras_limpias if not w.isdigit()]
         digitos = [w for w in palabras_limpias if w.isdigit()]
-        
         return set(letras), set(digitos)
 
     for canal in canales_evento:
@@ -78,12 +64,10 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
             nombre_json = enc['name']
             json_letras, json_digitos = simplificar_canal(nombre_json)
             
-            # 1. Filtro de exclusión mutua para canales BAR de hostelería
             json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
             if es_bar != json_es_bar:
                 continue
                 
-            # 2. Control estricto de temáticas críticas (Evita que DAZN sintonice DAZN LaLiga o DAZN F1 por error)
             KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2', 'baloncesto'}
             conflicto_tematico = False
             for kw in KEYWORDS_CRITICOS:
@@ -93,10 +77,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
             if conflicto_tematico:
                 continue
                 
-            # 3. Comprobación de marcas principales por subconjuntos equivalentes
             coincide_letras = web_letras.issubset(json_letras) or json_letras.issubset(web_letras)
-            
-            # 4. Control estricto de números identificadores (ej: Deportes 1 nunca debe pisar a Deportes 2)
             coincide_numeros = (web_digitos == json_digitos)
 
             if coincide_letras and coincide_numeros:
@@ -110,7 +91,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
                     )
         
         if matches_encontrados:
-            # Eliminamos duplicados de opciones idénticas y ordenamos los botones resultantes
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
         else:
             html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
@@ -124,9 +104,12 @@ def obtener_datos_completos():
     if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
         return cache_datos
         
-    print("🌐 Cargando cartelera unificada por días...")
+    print("🌐 Cargando cartelera unificada por días y destacantes...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
+    
+    destacados = []
+    eventos_agrupados = {}
     
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
@@ -141,15 +124,25 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-    eventos_agrupados = {}
-    for ev in eventos:
-        fecha = ev.get('fecha', 'Hoy').strip()
+        # MARCAR SI TIENE ENLACE ACTIVO (Verifica la presencia de un botón de reproducción)
+        eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
+
+        # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
+        nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
+        nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
+        
+        if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
+            destacados.append(eventos[i])
+
+        # Agrupación cronológica por Día
+        fecha = eventos[i].get('fecha', 'Hoy').strip()
         if fecha not in eventos_agrupados:
             eventos_agrupados[fecha] = []
-        eventos_agrupados[fecha].append(ev)
+        eventos_agrupados[fecha].append(eventos[i])
         
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
+        'destacados': destacados,
         'canales_puros': enlaces
     }
     ultimo_scraping = ahora
@@ -174,13 +167,13 @@ def home():
     return render_template(
         'index.html', 
         eventos_agrupados=datos['eventos_agrupados'], 
+        destacados=datos['destacados'],
         canales_puros=canales_directos_limpios, 
         fecha=fecha_actual
     )
 
 @app.route('/reproductor')
 def reproductor():
-    """Carga de forma nativa e independiente el reproductor.html"""
     stream_url = request.args.get('url', '')
     canal_name = request.args.get('name', 'Canal Deportivo')
     return render_template('reproductor.html', stream_url=stream_url, canal_name=canal_name)
