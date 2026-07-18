@@ -12,7 +12,6 @@ def extraer_eventos(url_eventos):
         }
         
         print(f"📡 Descargando cartelera de partidos desde: {url_eventos}")
-        # LÍNEA CORREGIDA: Limpia y directa sin duplicados extraños
         respuesta = requests.get(url_eventos, headers=headers, timeout=15)
         
         if respuesta.status_code != 200:
@@ -22,205 +21,174 @@ def extraer_eventos(url_eventos):
         soup = BeautifulSoup(respuesta.text, 'html.parser')
         base_url = "https://www.futbolenlatv.es"
         
-        # 1. Encontrar todos los bloques de las filas que contienen horas reales (hh:mm)
-        elementos_hora = []
-        for el in soup.find_all(['td', 'div', 'span', 'p', 'time', 'b']):
-            texto = el.text.strip()
-            if re.match(r'^\s*\d{2}:\d{2}\s*$', texto):
-                elementos_hora.append(el)
-        
+        # 1. Encontrar todas las filas reales de la tabla principal
         tarjetas = []
-        vistos = set()
-        for el_hora in elementos_hora:
-            fila = el_hora.find_parent(['tr', 'div', 'li'])
-            if fila and fila not in vistos and len(fila.text) < 1200:
+        for fila in soup.find_all('tr'):
+            if fila.find(class_='hora') or fila.find(class_='detalles'):
                 tarjetas.append(fila)
-                vistos.add(fila)
 
-        print(f"🔍 Procesando {len(tarjetas)} encuentros con algoritmo adaptativo...")
+        print(f"🔍 Procesando {len(tarjetas)} filas deportivas con mapeo estructural...")
 
         dias_semana = ['lunes', 'martes', 'miércoles', 'miercoles', 'jueves', 'viernes', 'sábado', 'sabado', 'domingo', 'hoy', 'mañana', 'manana', 'ayer']
         current_fecha = "Hoy"
-        current_global_liga = "Otros Deportes"
 
-        # 2. Recorrer de arriba a abajo para capturar la fecha y liga estructural
-        for el in soup.find_all(['h2', 'h3', 'h4', 'div', 'tr', 'p']):
-            txt = el.text.strip()
-            clases = "".join(el.get('class', [])).lower() if el.get('class') else ""
-            
-            # Capturar Fecha de las barras de día principales
-            contiene_dia = any(d in txt.lower() for d in dias_semana)
-            es_clase_fecha = any(x in clases for x in ['fecha', 'date', 'day', 'thead', 'fecha-cabecera'])
-            contiene_mes = any(m in txt.lower() for m in ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'])
-            
-            if (contiene_dia or es_clase_fecha or contiene_mes) and len(txt) < 100 and " - " not in txt and not re.search(r'\b\d{2}:\d{2}\b', txt):
-                current_fecha = re.sub(r'\s+', ' ', el.text).strip()
+        # 2. Iterar sobre las filas de forma secuencial
+        for el in tarjetas:
+            # Capturar cambio de cabecera de día/fecha
+            if el.get('class') and 'cabeceraTabla' in el.get('class'):
+                texto_fecha = el.text.strip()
+                match_f = re.search(r'(\d{2}/\d{2}/\d{4})', texto_fecha)
+                if match_f:
+                    current_fecha = match_f.group(1)
+                else:
+                    current_fecha = texto_fecha
                 continue
+
+            try:
+                hora_el = el.find(class_='hora')
+                if not hora_el:
+                    continue
+                hora = hora_el.text.strip()
                 
-            # Capturar Liga de las sub-barras de competición
-            if any(x in clases for x in ['torneo', 'liga', 'competicion', 'titulo-liga']) and len(txt) < 100 and " - " not in txt:
-                current_global_liga = txt
-                continue
+                # --- EXTRAER COMPETICIÓN / LIGA ---
+                liga = "Otros Deportes"
+                span_directo = el.select_one('.ajusteDoslineas[title], span.ajusteDoslineas[title]')
+                label_el = el.select_one('.detalles label[title]')
                 
-            if el in tarjetas:
-                tarjetas.remove(el)
-                try:
-                    hora_match = re.search(r'\d{2}:\d{2}', el.text)
-                    hora = hora_match.group(0) if hora_match else "00:00"
-                    
-                    # --- EXTRAER LISTA DE CANALES EN TEXTO ---
-                    canales = []
-                    for a in el.find_all('a'):
-                        txt_a = a.text.strip()
-                        if not txt_a and a.find('img'):
-                            txt_a = a.find('img').get('alt', '').strip() or a.find('img').get('title', '').strip()
-                        if txt_a and len(txt_a) < 50 and not any(x in txt_a.lower() for x in ['vs', 'torneo', 'itf', 'atp', 'wta']):
-                            txt_a = txt_a.rstrip(',').strip()
-                            if txt_a and txt_a not in canales:
-                                canales.append(txt_a)
-                                
-                    if not canales:
-                        for c_el in el.select('.canal, .tele, .canales, span[class*="canal"]'):
-                            c_txt = c_el.text.replace(',', '').strip()
-                            if c_txt and len(c_txt) < 40 and c_txt not in canales:
-                                canales.append(c_txt)
+                if label_el and span_directo:
+                    liga = f"{label_el.get('title')} | {span_directo.get('title')}"
+                elif span_directo:
+                    liga = span_directo.get('title') or span_directo.text.strip()
+                elif label_el:
+                    liga = label_el.get('title')
+                else:
+                    comp_interna = el.select_one('.torneo, .competicion')
+                    if comp_interna:
+                        liga = comp_interna.text.strip()
+                
+                liga = re.sub(r'\s+', ' ', liga).strip()
 
-                    # --- DETERMINAR LA COMPETICIÓN/LIGA DE ESTA FILA ---
-                    liga = current_global_liga
-                    liga_interna = el.select_one('h3, h4, h5, .torneo, .competicion, .titulo-torneo')
-                    if liga_interna and len(liga_interna.text.strip()) < 80 and not any(x in liga_interna.text.lower() for x in ['vs', '-', 'canal']):
-                        liga = liga_interna.text.strip()
-                    liga = re.sub(r'\s+', ' ', liga).strip()
+                # --- EXTRAER LISTA DE CANALES EN TEXTO ---
+                canales = []
+                canales_list = el.select('.listaCanales li, .canales li')
+                for canal in canales_list:
+                    canal_titulo = canal.get('title') or canal.text.strip()
+                    if canal_titulo:
+                        last_paren = canal_titulo.lastIndexOf(')') if hasattr(canal_titulo, 'lastIndexOf') else canal_titulo.rfind(')')
+                        if last_paren != -1:
+                            canal_titulo = canal_titulo[:last_paren + 1].strip()
+                        if canal_titulo not in canales:
+                            canales.append(canal_titulo)
 
-                    # --- SEPARAR LÍNEAS DE TEXTO PARA EXTRAER ENCUENTROS ---
-                    lineas_raw = [l.strip() for l in el.get_text('\n').split('\n') if l.strip()]
-                    
-                    # Palabras clave de categorías, torneos o fases que NUNCA son nombres de equipos o jugadores
-                    keywords_competicion = {
-                        'torneo', 'liga', 'campeonato', 'copa', 'championship', 'grand prix', 'prix', 'tour', 'atp', 'wta', 'itf', 
-                        'fórmula', 'formula', 'g.p.', 'gp', 'etapa', 'sesión', 'sesion', 'clasificación', 'clasificacion', 
-                        'nations', 'europeo', 'mundial', 'jornada', 'friendly', 'amistoso', 'premier padel', 'open', 
-                        'sub-20', 'sub-17', 'femenino', 'masculino', 'semifinal', 'cuartos', 'final', '3er puesto', 
-                        'canal por confirmar', 'vitoria-gasteiz', 'gstaad', 'bastad', 'pozoblanco', 'ecuador', 'uruguay'
-                    }
-                    
-                    lineas_equipos = []
-                    for linea in lineas_raw:
-                        linea_lower = linea.lower()
-                        if linea == hora or linea_lower == liga.lower():
-                            continue
-                        if any(c.lower() in linea_lower for c in canales):
-                            continue
-                        if any(kw in linea_lower for kw in keywords_competicion):
-                            continue
-                        if len(linea) > 50:
-                            continue
-                        if linea not in lineas_equipos:
-                            lineas_equipos.append(linea)
+                if not canales:
+                    for c_el in el.select('.canal, .tele, .canales, span[class*="canal"]'):
+                        c_txt = c_el.text.replace(',', '').strip()
+                        if c_txt and len(c_txt) < 40 and c_txt not in canales:
+                            canales.append(c_txt)
 
-                    # --- CLASIFICACIÓN FINAL DEL EVENTO (VERSUS VS INDIVIDUAL) ---
-                    equipo_local = ""
+                # --- CLASIFICACIÓN DE EVENTO (INDIVIDUAL VS ENFRENTAMIENTO) ---
+                equipo_local = ""
+                equipo_visitante = ""
+                logo_local = ""
+                logo_visitante = ""
+
+                evento_unico_el = el.select_one('.eventoUnico, .detalles .sinDetalles')
+                local_el = el.select_one('.local')
+                visitante_el = el.select_one('.visitante')
+
+                if evento_unico_el and not (local_el or visitante_el):
+                    # Caso de deportes individuales (F1, Ciclismo, Golf)
+                    equipo_local = evento_unico_el.text.strip()
                     equipo_visitante = ""
-                    
-                    if len(lineas_equipos) >= 2:
-                        equipo_local = lineas_equipos[0]
-                        equipo_visitante = lineas_equipos[1]
-                    else:
-                        detalles_evento = []
-                        for l in lineas_raw:
-                            if l != hora and not any(c.lower() in l.lower() for c in canales) and len(l) < 60:
-                                if l not in detalles_evento:
-                                    detalles_evento.append(l)
-                        equipo_local = " - ".join(detalles_evento)
-                        equipo_visitante = ""
-
-                    # --- CLASIFICACIÓN DE CATEGORÍA DEPORTIVA INTELIGENTE ---
-                    deporte = "Otros"
-                    texto_analisis = (liga + " " + equipo_local + " " + equipo_visitante).lower()
-                    
-                    for img in el.find_all('img'):
-                        src_img = img.get('src', '').lower()
-                        alt_img = img.get('alt', '').lower()
-                        if 'baloncesto' in src_img or 'baloncesto' in alt_img or 'basket' in src_img:
-                            deporte = "Baloncesto"
-                            break
-                        if 'futbol' in src_img or 'futbol' in alt_img or 'soccer' in src_img:
-                            deporte = "Fútbol"
-                            break
-                        if 'tennis' in src_img or 'tenis' in src_img or 'tennis' in alt_img or 'tenis' in alt_img:
-                            deporte = "Tenis"
-                            break
-                        if 'formula' in src_img or 'f1' in src_img or 'motor' in src_img or 'indy' in src_img or 'rally' in src_img or 'nascar' in src_img:
-                            deporte = "Motor"
-                            break
-                        if 'ciclismo' in src_img or 'tour' in src_img or 'bike' in src_img:
-                            deporte = "Ciclismo"
-                            break
-
-                    if deporte == "Otros":
-                        if any(x in texto_analisis for x in ['futbol', 'laliga', 'champions', 'premier', 'bundesliga', 'serie a', 'ligue', 'copa del rey', 'europa league', 'fifa']):
-                            deporte = "Fútbol"
-                        elif any(x in texto_analisis for x in ['baloncesto', 'basket', 'nba', 'acb', 'fiba', 'euroliga', 'femenino sub-17']):
-                            deporte = "Baloncesto"
-                        elif any(x in texto_analisis for x in ['tenis', 'tennis', 'atp', 'wta', 'itf', 'challenger', 'nadal', 'alcaraz', 'wimbledon']):
-                            deporte = "Tenis"
-                        elif any(x in texto_analisis for x in ['fórmula', 'formula', 'f1', 'gp ', 'g.p.', 'indycar', 'moto', 'motogp', 'rally', 'indy', 'prix']):
-                            deporte = "Motor"
-                        elif any(x in texto_analisis for x in ['ciclismo', 'tour de', 'vuelta', 'giro d', 'etapa', 'francia']):
-                            deporte = "Ciclismo"
-
-                    # --- EXTRACCIÓN QUIRÚRGICA DE ESCUDOS/BANDERAS REALES ---
-                    logo_local = ""
-                    logo_visitante = ""
-
-                    local_el = el.select_one('.local')
+                elif local_el or visitante_el:
+                    # Caso de deportes de enfrentamiento (Fútbol, Baloncesto, Tenis)
                     if local_el:
+                        span_l = local_el.find('span')
+                        equipo_local = span_l.get('title') if span_l and span_l.get('title') else local_el.text.strip()
                         img_l = local_el.find('img')
                         if img_l and img_l.get('src'):
-                            src_l = img_l.get('src')
-                            logo_local = base_url + src_l if src_l.startswith('/') else src_l
-
-                    visitante_el = el.select_one('.visitante')
+                            logo_local = base_url + img_l.get('src') if img_l.get('src').startswith('/') else img_l.get('src')
+                    
                     if visitante_el:
+                        span_v = visitante_el.find('span')
+                        equipo_visitante = span_v.get('title') if span_v and span_v.get('title') else visitante_el.text.strip()
                         img_v = visitante_el.find('img')
                         if img_v and img_v.get('src'):
-                            src_v = img_v.get('src')
-                            logo_visitante = base_url + src_v if src_v.startswith('/') else src_v
+                            logo_visitante = base_url + img_v.get('src') if img_v.get('src').startswith('/') else img_v.get('src')
+                else:
+                    # Fallback de seguridad basado en texto plano si las clases fallan
+                    textos_interiores = [t.strip() for t in el.get_text('\n').split('\n') if t.strip()]
+                    lineas_filtradas = [l for l in textos_interiores if l != hora and l != liga and not any(c in l for c in canales)]
+                    if len(lineas_filtradas) >= 2:
+                        equipo_local = lineas_filtradas[0]
+                        equipo_visitante = lineas_filtradas[1]
+                    elif len(lineas_filtradas) == 1:
+                        equipo_local = lineas_filtradas[0]
 
-                    if not logo_local:
-                        for img in el.find_all('img'):
-                            src = img.get('src', '')
-                            alt = img.get('alt', '').lower()
-                            title = img.get('title', '').lower()
-                            
-                            es_competicion = any('contenedorimgcompeticion' in "".join(p.get('class', [])).lower() for p in img.parents if p.name != '[document]' and p.get('class'))
-                            es_tv = any(x in alt or x in title or x in src.lower() for x in ['canal', 'tv', 'tele', 'logo', 'movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar'])
-                            
-                            if src and not es_competicion and not es_tv:
-                                logo_local = base_url + src if src.startswith('/') else src
-                                break
+                # Si el campo quedó vacío por estructuras complejas, limpiamos la cadena
+                if not equipo_local:
+                    equipo_local = el.text.replace(hora, "").strip()[:50]
 
-                    equipo_local = re.sub(r'\s+', ' ', equipo_local).strip()
-                    equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
+                # --- ASIGNACIÓN DE CATEGORÍA DEPORTIVA PRECISA ---
+                deporte = "Otros"
+                
+                # Buscar imágenes identificadoras del deporte (estructura origen de futbolenlatv)
+                for img in el.find_all('img'):
+                    src_img = img.get('src', '').lower()
+                    alt_img = img.get('alt', '').lower()
+                    title_img = img.get('title', '').lower()
+                    
+                    if any(x in src_img or x in alt_img or x in title_img for x in ['baloncesto', 'basket', 'nba', 'acb']):
+                        deporte = "Baloncesto"
+                        break
+                    if any(x in src_img or x in alt_img or x in title_img for x in ['futbol', 'soccer', 'laliga', 'champions']):
+                        deporte = "Fútbol"
+                        break
+                    if any(x in src_img or x in alt_img or x in title_img for x in ['tennis', 'tenis', 'atp', 'wta', 'itf']):
+                        deporte = "Tenis"
+                        break
+                    if any(x in src_img or x in alt_img or x in title_img for x in ['formula', 'f1', 'automobilismo', 'gp', 'g.p.', 'motor', 'indy']):
+                        deporte = "Motor"
+                        break
+                    if any(x in src_img or x in alt_img or x in title_img for x in ['ciclismo', 'tour', 'bike', 'ruta']):
+                        deporte = "Ciclismo"
+                        break
 
-                    if equipo_local and equipo_local != "Equipo Local" and equipo_local != equipo_visitante:
-                        eventos.append({
-                            'hora': hora,
-                            'fecha': current_fecha,
-                            'liga': liga if liga else "Otros Deportes",
-                            'deporte': deporte,
-                            'equipos': f"{equipo_local} - {equipo_visitante}" if equipo_visitante else equipo_local,
-                            'equipo_local': equipo_local,
-                            'equipo_visitante': equipo_visitante,
-                            'logo_local': logo_local,
-                            'logo_visitante': logo_visitante,
-                            'canales': canales,
-                            'canales_html': ""
-                        })
-                except Exception:
-                    continue
+                # Mapeo secundario basado en texto si no hay imágenes descriptoras de disciplina
+                if deporte == "Otros":
+                    texto_analisis = (liga + " " + equipo_local + " " + equipo_visitante).lower()
+                    if any(x in texto_analisis for x in ['futbol', 'balón', 'amistoso', 'copa mundial', 'girona', 'betis', 'valencia', 'cadiz']):
+                        deporte = "Fútbol"
+                    elif any(x in texto_analisis for x in ['baloncesto', 'basket', 'fiba', 'nba', 'summer league']):
+                        deporte = "Baloncesto"
+                    elif any(x in texto_analisis for x in ['tenis', 'tennis', 'atp', 'wta', 'itf', 'gstaad', 'bastad', 'iasi', 'badosa', 'rublev']):
+                        deporte = "Tenis"
+                    elif any(x in texto_analisis for x in ['fórmula', 'formula', 'f1', 'gp bélgica', 'spa', 'indycar', 'nashville', 'f3', 'f2']):
+                        deporte = "Motor"
+                    elif any(x in texto_analisis for x in ['ciclismo', 'tour de francia', 'etapa', 'km', 'markstein', 'belfort']):
+                        deporte = "Ciclismo"
 
-        # Eliminar duplicados exactos en la parrilla final
+                equipo_local = re.sub(r'\s+', ' ', equipo_local).strip()
+                equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
+
+                if equipo_local and equipo_local != equipo_visitante:
+                    eventos.append({
+                        'hora': hora,
+                        'fecha': current_fecha,
+                        'liga': liga,
+                        'deporte': deporte,
+                        'equipos': f"{equipo_local} - {equipo_visitante}" if equipo_visitante else equipo_local,
+                        'equipo_local': equipo_local,
+                        'equipo_visitante': equipo_visitante,
+                        'logo_local': logo_local,
+                        'logo_visitante': logo_visitante,
+                        'canales': canales,
+                        'canales_html': ""
+                    })
+            except Exception:
+                continue
+
+        # Eliminar duplicaciones idénticas en la lista final
         eventos_unicos = []
         vistos_ev = set()
         for ev in eventos:
