@@ -10,39 +10,38 @@
             color: #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 15px;
-            padding-top: 225px; /* Aumentado para dar espacio holgado a la fila de categorías */
+            padding: 10px;
+            padding-top: 215px; /* Altura compactada para la cabecera móvil */
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* Barra Superior Fija */
+        /* Barra Superior Fija Compacta */
         .top-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
-            padding: 10px 15px;
+            padding: 8px 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
             border-bottom: 1px solid #2a2a2a;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .top-bar-title-row {
             text-align: center;
             width: 100%;
-            margin-bottom: 2px;
         }
 
         .top-bar-title-row h1 {
-            font-size: 1.35rem;
+            font-size: 1.2rem; /* Tamaño reducido de letra principal */
             margin: 0;
             color: #ffffff;
             font-weight: 800;
@@ -50,12 +49,12 @@
         }
 
         .top-bar-title-row .subtitle {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #00ff88;
             font-weight: bold;
             display: block;
-            margin-top: 2px;
-            letter-spacing: 1.5px;
+            margin-top: 1px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
         }
 
@@ -68,29 +67,29 @@
         }
 
         .fecha-badge {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #888888;
             font-weight: bold;
             background-color: #1c1c1c;
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 3px 8px;
+            border-radius: 5px;
             border: 1px solid #2a2a2a;
         }
 
         .top-actions-layout {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn-header-action {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             transition: all 0.2s;
             outline: none;
         }
@@ -111,29 +110,29 @@
             transform: scale(0.95);
         }
 
-        /* NUEVO: Fila Horizontal de Categorías Deportivas */
+        /* Fila de Categorías Deslizantes en Móvil */
         .categories-wrapper {
             width: 100%;
             max-width: 800px;
             display: flex;
-            gap: 6px;
+            gap: 5px;
             overflow-x: auto;
-            padding-bottom: 3px;
+            padding-bottom: 4px;
             box-sizing: border-box;
-            scrollbar-width: none; /* Oculta scroll en Firefox */
+            scrollbar-width: none;
         }
 
         .categories-wrapper::-webkit-scrollbar {
-            display: none; /* Oculta scroll en Chrome/Safari */
+            display: none;
         }
 
         .btn-category {
             background-color: #222222;
             color: #aaaaaa;
             border: 1px solid #333333;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
@@ -145,7 +144,7 @@
             background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
             color: #121212;
             border-color: #00ff88;
-            box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 255, 136, 0.3);
         }
 
         .search-container {
@@ -155,57 +154,54 @@
 
         .search-input {
             width: 100%;
-            padding: 11px 15px;
+            padding: 9px 12px;
             background-color: #222222;
             color: #ffffff;
             border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
             box-sizing: border-box;
             outline: none;
-            transition: all 0.3s ease;
         }
 
         .search-input:focus {
             border-color: #00ff88;
-            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
-            background-color: #282828;
+            background-color: #252525;
         }
 
         .container {
             width: 100%;
             max-width: 800px;
-            margin-bottom: 70px;
+            margin-bottom: 60px;
         }
 
         .day-section {
             width: 100%;
             display: flex;
             flex-direction: column;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .day-header {
             width: 100%;
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             color: #00ff88;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: bold;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 5px solid #00ff88;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #00ff88;
             box-sizing: border-box;
         }
 
+        /* Reducción General de Letra en la Tabla */
         .table-container {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             background-color: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border-radius: 8px;
             border: 1px solid #2a2a2a;
         }
 
@@ -213,93 +209,94 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.9rem;
-            min-width: 480px;
+            font-size: 0.8rem; /* Letra global más pequeña */
+            min-width: 460px;
         }
 
         th {
             background-color: #1a1a1a;
             color: #888888;
-            padding: 10px;
+            padding: 8px;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             border-bottom: 1px solid #2a2a2a;
         }
 
         td {
-            padding: 12px 10px;
+            padding: 10px 8px;
             border-bottom: 1px solid #2a2a2a;
             vertical-align: middle;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:nth-child(even) {
-            background-color: #161616;
+            word-wrap: break-word;
         }
 
         .hora {
             font-weight: bold;
             color: #ffffff;
-            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+
+        .txt-liga-sub {
+            display: block;
+            font-size: 0.7rem;
+            color: #888888;
+            margin-top: 2px;
         }
 
         .marcador-box {
             display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
+            flex-direction: column;
+            gap: 4px;
             color: #ffffff;
         }
 
         .bloque-equipo {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .escudo-team {
-            width: 22px;
-            height: 22px;
+            width: 18px; /* Reducido para encajar con el tamaño de letra */
+            height: 18px;
             object-fit: contain;
-            border-radius: 2px;
         }
 
         .vs-separador {
-            color: #666666;
-            font-size: 0.8rem;
+            color: #555555;
+            font-size: 0.7rem;
             font-weight: bold;
+            padding-left: 24px;
+            margin: -2px 0;
         }
 
         .canal-texto-vacio {
             color: #555555;
-            font-size: 0.8rem;
-            display: inline-block;
+            font-size: 0.7rem;
+            display: block;
             margin: 2px 0;
         }
 
+        /* Botones de Canales Compactos */
         .btn-canal {
             display: inline-flex;
             align-items: center;
             background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%);
             color: #00ff88;
-            padding: 6px 12px;
-            margin: 3px 4px 3px 0;
-            border-radius: 6px;
+            padding: 4px 8px;
+            margin: 2px 2px 2px 0;
+            border-radius: 4px;
             text-decoration: none;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: bold;
             border: 1px solid #333333;
         }
 
         .grid-canales {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 10px;
-            padding: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            padding: 12px;
             background-color: #151515;
         }
 
@@ -308,39 +305,38 @@
             align-items: center;
             background: linear-gradient(135deg, #252525 0%, #1c1c1c 100%);
             color: #ffffff;
-            padding: 11px 12px;
-            border-radius: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: bold;
             border: 1px solid #333333;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            gap: 6px;
         }
 
         .btn-recargar {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
             color: #121212;
             border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
+            padding: 10px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
             cursor: pointer;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             z-index: 999;
         }
 
         .competition-card {
             background-color: #1e1e1e;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border-radius: 10px;
             border: 1px solid #2a2a2a;
             margin-bottom: 15px;
             overflow: hidden;
@@ -349,13 +345,10 @@
         .competition-header {
             background-color: #252525;
             color: #ffffff;
-            padding: 11px 15px;
+            padding: 9px 12px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             border-bottom: 1px solid #333333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
     </style>
 </head>
@@ -376,7 +369,7 @@
             </div>
         </div>
 
-        <!-- NUEVO: Fila Deslizable de Categorías Deportivas Cruzadas -->
+        <!-- Fila de Filtros de Disciplinas Cruzadas -->
         <div class="categories-wrapper">
             <button class="btn-category active" onclick="filtrarCategoria('all', this)">🏆 Todos</button>
             <button class="btn-category" onclick="filtrarCategoria('Fútbol', this)">⚽ Fútbol</button>
@@ -402,18 +395,17 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 15%">Hora / Día</th>
-                            <th style="width: 55%">Encuentro</th>
+                            <th style="width: 15%">Hora</th>
+                            <th style="width: 55%">Encuentro / Competición</th>
                             <th style="width: 30%">Enlaces Directos</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for evento in destacados %}
-                        <!-- MEJORA: Asociamos la etiqueta de deporte inyectada desde Python -->
                         <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}" data-deporte="{{ evento.deporte }}">
                             <td class="hora">
                                 {{ evento.hora }}<br>
-                                <small style="color: #aaa; font-weight: normal; font-size: 0.7rem;">{{ evento.fecha }}</small>
+                                <small style="color: #aaa; font-weight: normal; font-size: 0.65rem;">{{ evento.fecha }}</small>
                             </td>
                             <td>
                                 <div class="marcador-box">
@@ -421,17 +413,18 @@
                                         {% if evento.logo_local %}
                                         <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
                                         {% endif %}
-                                        <span class="txt-local">{{ evento.equipo_local }}</span>
+                                        <span class="txt-local" style="font-weight: 600;">{{ evento.equipo_local }}</span>
                                     </div>
                                     {% if evento.equipo_visitante %}
                                     <span class="vs-separador">vs</span>
                                     <div class="bloque-equipo">
-                                        <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
                                         {% if evento.logo_visitante %}
                                         <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
                                         {% endif %}
+                                        <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
                                     </div>
                                     {% endif %}
+                                    <span class="txt-liga-sub">🏆 {{ evento.liga }}</span>
                                 </div>
                             </td>
                             <td class="canales-td">{{ evento.canales_html | safe }}</td>
@@ -443,7 +436,7 @@
         </div>
         {% endif %}
 
-        <!-- Bloque Principal de Partidos por Días -->
+        <!-- Bloque Principal por Días -->
         <div id="seccion-partidos">
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
@@ -454,13 +447,12 @@
                         <thead>
                             <tr>
                                 <th style="width: 15%">Hora</th>
-                                <th style="width: 55%">Encuentro</th>
+                                <th style="width: 55%">Encuentro / Competición</th>
                                 <th style="width: 30%">Enlaces Directos</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for evento in partidos %}
-                            <!-- MEJORA: Asociamos la etiqueta de deporte inyectada desde Python -->
                             <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}" data-deporte="{{ evento.deporte }}">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
@@ -469,18 +461,19 @@
                                             {% if evento.logo_local %}
                                             <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
                                             {% endif %}
-                                            <span class="txt-local">{{ evento.equipo_local }}</span>
+                                            <span class="txt-local" style="font-weight: 600;">{{ evento.equipo_local }}</span>
                                         </div>
                                         
                                         {% if evento.equipo_visitante %}
                                         <span class="vs-separador">vs</span>
                                         <div class="bloque-equipo">
-                                            <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
                                             {% if evento.logo_visitante %}
                                             <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
                                             {% endif %}
+                                            <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
                                         </div>
                                         {% endif %}
+                                        <span class="txt-liga-sub">🏆 {{ evento.liga }}</span>
                                     </div>
                                 </td>
                                 <td class="canales-td">{{ evento.canales_html | safe }}</td>
@@ -494,14 +487,14 @@
         </div>
 
         <!-- SECCIÓN INFERIOR -->
-        <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
-            <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
-                📺 Mis Canales Disponibles (Acceso Directo Manual)
+        <div class="competition-card" id="card-canales-sistema" style="margin-top: 30px;">
+            <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
+                📺 Canales Disponibles (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
-                    <span class="ico-play">▶</span>
+                    <span>▶</span>
                     <span>{{ canal.name }}</span>
                 </a>
                 {% endfor %}
@@ -510,24 +503,18 @@
 
     </div>
 
-    <!-- Botón flotante -->
     <a href="/recargar" class="btn-recargar">
-        🔄 Forzar Actualización
+        🔄 Actualizar
     </a>
 
     <script>
         let ocultarSinEnlace = true;
-        let categoriaActiva = "all"; // Estado global de la categoría elegida
+        let categoriaActiva = "all";
 
-        // Función para cambiar de categoría deportiva en caliente
         function filtrarCategoria(deporte, elemento) {
             categoriaActiva = deporte;
-            
-            // Cambiar estilo visual del botón activo
             document.querySelectorAll('.btn-category').forEach(btn => btn.classList.remove('active'));
             elemento.classList.add('active');
-            
-            // Lanzar el motor unificado de filtrado
             filtrarTodo();
         }
 
@@ -551,16 +538,11 @@
 
         function bajarACanales() {
             const target = document.getElementById('card-canales-sistema');
-            const offset = 225; 
+            const offset = 215; 
             const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-            
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
         }
 
-        // MOTOR DE FILTRADO TRIPLE CRUZADO: Texto + Enlaces Streaming + Categoría Deportiva
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
@@ -575,20 +557,16 @@
                     let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
                     let visitanteEl = fila.querySelector('.txt-visitante');
                     let visitanteText = visitanteEl ? visitanteEl.textContent.toLowerCase() : "";
-                    let partidoCompleto = localText + " " + visitanteText;
+                    let ligaText = fila.querySelector('.txt-liga-sub').textContent.toLowerCase();
+                    let partidoCompleto = localText + " " + visitanteText + " " + ligaText;
                     
-                    // 1. Verificar Buscador por palabra
                     let coincideBusqueda = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
-                    
-                    // 2. Verificar Interruptor de Enlaces
                     let tieneEnlace = fila.getAttribute('data-has-links') === 'true';
                     let coincideEnlace = !ocultarSinEnlace || tieneEnlace;
 
-                    // 3. Verificar Botón de Categoría Deportiva
                     let deporteFila = fila.getAttribute('data-deporte');
                     let coincideCategoria = (categoriaActiva === 'all' || deporteFila === categoriaActiva);
 
-                    // Si pasa los tres filtros en paralelo, se muestra la fila
                     if (coincideBusqueda && coincideEnlace && coincideCategoria) {
                         fila.style.display = '';
                         encuentrosVisiblesEnDia++;
@@ -597,7 +575,6 @@
                     }
                 });
 
-                // Ocultar el día o bloque entero si no quedan partidos visibles
                 if (encuentrosVisiblesEnDia > 0) {
                     seccion.style.display = '';
                 } else {
@@ -605,7 +582,6 @@
                 }
             });
 
-            // Filtrar los canales fijos del final por texto
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
