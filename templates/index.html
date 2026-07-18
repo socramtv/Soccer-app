@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Sσcяαм Tν + Acεѕтяεαм</title>
+    <!-- Vinculación del manifiesto PWA -->
+    <link rel="manifest" href="/manifest.json">
     <style>
         body {
             background-color: #121212;
@@ -11,7 +13,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 215px; /* Ajustado para el logo el doble de grande */
+            padding-top: 215px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -43,7 +45,7 @@
             align-items: center;
         }
 
-        /* Logo Principal Superior (Doble de grande) */
+        /* Logo Principal Superior */
         .main-logo {
             width: 76px;
             height: 76px;
@@ -360,7 +362,7 @@
     <!-- Barra Superior Fija -->
     <div class="top-bar">
         <div class="top-bar-title-row">
-            <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-512.png" class="main-logo" alt="Socram Logo">
+            <img src="/icon-512.png" class="main-logo" alt="Socram Logo">
             <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
             <span class="subtitle">by Masp</span>
         </div>
@@ -497,9 +499,9 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE DE INSTALACIÓN CORREGIDO CON ENLACE RAW -->
+    <!-- BOTÓN FLOTANTE DE INSTALACIÓN -->
     <button id="btn-instalar-app" class="btn-instalar" onclick="ejecutarInstalacionPWA()">
-        <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png" alt="App Icon">
+        <img src="/icon-192.png" alt="App Icon">
         <span>Instalar App</span>
     </button>
 
@@ -512,6 +514,16 @@
         let ocultarSinEnlace = true;
         let eventoInstalacionManejado;
 
+        // REGISTRO DEL SERVICE WORKER (Obligatorio para que funcione la instalación)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
+                    .catch(err => console.error('Error al registrar el Service Worker:', err));
+            });
+        }
+
+        // Captura de instalación PWA nativa
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             eventoInstalacionManejado = e;
