@@ -12,6 +12,7 @@ def extraer_eventos(url_eventos):
         }
         
         print(f"📡 Descargando cartelera de partidos desde: {url_eventos}")
+        respuesta = requests.get(url_eventEventos = requests.get(url_eventos, headers=headers, timeout=15))
         respuesta = requests.get(url_eventos, headers=headers, timeout=15)
         
         if respuesta.status_code != 200:
@@ -133,11 +134,47 @@ def extraer_eventos(url_eventos):
                         equipo_local = " - ".join(detalles_evento)
                         equipo_visitante = ""
 
+                    # --- CLASIFICACIÓN DE CATEGORÍA DEPORTIVA INTELIGENTE ---
+                    deporte = "Otros"
+                    texto_analisis = (liga + " " + equipo_local + " " + equipo_visitante).lower()
+                    
+                    # Comprobación por imágenes del contenedor de deportes de la web
+                    for img in el.find_all('img'):
+                        src_img = img.get('src', '').lower()
+                        alt_img = img.get('alt', '').lower()
+                        if 'baloncesto' in src_img or 'baloncesto' in alt_img or 'basket' in src_img:
+                            deporte = "Baloncesto"
+                            break
+                        if 'futbol' in src_img or 'futbol' in alt_img or 'soccer' in src_img:
+                            deporte = "Fútbol"
+                            break
+                        if 'tennis' in src_img or 'tenis' in src_img or 'tennis' in alt_img or 'tenis' in alt_img:
+                            deporte = "Tenis"
+                            break
+                        if 'formula' in src_img or 'f1' in src_img or 'motor' in src_img or 'indy' in src_img or 'rally' in src_img or 'nascar' in src_img:
+                            deporte = "Motor"
+                            break
+                        if 'ciclismo' in src_img or 'tour' in src_img or 'bike' in src_img:
+                            deporte = "Ciclismo"
+                            break
+
+                    # Red de seguridad por análisis de texto descriptor
+                    if deporte == "Otros":
+                        if any(x in texto_analisis for x in ['futbol', 'laliga', 'champions', 'premier', 'bundesliga', 'serie a', 'ligue', 'copa del rey', 'europa league', 'fifa']):
+                            deporte = "Fútbol"
+                        elif any(x in texto_analisis for x in ['baloncesto', 'basket', 'nba', 'acb', 'fiba', 'euroliga', 'femenino sub-17']):
+                            deporte = "Baloncesto"
+                        elif any(x in texto_analisis for x in ['tenis', 'tennis', 'atp', 'wta', 'itf', 'challenger', 'nadal', 'alcaraz', 'wimbledon']):
+                            deporte = "Tenis"
+                        elif any(x in texto_analisis for x in ['fórmula', 'formula', 'f1', 'gp ', 'g.p.', 'indycar', 'moto', 'motogp', 'rally', 'indy', 'prix']):
+                            deporte = "Motor"
+                        elif any(x in texto_analisis for x in ['ciclismo', 'tour de', 'vuelta', 'giro d', 'etapa', 'francia']):
+                            deporte = "Ciclismo"
+
                     # --- EXTRACCIÓN QUIRÚRGICA DE ESCUDOS/BANDERAS REALES ---
                     logo_local = ""
                     logo_visitante = ""
 
-                    # Buscamos de manera exacta dentro de los contenedores .local y .visitante
                     local_el = el.select_one('.local')
                     if local_el:
                         img_l = local_el.find('img')
@@ -152,14 +189,12 @@ def extraer_eventos(url_eventos):
                             src_v = img_v.get('src')
                             logo_visitante = base_url + src_v if src_v.startswith('/') else src_v
 
-                    # Fallback exclusivo para eventos individuales (F1, Carreras) que no usan las clases .local/.visitante
                     if not logo_local:
                         for img in el.find_all('img'):
                             src = img.get('src', '')
                             alt = img.get('alt', '').lower()
                             title = img.get('title', '').lower()
                             
-                            # Ignorar por completo si la imagen está dentro del contenedorImgCompeticion
                             es_competicion = any('contenedorimgcompeticion' in "".join(p.get('class', [])).lower() for p in img.parents if p.name != '[document]' and p.get('class'))
                             es_tv = any(x in alt or x in title or x in src.lower() for x in ['canal', 'tv', 'tele', 'logo', 'movistar', 'dazn', 'gol', 'eurosport', 'tve', 'la1', 'la2', 'vodafone', 'orange', 'm+', 'onefootball', 'play', 'youtube', 'confirmar'])
                             
@@ -175,6 +210,7 @@ def extraer_eventos(url_eventos):
                             'hora': hora,
                             'fecha': current_fecha,
                             'liga': liga if liga else "Otros Deportes",
+                            'deporte': deporte,  # Nueva etiqueta para control HTML
                             'equipos': f"{equipo_local} - {equipo_visitante}" if equipo_visitante else equipo_local,
                             'equipo_local': equipo_local,
                             'equipo_visitante': equipo_visitante,
