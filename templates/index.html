@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Agenda Deportiva</title>
+    <title>🎯 Sσcяαм Tν + Acεѕтяεαм</title>
     <style>
         body {
             background-color: #121212;
@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            padding-top: 140px;
+            padding-top: 175px; /* Ajustado para dar espacio al nuevo título centrado */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -25,14 +25,39 @@
             left: 0;
             right: 0;
             background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
-            padding: 12px 15px;
+            padding: 10px 15px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
             border-bottom: 1px solid #2a2a2a;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        /* Bloque del Título Principal Centrado Arriba */
+        .top-bar-title-row {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        .top-bar-title-row h1 {
+            font-size: 1.35rem;
+            margin: 0;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .top-bar-title-row .subtitle {
+            font-size: 0.75rem;
+            color: #00ff88;
+            font-weight: bold;
+            display: block;
+            margin-top: 2px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
         }
 
         .top-bar-content {
@@ -43,17 +68,14 @@
             align-items: center;
         }
 
-        .top-bar h1 {
-            font-size: 1.1rem;
-            margin: 0;
-            color: #ffffff;
-        }
-
-        .top-bar h1 span {
+        .fecha-badge {
+            font-size: 0.85rem;
             color: #888888;
-            font-size: 0.8rem;
-            font-weight: normal;
-            margin-left: 5px;
+            font-weight: bold;
+            background-color: #1c1c1c;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #2a2a2a;
         }
 
         .top-actions-layout {
@@ -81,7 +103,6 @@
             border: 1px solid rgba(0, 255, 136, 0.3);
         }
 
-        /* Botón del filtro de enlaces */
         .btn-filter-links {
             background: rgba(255, 170, 0, 0.1);
             color: #ffaa00;
@@ -265,11 +286,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        .btn-canal-directo * {
-            pointer-events: none;
-        }
-
-        .btn-canal-directo:active {
+        .btn-canal-directo :active {
             transform: scale(0.95);
             background: #00ff88;
             color: #121212;
@@ -323,10 +340,15 @@
 
     <!-- Barra Superior Fija -->
     <div class="top-bar">
+        <!-- Títulos Centrados Solicitados -->
+        <div class="top-bar-title-row">
+            <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
+            <span class="subtitle">by Masp</span>
+        </div>
+
         <div class="top-bar-content">
-            <h1>🎯 Agenda Deportiva<span>{{ fecha }}</span></h1>
+            <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
-                <!-- NUEVO: Botón Conmutador Mostrar Todo / Solo con enlace -->
                 <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
@@ -338,7 +360,7 @@
 
     <div class="container">
         
-        <!-- NUEVA SECCIÓN: PINNED DE PARTIDOS DESTACADOS (SEVILLA / BETIS) -->
+        <!-- SECCIÓN DESTACADOS (SEVILLA / BETIS) -->
         {% if destacados %}
         <div class="day-section" id="seccion-destacados">
             <div class="day-header" style="background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); color: #ffffff; border-left: 5px solid #ffcc00;">⭐ Partidos Destacados (Sevilla / Betis)</div>
@@ -386,7 +408,7 @@
         </div>
         {% endif %}
 
-        <!-- Bloque Principal de Partidos Comunes por Días -->
+        <!-- Bloque Principal de Partidos por Días -->
         <div id="seccion-partidos">
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
@@ -403,7 +425,6 @@
                         </thead>
                         <tbody>
                             {% for evento in partidos %}
-                            <!-- MEJORA: Atributo data-has-links para control en tiempo real desde JS -->
                             <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
@@ -436,7 +457,7 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR: Lista completa de canales -->
+        <!-- SECCIÓN INFERIOR -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
@@ -459,10 +480,8 @@
     </a>
 
     <script>
-        // Control de Estado Global: true significa que solo vemos eventos con streaming activo
         let ocultarSinEnlace = true;
 
-        // Función para cambiar el filtro de visualización en caliente
         function toggleFiltroEnlaces() {
             ocultarSinEnlace = !ocultarSinEnlace;
             let btn = document.getElementById('btn-toggle-enlaces');
@@ -481,10 +500,9 @@
             filtrarTodo();
         }
 
-        // Función de desplazamiento suave
         function bajarACanales() {
             const target = document.getElementById('card-canales-sistema');
-            const offset = 140; 
+            const offset = 175; 
             const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
             
             window.scrollTo({
@@ -493,12 +511,10 @@
             });
         }
 
-        // Buscador instantáneo integrado con el filtro de enlaces activos
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // Filtramos todas las secciones diarias e incluyendo la de destacados
             let seccionesDias = document.querySelectorAll('.day-section');
             
             seccionesDias.forEach(seccion => {
@@ -511,10 +527,7 @@
                     let visitanteText = visitanteEl ? visitanteEl.textContent.toLowerCase() : "";
                     let partidoCompleto = localText + " " + visitanteText;
                     
-                    // Condición A: Texto del buscador
                     let coincideBusqueda = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
-                    
-                    // Condición B: Filtro de enlaces disponibles
                     let tieneEnlace = fila.getAttribute('data-has-links') === 'true';
                     let coincideEnlace = !ocultarSinEnlace || tieneEnlace;
 
@@ -533,7 +546,6 @@
                 }
             });
 
-            // Filtrar los canales directos del final
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
@@ -557,7 +569,6 @@
             }
         }
 
-        // Aplicamos el filtro por defecto al cargar el árbol DOM
         document.addEventListener("DOMContentLoaded", function() {
             filtrarTodo();
         });
