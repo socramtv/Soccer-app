@@ -12,7 +12,7 @@ def extraer_eventos(url_eventos):
         }
         
         print(f"📡 Descargando cartelera de partidos desde: {url_eventos}")
-        respuesta = requests.get(url_eventEventos = requests.get(url_eventos, headers=headers, timeout=15))
+        # LÍNEA CORREGIDA: Limpia y directa sin duplicados extraños
         respuesta = requests.get(url_eventos, headers=headers, timeout=15)
         
         if respuesta.status_code != 200:
@@ -138,7 +138,6 @@ def extraer_eventos(url_eventos):
                     deporte = "Otros"
                     texto_analisis = (liga + " " + equipo_local + " " + equipo_visitante).lower()
                     
-                    # Comprobación por imágenes del contenedor de deportes de la web
                     for img in el.find_all('img'):
                         src_img = img.get('src', '').lower()
                         alt_img = img.get('alt', '').lower()
@@ -158,7 +157,6 @@ def extraer_eventos(url_eventos):
                             deporte = "Ciclismo"
                             break
 
-                    # Red de seguridad por análisis de texto descriptor
                     if deporte == "Otros":
                         if any(x in texto_analisis for x in ['futbol', 'laliga', 'champions', 'premier', 'bundesliga', 'serie a', 'ligue', 'copa del rey', 'europa league', 'fifa']):
                             deporte = "Fútbol"
@@ -210,7 +208,7 @@ def extraer_eventos(url_eventos):
                             'hora': hora,
                             'fecha': current_fecha,
                             'liga': liga if liga else "Otros Deportes",
-                            'deporte': deporte,  # Nueva etiqueta para control HTML
+                            'deporte': deporte,
                             'equipos': f"{equipo_local} - {equipo_visitante}" if equipo_visitante else equipo_local,
                             'equipo_local': equipo_local,
                             'equipo_visitante': equipo_visitante,
