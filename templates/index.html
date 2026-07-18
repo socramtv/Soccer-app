@@ -56,11 +56,13 @@
             margin-left: 5px;
         }
 
-        /* Botón de acceso directo en la barra superior */
-        .btn-directo-canales {
-            background: rgba(0, 255, 136, 0.1);
-            color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.3);
+        .top-actions-layout {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Botones de control de cabecera */
+        .btn-header-action {
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.8rem;
@@ -73,9 +75,20 @@
             outline: none;
         }
 
-        .btn-directo-canales:active {
-            background: #00ff88;
-            color: #121212;
+        .btn-directo-canales {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        /* Botón del filtro de enlaces */
+        .btn-filter-links {
+            background: rgba(255, 170, 0, 0.1);
+            color: #ffaa00;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .btn-header-action:active {
             transform: scale(0.95);
         }
 
@@ -252,7 +265,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Solución táctil móvil */
         .btn-canal-directo * {
             pointer-events: none;
         }
@@ -313,7 +325,11 @@
     <div class="top-bar">
         <div class="top-bar-content">
             <h1>🎯 Agenda Deportiva<span>{{ fecha }}</span></h1>
-            <button onclick="bajarACanales()" class="btn-directo-canales">📺 Canales</button>
+            <div class="top-actions-layout">
+                <!-- NUEVO: Botón Conmutador Mostrar Todo / Solo con enlace -->
+                <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
+                <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
+            </div>
         </div>
         <div class="search-container">
             <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo para filtrar..." onkeyup="filtrarTodo()">
@@ -322,7 +338,55 @@
 
     <div class="container">
         
-        <!-- Bloque Principal de Partidos por Días -->
+        <!-- NUEVA SECCIÓN: PINNED DE PARTIDOS DESTACADOS (SEVILLA / BETIS) -->
+        {% if destacados %}
+        <div class="day-section" id="seccion-destacados">
+            <div class="day-header" style="background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); color: #ffffff; border-left: 5px solid #ffcc00;">⭐ Partidos Destacados (Sevilla / Betis)</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Hora / Día</th>
+                            <th style="width: 55%">Encuentro</th>
+                            <th style="width: 30%">Enlaces Directos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in destacados %}
+                        <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}">
+                            <td class="hora">
+                                {{ evento.hora }}<br>
+                                <small style="color: #aaa; font-weight: normal; font-size: 0.7rem;">{{ evento.fecha }}</small>
+                            </td>
+                            <td>
+                                <div class="marcador-box">
+                                    <div class="bloque-equipo">
+                                        {% if evento.logo_local %}
+                                        <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
+                                        {% endif %}
+                                        <span class="txt-local">{{ evento.equipo_local }}</span>
+                                    </div>
+                                    {% if evento.equipo_visitante %}
+                                    <span class="vs-separador">vs</span>
+                                    <div class="bloque-equipo">
+                                        <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
+                                        {% if evento.logo_visitante %}
+                                        <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="canales-td">{{ evento.canales_html | safe }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Bloque Principal de Partidos Comunes por Días -->
         <div id="seccion-partidos">
             {% for fecha, partidos in eventos_agrupados.items() %}
             <div class="day-section">
@@ -339,11 +403,11 @@
                         </thead>
                         <tbody>
                             {% for evento in partidos %}
-                            <tr class="fila-partido">
+                            <!-- MEJORA: Atributo data-has-links para control en tiempo real desde JS -->
+                            <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
                                     <div class="marcador-box">
-                                        <!-- Bloque Local / Evento Único (Carreras/Ciclismo/Tenis/Fútbol) -->
                                         <div class="bloque-equipo">
                                             {% if evento.logo_local %}
                                             <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
@@ -351,7 +415,6 @@
                                             <span class="txt-local">{{ evento.equipo_local }}</span>
                                         </div>
                                         
-                                        <!-- ARREGLO: Muestra el "vs" y el bloque visitante ÚNICAMENTE si existe un rival -->
                                         {% if evento.equipo_visitante %}
                                         <span class="vs-separador">vs</span>
                                         <div class="bloque-equipo">
@@ -373,7 +436,7 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR: Lista completa de canales con accesos directos HLS -->
+        <!-- SECCIÓN INFERIOR: Lista completa de canales -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 40px; border-color: #2a2a2a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88; font-weight: bold; padding: 11px 15px;">
                 📺 Mis Canales Disponibles (Acceso Directo Manual)
@@ -396,7 +459,29 @@
     </a>
 
     <script>
-        // Función de desplazamiento suave calculando la top-bar fija
+        // Control de Estado Global: true significa que solo vemos eventos con streaming activo
+        let ocultarSinEnlace = true;
+
+        // Función para cambiar el filtro de visualización en caliente
+        function toggleFiltroEnlaces() {
+            ocultarSinEnlace = !ocultarSinEnlace;
+            let btn = document.getElementById('btn-toggle-enlaces');
+            
+            if (ocultarSinEnlace) {
+                btn.textContent = "👁️ Mostrar Todo";
+                btn.style.background = "rgba(255, 170, 0, 0.1)";
+                btn.style.color = "#ffaa00";
+                btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
+            } else {
+                btn.textContent = "👁️ Solo con Enlace";
+                btn.style.background = "rgba(0, 255, 136, 0.1)";
+                btn.style.color = "#00ff88";
+                btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
+            }
+            filtrarTodo();
+        }
+
+        // Función de desplazamiento suave
         function bajarACanales() {
             const target = document.getElementById('card-canales-sistema');
             const offset = 140; 
@@ -408,12 +493,13 @@
             });
         }
 
-        // Buscador instantáneo multicadena de alta precisión
+        // Buscador instantáneo integrado con el filtro de enlaces activos
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            let seccionesDias = document.querySelectorAll('#seccion-partidos .day-section');
+            // Filtramos todas las secciones diarias e incluyendo la de destacados
+            let seccionesDias = document.querySelectorAll('.day-section');
             
             seccionesDias.forEach(seccion => {
                 let filas = seccion.querySelectorAll('.fila-partido');
@@ -425,9 +511,14 @@
                     let visitanteText = visitanteEl ? visitanteEl.textContent.toLowerCase() : "";
                     let partidoCompleto = localText + " " + visitanteText;
                     
-                    let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
+                    // Condición A: Texto del buscador
+                    let coincideBusqueda = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
+                    
+                    // Condición B: Filtro de enlaces disponibles
+                    let tieneEnlace = fila.getAttribute('data-has-links') === 'true';
+                    let coincideEnlace = !ocultarSinEnlace || tieneEnlace;
 
-                    if (coincide) {
+                    if (coincideBusqueda && coincideEnlace) {
                         fila.style.display = '';
                         encuentrosVisiblesEnDia++;
                     } else {
@@ -442,6 +533,7 @@
                 }
             });
 
+            // Filtrar los canales directos del final
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
@@ -464,6 +556,11 @@
                 bloqueCanales.style.display = '';
             }
         }
+
+        // Aplicamos el filtro por defecto al cargar el árbol DOM
+        document.addEventListener("DOMContentLoaded", function() {
+            filtrarTodo();
+        });
     </script>
 
 </body>
