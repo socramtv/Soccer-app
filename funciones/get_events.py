@@ -173,7 +173,7 @@ def extraer_eventos(url_eventos):
                     equipo_visitante = re.sub(r'\s+', ' ', equipo_visitante).strip()
 
                     # Guardamos el evento si es totalmente legible
-                    if equipo_local and equipo_local != "Equipo Local":
+                    if equipo_local and equipo_local != "Equipo Local" and equipo_local != equipo_visitante:
                         eventos.append({
                             'hora': hora,
                             'fecha': current_fecha,
@@ -189,17 +189,17 @@ def extraer_eventos(url_eventos):
                 except Exception:
                     continue
 
-            # Eliminar duplicados exactos en la parrilla final
-            eventos_unicos = []
-            vistos_ev = set()
-            for ev in eventos:
-                clave = f"{ev['fecha']}-{ev['hora']}-{ev['equipos']}"
-                if clave not in vistos_ev:
-                    eventos_unicos.append(ev)
-                    vistos_ev.add(clave)
+        # Eliminar duplicados exactos en la parrilla final
+        eventos_unicos = []
+        vistos_ev = set()
+        for ev in eventos:
+            clave = f"{ev['fecha']}-{ev['hora']}-{ev['equipos']}"
+            if clave not in vistos_ev:
+                eventos_unicos.append(ev)
+                vistos_ev.add(clave)
 
-            return eventos_unicos
+        return eventos_unicos
 
-        except Exception as e:
-            print(f"⚠️ Error crítico en el raspado de eventos: {e}")
-            return []
+    except Exception as e:
+        print(f"⚠️ Error crítico en el raspado de eventos: {e}")
+        return []
