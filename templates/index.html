@@ -56,7 +56,7 @@
             margin-left: 5px;
         }
 
-        /* NUEVO: Botón de acceso directo en la barra superior */
+        /* Botón de acceso directo en la barra superior */
         .btn-directo-canales {
             background: rgba(0, 255, 136, 0.1);
             color: #00ff88;
@@ -198,6 +198,7 @@
             width: 22px;
             height: 22px;
             object-fit: contain;
+            border-radius: 2px;
         }
 
         .vs-separador {
@@ -251,6 +252,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
+        /* Solución táctil móvil */
         .btn-canal-directo * {
             pointer-events: none;
         }
@@ -311,7 +313,6 @@
     <div class="top-bar">
         <div class="top-bar-content">
             <h1>🎯 Agenda Deportiva<span>{{ fecha }}</span></h1>
-            <!-- NUEVO: Botón táctil para bajar directo sin hacer scroll manual -->
             <button onclick="bajarACanales()" class="btn-directo-canales">📺 Canales</button>
         </div>
         <div class="search-container">
@@ -342,15 +343,24 @@
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
                                     <div class="marcador-box">
+                                        <!-- Bloque Local / Evento Único (Carreras/Ciclismo/Tenis/Fútbol) -->
                                         <div class="bloque-equipo">
+                                            {% if evento.logo_local %}
                                             <img src="{{ evento.logo_local }}" class="escudo-team" loading="lazy" alt="">
+                                            {% endif %}
                                             <span class="txt-local">{{ evento.equipo_local }}</span>
                                         </div>
+                                        
+                                        <!-- ARREGLO: Muestra el "vs" y el bloque visitante ÚNICAMENTE si existe un rival -->
+                                        {% if evento.equipo_visitante %}
                                         <span class="vs-separador">vs</span>
                                         <div class="bloque-equipo">
                                             <span class="txt-visitante">{{ evento.equipo_visitante }}</span>
+                                            {% if evento.logo_visitante %}
                                             <img src="{{ evento.logo_visitante }}" class="escudo-team" loading="lazy" alt="">
+                                            {% endif %}
                                         </div>
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td class="canales-td">{{ evento.canales_html | safe }}</td>
@@ -386,10 +396,10 @@
     </a>
 
     <script>
-        // NUEVO: Función para bajar suavemente calculando el margen de la barra fija superior
+        // Función de desplazamiento suave calculando la top-bar fija
         function bajarACanales() {
             const target = document.getElementById('card-canales-sistema');
-            const offset = 140; // Altura exacta en píxeles de nuestra top-bar fija
+            const offset = 140; 
             const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
             
             window.scrollTo({
@@ -398,7 +408,7 @@
             });
         }
 
-        // Buscador en tiempo real
+        // Buscador instantáneo multicadena de alta precisión
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
@@ -411,7 +421,8 @@
 
                 filas.forEach(fila => {
                     let localText = fila.querySelector('.txt-local').textContent.toLowerCase();
-                    let visitanteText = fila.querySelector('.txt-visitante').textContent.toLowerCase();
+                    let visitanteEl = fila.querySelector('.txt-visitante');
+                    let visitanteText = visitanteEl ? visitanteEl.textContent.toLowerCase() : "";
                     let partidoCompleto = localText + " " + visitanteText;
                     
                     let coincide = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
