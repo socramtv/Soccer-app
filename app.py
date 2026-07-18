@@ -26,68 +26,78 @@ def normalizar_cadena(texto):
     return " ".join(texto.split())
 
 def vincular_canales_automatico(canales_evento, lista_enlaces):
-    """Algoritmo de cruce avanzado por descomposición de tokens y exclusión de categorías"""
+    """Algoritmo de cruce avanzado basado en reglas de exclusión y equivalencias estrictas"""
     html_resultado = ""
     
     def simplificar_canal(texto):
-        """Limpia el canal aislando sus palabras clave reales de los números y del ruido"""
+        """Aísla la identidad del canal eliminando ruido de operadores, diales y calidades"""
         texto = texto.lower().strip()
-        # Estandarizar cadenas comunes para que coincidan sin importar cómo estén escritas
-        texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
-        texto = texto.replace("la liga", "laliga").replace("la liga", "laliga")
         
-        # Eliminar contenido entre paréntesis por completo
+        # 1. Eliminar por completo el contenido entre paréntesis (Diales de operadores, "Ver en directo", etc.)
         texto = re.sub(r'\(.*?\)', '', texto)
-        # Convertir todos los símbolos extraños en espacios limpios
-        texto = re.sub(r'[\-\[\]\*\_\|\+\(\)\.\,\/\:\?]', ' ', texto)
+        
+        # 2. Aplicar equivalencias de escritura y fusiones para unificar criterios
+        texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
+        texto = texto.replace("la liga", "laliga").replace("la 1", "la1").replace("la 2", "la2")
+        
+        # 3. Eliminar términos de calidad de video de forma limpia
+        texto = re.sub(r'\b(hd|sd|1080p|720p|4k|1080|720)\b', '', texto)
+        
+        # 4. Limpiar símbolos de puntuación y asteriscos (*, **) por completo
+        texto = re.sub(r'[\-\[\]\*\_\|\+\(\)\.\,\/\:\?\#\§]', ' ', texto)
         
         palabras = texto.split()
-        # Ruido puro que no aporta valor al nombre del canal
-        stopwords_ruido = {'hd', 'sd', '1080p', '720p', 'el', 'los', 'de', 'en', 'ver', 'directo', 'orange', 'tv', 'vodafone', 'plus', 'dial', 'channel'}
+        
+        # Palabras de ruido/operadores que no aportan identidad al canal y se deben obviar
+        stopwords_ruido = {'tv', 'orange', 'vodafone', 'cat', 'de', 'la', 'el', 'los', 'en', 'y', 'plus', 'dial', 'channel', 'tve', 'play', 'rtve'}
         palabras_limpias = [w for w in palabras if w not in stopwords_ruido]
         
-        # Separamos las letras de los números identificadores de diales/canales
+        # REGLA ESPECIAL: Si es DAZN Mundial y no tiene número asignado, forzar coincidencia con el canal 1
+        if "dazn" in palabras_limpias and "mundial" in palabras_limpias:
+            if not any(w.isdigit() for w in palabras_limpias):
+                palabras_limpias.append("1")
+                
+        # Separar letras (marcas) de dígitos (identificadores de canales numéricos)
         letras = [w for w in palabras_limpias if not w.isdigit()]
         digitos = [w for w in palabras_limpias if w.isdigit()]
-        return letras, digitos
+        
+        return set(letras), set(digitos)
 
     for canal in canales_evento:
         canal_limpio = canal.strip()
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
-        # Si la celda está vacía o no tiene texto legible, la saltamos
         if not web_letras and not web_digitos:
             html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
             continue
             
-        es_bar = "bar" in canal_limpio.lower()
+        es_bar = "bar" in canal_limpio.lower() or "bar" in web_letras
         matches_encontrados = []
         
         for enc in lista_enlaces:
             nombre_json = enc['name']
             json_letras, json_digitos = simplificar_canal(nombre_json)
             
-            # 1. Filtro estricto para canales BAR
-            if es_bar != ("bar" in json_letras or "bar" in nombre_json.lower()):
+            # 1. Filtro de exclusión mutua para canales BAR de hostelería
+            json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
+            if es_bar != json_es_bar:
                 continue
                 
-            # 2. Control de palabras clave críticas (Evita que DAZN 1 sintonice DAZN LaLiga o DAZN F1)
-            KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2'}
-            conflicto_detectado = False
+            # 2. Control estricto de temáticas críticas (Evita que DAZN sintonice DAZN LaLiga o DAZN F1 por error)
+            KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2', 'baloncesto'}
+            conflicto_tematico = False
             for kw in KEYWORDS_CRITICOS:
                 if (kw in web_letras) != (kw in json_letras):
-                    conflicto_detectado = True
+                    conflicto_tematico = True
                     break
-            if conflicto_detectado:
+            if conflicto_tematico:
                 continue
                 
-            # 3. Comprobar coincidencia de marcas (ej: 'movistar', 'dazn', 'eurosport'...)
-            coincide_letras = all(w in json_letras for w in web_letras) or all(w in web_letras for w in json_letras)
+            # 3. Comprobación de marcas principales por subconjuntos equivalentes
+            coincide_letras = web_letras.issubset(json_letras) or json_letras.issubset(web_letras)
             
-            # 4. Control estricto de números de canales (ej: Multi-canales o diales diferentes)
-            coincide_numeros = True
-            if web_digitos:
-                coincide_numeros = any(d in json_digitos for d in web_digitos)
+            # 4. Control estricto de números identificadores (ej: Deportes 1 nunca debe pisar a Deportes 2)
+            coincide_numeros = (web_digitos == json_digitos)
 
             if coincide_letras and coincide_numeros:
                 hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
@@ -100,7 +110,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
                     )
         
         if matches_encontrados:
-            # Eliminamos duplicados y ordenamos alfabéticamente los botones resultantes
+            # Eliminamos duplicados de opciones idénticas y ordenamos los botones resultantes
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
         else:
             html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
@@ -131,7 +141,6 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-    # Agrupamos única y exclusivamente por FECHA
     eventos_agrupados = {}
     for ev in eventos:
         fecha = ev.get('fecha', 'Hoy').strip()
@@ -151,7 +160,6 @@ def home():
     datos = obtener_datos_completos()
     fecha_actual = datetime.now().strftime("%d-%m-%Y")
     
-    # Limpieza automática de la lista inferior de accesos directos
     canales_directos_limpios = []
     for c in datos['canales_puros']:
         hash_match = re.search(r'([a-fA-F0-9]{40})', c['id'])
