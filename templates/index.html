@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            padding-top: 175px; /* Ajustado para dar espacio al nuevo título centrado */
+            padding-top: 225px; /* Aumentado para dar espacio holgado a la fila de categorías */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -35,7 +35,6 @@
             gap: 8px;
         }
 
-        /* Bloque del Título Principal Centrado Arriba */
         .top-bar-title-row {
             text-align: center;
             width: 100%;
@@ -83,7 +82,6 @@
             gap: 8px;
         }
 
-        /* Botones de control de cabecera */
         .btn-header-action {
             padding: 6px 12px;
             border-radius: 6px;
@@ -111,6 +109,43 @@
 
         .btn-header-action:active {
             transform: scale(0.95);
+        }
+
+        /* NUEVO: Fila Horizontal de Categorías Deportivas */
+        .categories-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 3px;
+            box-sizing: border-box;
+            scrollbar-width: none; /* Oculta scroll en Firefox */
+        }
+
+        .categories-wrapper::-webkit-scrollbar {
+            display: none; /* Oculta scroll en Chrome/Safari */
+        }
+
+        .btn-category {
+            background-color: #222222;
+            color: #aaaaaa;
+            border: 1px solid #333333;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .btn-category.active {
+            background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
+            color: #121212;
+            border-color: #00ff88;
+            box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
         }
 
         .search-container {
@@ -143,7 +178,6 @@
             margin-bottom: 70px;
         }
 
-        /* Cabecera de Separación por Días */
         .day-section {
             width: 100%;
             display: flex;
@@ -165,7 +199,6 @@
             box-sizing: border-box;
         }
 
-        /* Tabla Única de Eventos */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -248,7 +281,6 @@
             margin: 2px 0;
         }
 
-        /* Botones de Canales en la Tabla */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -263,7 +295,6 @@
             border: 1px solid #333333;
         }
 
-        /* Cuadrícula de Canales Directos */
         .grid-canales {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -286,14 +317,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        .btn-canal-directo :active {
-            transform: scale(0.95);
-            background: #00ff88;
-            color: #121212;
-            border-color: #00ff88;
-        }
-
-        /* Botón Actualizar */
         .btn-recargar {
             position: fixed;
             bottom: 20px;
@@ -340,7 +363,6 @@
 
     <!-- Barra Superior Fija -->
     <div class="top-bar">
-        <!-- Títulos Centrados Solicitados -->
         <div class="top-bar-title-row">
             <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
             <span class="subtitle">by Masp</span>
@@ -353,6 +375,18 @@
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
         </div>
+
+        <!-- NUEVO: Fila Deslizable de Categorías Deportivas Cruzadas -->
+        <div class="categories-wrapper">
+            <button class="btn-category active" onclick="filtrarCategoria('all', this)">🏆 Todos</button>
+            <button class="btn-category" onclick="filtrarCategoria('Fútbol', this)">⚽ Fútbol</button>
+            <button class="btn-category" onclick="filtrarCategoria('Baloncesto', this)">🏀 Baloncesto</button>
+            <button class="btn-category" onclick="filtrarCategoria('Tenis', this)">🎾 Tenis</button>
+            <button class="btn-category" onclick="filtrarCategoria('Motor', this)">🏎️ Motor</button>
+            <button class="btn-category" onclick="filtrarCategoria('Ciclismo', this)">🚴 Ciclismo</button>
+            <button class="btn-category" onclick="filtrarCategoria('Otros', this)">🎯 Otros</button>
+        </div>
+
         <div class="search-container">
             <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo para filtrar..." onkeyup="filtrarTodo()">
         </div>
@@ -375,7 +409,8 @@
                     </thead>
                     <tbody>
                         {% for evento in destacados %}
-                        <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}">
+                        <!-- MEJORA: Asociamos la etiqueta de deporte inyectada desde Python -->
+                        <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}" data-deporte="{{ evento.deporte }}">
                             <td class="hora">
                                 {{ evento.hora }}<br>
                                 <small style="color: #aaa; font-weight: normal; font-size: 0.7rem;">{{ evento.fecha }}</small>
@@ -425,7 +460,8 @@
                         </thead>
                         <tbody>
                             {% for evento in partidos %}
-                            <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}">
+                            <!-- MEJORA: Asociamos la etiqueta de deporte inyectada desde Python -->
+                            <tr class="fila-partido" data-has-links="{{ 'true' if evento.has_links else 'false' }}" data-deporte="{{ evento.deporte }}">
                                 <td class="hora">{{ evento.hora }}</td>
                                 <td>
                                     <div class="marcador-box">
@@ -481,6 +517,19 @@
 
     <script>
         let ocultarSinEnlace = true;
+        let categoriaActiva = "all"; // Estado global de la categoría elegida
+
+        // Función para cambiar de categoría deportiva en caliente
+        function filtrarCategoria(deporte, elemento) {
+            categoriaActiva = deporte;
+            
+            // Cambiar estilo visual del botón activo
+            document.querySelectorAll('.btn-category').forEach(btn => btn.classList.remove('active'));
+            elemento.classList.add('active');
+            
+            // Lanzar el motor unificado de filtrado
+            filtrarTodo();
+        }
 
         function toggleFiltroEnlaces() {
             ocultarSinEnlace = !ocultarSinEnlace;
@@ -502,7 +551,7 @@
 
         function bajarACanales() {
             const target = document.getElementById('card-canales-sistema');
-            const offset = 175; 
+            const offset = 225; 
             const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
             
             window.scrollTo({
@@ -511,6 +560,7 @@
             });
         }
 
+        // MOTOR DE FILTRADO TRIPLE CRUZADO: Texto + Enlaces Streaming + Categoría Deportiva
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
@@ -527,11 +577,19 @@
                     let visitanteText = visitanteEl ? visitanteEl.textContent.toLowerCase() : "";
                     let partidoCompleto = localText + " " + visitanteText;
                     
+                    // 1. Verificar Buscador por palabra
                     let coincideBusqueda = palabrasBusqueda.every(palabra => partidoCompleto.includes(palabra));
+                    
+                    // 2. Verificar Interruptor de Enlaces
                     let tieneEnlace = fila.getAttribute('data-has-links') === 'true';
                     let coincideEnlace = !ocultarSinEnlace || tieneEnlace;
 
-                    if (coincideBusqueda && coincideEnlace) {
+                    // 3. Verificar Botón de Categoría Deportiva
+                    let deporteFila = fila.getAttribute('data-deporte');
+                    let coincideCategoria = (categoriaActiva === 'all' || deporteFila === categoriaActiva);
+
+                    // Si pasa los tres filtros en paralelo, se muestra la fila
+                    if (coincideBusqueda && coincideEnlace && coincideCategoria) {
                         fila.style.display = '';
                         encuentrosVisiblesEnDia++;
                     } else {
@@ -539,6 +597,7 @@
                     }
                 });
 
+                // Ocultar el día o bloque entero si no quedan partidos visibles
                 if (encuentrosVisiblesEnDia > 0) {
                     seccion.style.display = '';
                 } else {
@@ -546,6 +605,7 @@
                 }
             });
 
+            // Filtrar los canales fijos del final por texto
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let canalesVisibles = 0;
 
