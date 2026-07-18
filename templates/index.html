@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 135px; /* Reducido al quitar las categorías */
+            padding-top: 135px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -79,6 +79,8 @@
         .top-actions-layout {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .btn-header-action {
@@ -104,6 +106,13 @@
             background: rgba(255, 170, 0, 0.1);
             color: #ffaa00;
             border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        /* NUEVO: Botón de descarga de lista M3U */
+        .btn-m3u {
+            background: rgba(0, 136, 255, 0.1);
+            color: #0088ff;
+            border: 1px solid rgba(0, 136, 255, 0.3);
         }
 
         .search-container {
@@ -149,27 +158,25 @@
             box-sizing: border-box;
         }
 
-        /* DISEÑO DE TABLA ADAPTATIVA SIN DESPLAZAMIENTO HORIZONTAL */
         .table-container {
             width: 100%;
             background-color: #1e1e1e;
             border-radius: 6px;
             border: 1px solid #2a2a2a;
-            overflow: hidden; /* Bloquea cualquier desborde */
+            overflow: hidden;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.72rem; /* Letra ultra-compacta para móviles */
-            table-layout: fixed; /* Fuerza el cumplimiento estricto de las columnas */
+            font-size: 0.72rem;
+            table-layout: fixed;
         }
 
-        /* Reparto exacto de columnas para que quepan las tres juntas */
-        th:nth-child(1), td:nth-child(1) { width: 14%; text-align: center; } /* Hora */
-        th:nth-child(2), td:nth-child(2) { width: 54%; }                     /* Encuentro */
-        th:nth-child(3), td:nth-child(3) { width: 32%; }                     /* Enlaces */
+        th:nth-child(1), td:nth-child(1) { width: 14%; text-align: center; }
+        th:nth-child(2), td:nth-child(2) { width: 54%; }
+        th:nth-child(3), td:nth-child(3) { width: 32%; }
 
         th {
             background-color: #1a1a1a;
@@ -185,7 +192,7 @@
             padding: 8px 4px;
             border-bottom: 1px solid #2a2a2a;
             vertical-align: middle;
-            word-wrap: break-word; /* Permite romper líneas largas de texto */
+            word-wrap: break-word;
             overflow: hidden;
         }
 
@@ -216,7 +223,7 @@
         }
 
         .escudo-team {
-            width: 14px; /* Escudos reducidos a juego con la letra */
+            width: 14px;
             height: 14px;
             object-fit: contain;
             flex-shrink: 0;
@@ -236,7 +243,6 @@
             display: block;
         }
 
-        /* Botones de canales en tabla optimizados en espacio */
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -325,6 +331,8 @@
         <div class="top-bar-content">
             <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
+                <!-- NUEVO: Botón para descargar la lista M3U -->
+                <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u">📥 Lista M3U</button>
                 <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
@@ -459,6 +467,49 @@
 
     <script>
         let ocultarSinEnlace = true;
+
+        // NUEVO: Generador Dinámico y Descarga de Lista M3U para reproductores externos
+        function descargarListaM3U() {
+            let m3uTexto = "#EXTM3U\n";
+            let filasConEnlaces = document.querySelectorAll('.fila-partido[data-has-links="true"]');
+            
+            if (filasConEnlaces.length === 0) {
+                alert("⚠️ No hay eventos deportivos con enlaces AceStream activos en este momento.");
+                return;
+            }
+            
+            filasConEnlaces.forEach(fila => {
+                let local = fila.querySelector('.txt-local') ? fila.querySelector('.txt-local').textContent.trim() : "";
+                let visitanteEl = fila.querySelector('.txt-visitante');
+                let visitante = visitanteEl ? " vs " + visitanteEl.textContent.trim() : "";
+                let nombrePartido = local + visitante;
+                
+                let ligaEl = fila.querySelector('.txt-liga-sub');
+                let nombreLiga = ligaEl ? ligaEl.textContent.replace('🏆', '').trim() : "Otros Deportes";
+                
+                let escudoEl = fila.querySelector('.escudo-team');
+                let urlLogo = escudoEl ? escudoEl.getAttribute('src') : "";
+                
+                // Buscar cada enlace a dentro de la celda de streaming
+                let linksStreaming = fila.querySelectorAll('.canales-td a');
+                linksStreaming.forEach(enlace => {
+                    let hrefAce = enlace.getAttribute('href');
+                    let textoCanal = enlace.textContent.trim();
+                    
+                    if (hrefAce && (hrefAce.startsWith('acestream://') || hrefAce.startsWith('http'))) {
+                        m3uTexto += `#EXTINF:-1 tvg-logo="${urlLogo}" group-title="${nombreLiga}",${nombrePartido} (${textoCanal})\n`;
+                        m3uTexto += `${hrefAce}\n`;
+                    }
+                });
+            });
+            
+            // Crear el archivo virtual en caliente y disparar la descarga directa
+            let blobArchivo = new Blob([m3uTexto], { type: 'text/plain;charset=utf-8' });
+            let elementoDescarga = document.createElement('a');
+            elementoDescarga.href = URL.createObjectURL(blobArchivo);
+            elementoDescarga.download = 'SocramTv_Acestream.m3u';
+            elementoDescarga.click();
+        }
 
         function toggleFiltroEnlaces() {
             ocultarSinEnlace = !ocultarSinEnlace;
