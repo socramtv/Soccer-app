@@ -21,27 +21,25 @@ def extraer_eventos(url_eventos):
         soup = BeautifulSoup(respuesta.text, 'html.parser')
         base_url = "https://www.futbolenlatv.es"
         
-        # 1. Encontrar todas las filas reales de la tabla principal
+        # 1. SOLUCIÓN: Incluimos explícitamente 'cabeceraTabla' para detectar los cambios de fecha
         tarjetas = []
         for fila in soup.find_all('tr'):
-            if fila.find(class_='hora') or fila.find(class_='detalles'):
+            clases = fila.get('class', []) if fila.get('class') else []
+            if 'cabeceraTabla' in clases or fila.find(class_='hora') or fila.find(class_='detalles'):
                 tarjetas.append(fila)
 
         print(f"🔍 Procesando {len(tarjetas)} filas deportivas con mapeo estructural...")
 
-        dias_semana = ['lunes', 'martes', 'miércoles', 'miercoles', 'jueves', 'viernes', 'sábado', 'sabado', 'domingo', 'hoy', 'mañana', 'manana', 'ayer']
         current_fecha = "Hoy"
 
         # 2. Iterar sobre las filas de forma secuencial
         for el in tarjetas:
-            # Capturar cambio de cabecera de día/fecha
-            if el.get('class') and 'cabeceraTabla' in el.get('class'):
+            clases_el = el.get('class', []) if el.get('class') else []
+            
+            # Detectar y actualizar el día actual cuando pasamos por una cabecera de la web
+            if 'cabeceraTabla' in clases_el:
                 texto_fecha = el.text.strip()
-                match_f = re.search(r'(\d{2}/\d{2}/\d{4})', texto_fecha)
-                if match_f:
-                    current_fecha = match_f.group(1)
-                else:
-                    current_fecha = texto_fecha
+                current_fecha = re.sub(r'\s+', ' ', texto_fecha).strip()
                 continue
 
             try:
@@ -74,9 +72,10 @@ def extraer_eventos(url_eventos):
                 for canal in canales_list:
                     canal_titulo = canal.get('title') or canal.text.strip()
                     if canal_titulo:
-                        last_paren = canal_titulo.lastIndexOf(')') if hasattr(canal_titulo, 'lastIndexOf') else canal_titulo.rfind(')')
-                        if last_paren != -1:
-                            canal_titulo = canal_titulo[:last_paren + 1].strip()
+                        if ')' in canal_titulo:
+                            last_paren = canal_titulo.rfind(')')
+                            if last_paren != -1:
+                                canal_titulo = canal_titulo[:last_paren + 1].strip()
                         if canal_titulo not in canales:
                             canales.append(canal_titulo)
 
@@ -97,11 +96,9 @@ def extraer_eventos(url_eventos):
                 visitante_el = el.select_one('.visitante')
 
                 if evento_unico_el and not (local_el or visitante_el):
-                    # Caso de deportes individuales (F1, Ciclismo, Golf)
                     equipo_local = evento_unico_el.text.strip()
                     equipo_visitante = ""
                 elif local_el or visitante_el:
-                    # Caso de deportes de enfrentamiento (Fútbol, Baloncesto, Tenis)
                     if local_el:
                         span_l = local_el.find('span')
                         equipo_local = span_l.get('title') if span_l and span_l.get('title') else local_el.text.strip()
@@ -116,7 +113,6 @@ def extraer_eventos(url_eventos):
                         if img_v and img_v.get('src'):
                             logo_visitante = base_url + img_v.get('src') if img_v.get('src').startswith('/') else img_v.get('src')
                 else:
-                    # Fallback de seguridad basado en texto plano si las clases fallan
                     textos_interiores = [t.strip() for t in el.get_text('\n').split('\n') if t.strip()]
                     lineas_filtradas = [l for l in textos_interiores if l != hora and l != liga and not any(c in l for c in canales)]
                     if len(lineas_filtradas) >= 2:
@@ -125,14 +121,11 @@ def extraer_eventos(url_eventos):
                     elif len(lineas_filtradas) == 1:
                         equipo_local = lineas_filtradas[0]
 
-                # Si el campo quedó vacío por estructuras complejas, limpiamos la cadena
                 if not equipo_local:
                     equipo_local = el.text.replace(hora, "").strip()[:50]
 
                 # --- ASIGNACIÓN DE CATEGORÍA DEPORTIVA PRECISA ---
                 deporte = "Otros"
-                
-                # Buscar imágenes identificadoras del deporte (estructura origen de futbolenlatv)
                 for img in el.find_all('img'):
                     src_img = img.get('src', '').lower()
                     alt_img = img.get('alt', '').lower()
@@ -154,7 +147,6 @@ def extraer_eventos(url_eventos):
                         deporte = "Ciclismo"
                         break
 
-                # Mapeo secundario basado en texto si no hay imágenes descriptoras de disciplina
                 if deporte == "Otros":
                     texto_analisis = (liga + " " + equipo_local + " " + equipo_visitante).lower()
                     if any(x in texto_analisis for x in ['futbol', 'balón', 'amistoso', 'copa mundial', 'girona', 'betis', 'valencia', 'cadiz']):
