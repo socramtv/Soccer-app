@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sσcяαм Tν + Acεѕтяεαм</title>
-<!-- Icono para la barra de direcciones y pestañas (Favicon) -->
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png">
-
+    <title>🎯 Sσcяαм Tν + Acεѕтяεαм</title>
     <style>
         body {
             background-color: #121212;
@@ -14,14 +11,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 215px; /* Ajustado para el logo el doble de grande */
+            padding-top: 215px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* Barra Superior Fija Ultra-Compacta */
         .top-bar {
             position: fixed;
             top: 0;
@@ -46,7 +42,6 @@
             align-items: center;
         }
 
-        /* Logo Principal Superior (Doble de grande) */
         .main-logo {
             width: 76px;
             height: 76px;
@@ -288,7 +283,7 @@
             align-items: center;
             background: linear-gradient(135deg, #252525 0%, #1c1c1c 100%);
             color: #ffffff;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-radius: 5px;
             text-decoration: none;
             font-size: 0.7rem;
@@ -314,30 +309,111 @@
             z-index: 999;
         }
 
-        /* Botón de Instalar Flotante Izquierdo */
-        .btn-instalar {
+        /* DISEÑO: Botón flotante izquierdo para añadir a pantalla */
+        .btn-pantalla-flotante {
             position: fixed;
             bottom: 12px;
             left: 12px;
             background: linear-gradient(135deg, #1e2937 0%, #111827 100%);
             color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.3);
             padding: 8px 12px;
             border-radius: 30px;
             font-size: 0.75rem;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             cursor: pointer;
-            display: none; 
+            display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             z-index: 999;
         }
 
-        .btn-instalar img {
+        .btn-pantalla-flotante img {
             width: 14px;
             height: 14px;
             object-fit: contain;
+        }
+
+        /* DISEÑO: Ventana Modal Instrucciones */
+        .modal-instrucciones {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-contenido {
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            max-width: 340px;
+            width: 100%;
+            padding: 16px;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+
+        .modal-titulo {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 8px;
+        }
+
+        .bloque-instruccion {
+            background-color: #222222;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .bloque-instruccion-ios {
+            border-left-color: #0088ff;
+        }
+
+        .modal-sub {
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .modal-sub.android { color: #00ff88; }
+        .modal-sub.ios { color: #0088ff; }
+
+        .modal-texto {
+            font-size: 0.7rem;
+            color: #cccccc;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .btn-cerrar-modal {
+            width: 100%;
+            background: #282828;
+            color: #ffffff;
+            border: 1px solid #3a3a3a;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
         }
 
         .competition-card {
@@ -384,7 +460,7 @@
 
     <div class="container">
         
-        <!-- SECCIÓN DESTACADOS (SEVILLA / BETIS) -->
+        <!-- SECCIÓN DESTACADOS -->
         {% if destacados %}
         <div class="day-section" id="seccion-destacados">
             <div class="day-header" style="background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%); color: #ffffff; border-left: 5px solid #ffcc00;">⭐ Partidos Destacados</div>
@@ -500,40 +576,45 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE DE INSTALACIÓN CORREGIDO CON ENLACE RAW -->
-    <button id="btn-instalar-app" class="btn-instalar" onclick="ejecutarInstalacionPWA()">
+    <!-- BOTÓN FLOTANTE IZQUIERDO: Abre la ayuda limpia de instalación -->
+    <button class="btn-pantalla-flotante" onclick="controlModalInstalacion(true)">
         <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png" alt="App Icon">
-        <span>Instalar App</span>
+        <span>Añadir a Pantalla</span>
     </button>
 
-    <!-- Botón flotante actualizar -->
+    <!-- Botón flotante actualizar derecho -->
     <a href="/recargar" class="btn-recargar">
         🔄 Actualizar
     </a>
 
+    <!-- VENTANA EMERGENTE DE AYUDA (MODAL) -->
+    <div id="modal-ayuda-pwa" class="modal-instrucciones" onclick="controlModalInstalacion(false)">
+        <div class="modal-contenido" onclick="event.stopPropagation()">
+            <div class="modal-titulo">📱 Instalar en Pantalla de Inicio</div>
+            
+            <div class="bloque-instruccion">
+                <span class="modal-sub android">🤖 Si usas Android (Chrome/Edge):</span>
+                <p class="modal-texto">Pulsa los <b>3 puntos (⋮)</b> de arriba a la derecha y selecciona <b>"Añadir a la pantalla de inicio"</b>.</p>
+            </div>
+
+            <div class="bloque-instruccion bloque-instruccion-ios">
+                <span class="modal-sub ios">🍏 Si usas iPhone (Safari):</span>
+                <p class="modal-texto">Pulsa el botón de <b>Compartir (📤)</b> abajo en el centro y selecciona <b>"Añadir a pantalla de inicio"</b>.</p>
+            </div>
+
+            <button class="btn-cerrar-modal" onclick="controlModalInstalacion(false)">Entendido</button>
+        </div>
+    </div>
+
     <script>
         let ocultarSinEnlace = true;
-        let eventoInstalacionManejado;
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            eventoInstalacionManejado = e;
-            const botonInstalar = document.getElementById('btn-instalar-app');
-            if (botonInstalar) {
-                botonInstalar.style.display = 'flex'; 
+        // Control dinámico de la ventana de ayuda
+        function controlModalInstalacion(abrir) {
+            const modal = document.getElementById('modal-ayuda-pwa');
+            if (modal) {
+                modal.style.display = abrir ? 'flex' : 'none';
             }
-        });
-
-        function ejecutarInstalacionPWA() {
-            if (!eventoInstalacionManejado) return;
-            eventoInstalacionManejado.prompt();
-            eventoInstalacionManejado.userChoice.then((resultado) => {
-                if (resultado.outcome === 'accepted') {
-                    console.log('El usuario instaló Socram Tv');
-                }
-                eventoInstalacionManejado = null;
-                document.getElementById('btn-instalar-app').style.display = 'none';
-            });
         }
 
         function descargarListaM3U() {
@@ -679,6 +760,5 @@
             filtrarTodo();
         });
     </script>
-
 </body>
 </html>
