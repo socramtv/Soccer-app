@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sσcяαм Tν + Acεѕтяεαм</title>
-
-<!-- Icono para la barra de direcciones y pestañas (Favicon) -->
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png">
+    
+    <!-- Icono para la barra de direcciones y pestañas (Favicon) -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png">
 
     <style>
         body {
@@ -313,7 +313,7 @@
             z-index: 999;
         }
 
-        /* DISEÑO: Botón flotante izquierdo para añadir a pantalla */
+        /* Botón flotante izquierdo */
         .btn-pantalla-flotante {
             position: fixed;
             bottom: 12px;
@@ -339,7 +339,7 @@
             object-fit: contain;
         }
 
-        /* DISEÑO: Ventana Modal Instrucciones */
+        /* Ventana Emergente Instrucciones Mejorada */
         .modal-instrucciones {
             display: none;
             position: fixed;
@@ -381,19 +381,19 @@
         .bloque-instruccion {
             background-color: #222222;
             border-radius: 5px;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 10px;
             border-left: 3px solid #00ff88;
         }
 
-        .bloque-instruccion-ios {
+        .bloque-instruccion bloque-instruccion-ios {
             border-left-color: #0088ff;
         }
 
         .modal-sub {
             font-size: 0.75rem;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             display: block;
         }
 
@@ -401,7 +401,7 @@
         .modal-sub.ios { color: #0088ff; }
 
         .modal-texto {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             color: #cccccc;
             margin: 0;
             line-height: 1.4;
@@ -580,7 +580,7 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE IZQUIERDO: Abre la ayuda limpia de instalación -->
+    <!-- BOTÓN FLOTANTE IZQUIERDO -->
     <button class="btn-pantalla-flotante" onclick="controlModalInstalacion(true)">
         <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png" alt="App Icon">
         <span>Añadir a Pantalla</span>
@@ -591,19 +591,21 @@
         🔄 Actualizar
     </a>
 
-    <!-- VENTANA EMERGENTE DE AYUDA (MODAL) -->
+    <!-- VENTANA EMERGENTE DE AYUDA (TEXTOS CORREGIDOS SEGÚN TU CAPTURA) -->
     <div id="modal-ayuda-pwa" class="modal-instrucciones" onclick="controlModalInstalacion(false)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
-            <div class="modal-titulo">📱 Instalar en Pantalla de Inicio</div>
+            <div class="modal-titulo">📱 Añadir a Pantalla de Inicio</div>
             
             <div class="bloque-instruccion">
-                <span class="modal-sub android">🤖 Si usas Android (Chrome/Edge):</span>
-                <p class="modal-texto">Pulsa los <b>3 puntos (⋮)</b> de arriba a la derecha y selecciona <b>"Añadir a la pantalla de inicio"</b>.</p>
+                <span class="modal-sub android">🤖 En Android (Chrome, Edge...):</span>
+                <p class="modal-texto">1. Pulsa el botón de menú del navegador (los <b>3 puntos ⋮</b> que pueden estar <b>arriba o abajo a la derecha</b>).</p>
+                <p class="modal-texto" style="margin-top: 6px;">2. Busca y pulsa la opción exacta: <br><b style="color: #00ff88; font-size: 0.75rem;">"Instalar y crear acceso..."</b> (o "Añadir a pantalla de inicio").</p>
             </div>
 
-            <div class="bloque-instruccion bloque-instruccion-ios">
-                <span class="modal-sub ios">🍏 Si usas iPhone (Safari):</span>
-                <p class="modal-texto">Pulsa el botón de <b>Compartir (📤)</b> abajo en el centro y selecciona <b>"Añadir a pantalla de inicio"</b>.</p>
+            <div class="bloque-instruccion" style="border-left-color: #0088ff;">
+                <span class="modal-sub ios">🍏 En iPhone (Safari):</span>
+                <p class="modal-texto">1. Pulsa el botón de <b>Compartir (📤)</b> abajo en el centro.</p>
+                <p class="modal-texto" style="margin-top: 6px;">2. Selecciona la opción: <br><b style="color: #0088ff; font-size: 0.75rem;">"Añadir a pantalla de inicio"</b>.</p>
             </div>
 
             <button class="btn-cerrar-modal" onclick="controlModalInstalacion(false)">Entendido</button>
@@ -613,7 +615,6 @@
     <script>
         let ocultarSinEnlace = true;
 
-        // Control dinámico de la ventana de ayuda
         function controlModalInstalacion(abrir) {
             const modal = document.getElementById('modal-ayuda-pwa');
             if (modal) {
@@ -752,11 +753,11 @@
                 }
             });
 
-            let bloqueCanales = document.getElementById('card-canales-sistema');
+            let bloquesCanales = document.getElementById('card-canales-sistema');
             if (palabrasBusqueda.length > 0 && canalesVisibles === 0) {
-                bloqueCanales.style.display = 'none';
+                bloquesCanales.style.display = 'none';
             } else {
-                bloqueCanales.style.display = '';
+                bloquesCanales.style.display = '';
             }
         }
 
@@ -764,5 +765,6 @@
             filtrarTodo();
         });
     </script>
+
 </body>
 </html>
