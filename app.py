@@ -164,11 +164,21 @@ def home():
                 'stream_url': stream_url
             })
             
+    # NUEVO: Lista de canales directos M3U8 / HLS adicionales que solicitaste
+    canales_directos_m3u8 = [
+        {"name": "Real Betis TV", "stream_url": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8"},
+        {"name": "La 1 TVE", "stream_url": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8"},
+        {"name": "Teledeporte", "stream_url": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8"},
+        {"name": "Esport 3", "stream_url": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8"},
+        {"name": "Real Madrid TV", "stream_url": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8"}
+    ]
+            
     return render_template(
         'index.html', 
         eventos_agrupados=datos['eventos_agrupados'], 
         destacados=datos['destacados'],
-        canales_puros=canales_directos_limpios, 
+        canales_puros=canales_directos_limpios,
+        canales_directos=canales_directos_m3u8,
         fecha=fecha_actual
     )
 
