@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sσcяαм Tν + Acεѕтяεαм</title>
+    <title>🎯 Sσcяαм Tν + Acεѕтяεαм</title>
     
-    <!-- Icono para la barra de direcciones y pestañas (Favicon) -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-192.png">
 
     <style>
@@ -296,6 +295,12 @@
             gap: 4px;
         }
 
+        .btn-canal-m3u8 {
+            background: linear-gradient(135deg, #1e2d3d 0%, #111c27 100%);
+            border-color: #0088ff;
+            color: #66c2ff;
+        }
+
         .btn-recargar {
             position: fixed;
             bottom: 12px;
@@ -313,7 +318,6 @@
             z-index: 999;
         }
 
-        /* Botón flotante izquierdo */
         .btn-pantalla-flotante {
             position: fixed;
             bottom: 12px;
@@ -339,7 +343,6 @@
             object-fit: contain;
         }
 
-        /* Ventana Emergente Instrucciones Mejorada */
         .modal-instrucciones {
             display: none;
             position: fixed;
@@ -384,10 +387,6 @@
             padding: 12px;
             margin-bottom: 10px;
             border-left: 3px solid #00ff88;
-        }
-
-        .bloque-instruccion bloque-instruccion-ios {
-            border-left-color: #0088ff;
         }
 
         .modal-sub {
@@ -458,7 +457,7 @@
         </div>
 
         <div class="search-container">
-            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo para filtrar..." onkeyup="filtrarTodo()">
+            <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo o canal..." onkeyup="filtrarTodo()">
         </div>
     </div>
 
@@ -563,10 +562,27 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN INFERIOR -->
-        <div class="competition-card" id="card-canales-sistema" style="margin-top: 25px;">
+        <!-- SECCIÓN CANALES DIRECTOS M3U8 -->
+        {% if canales_directos %}
+        <div class="competition-card" id="card-canales-directos" style="margin-top: 25px;">
+            <div class="competition-header" style="background-color: #122438; color: #00aaff;">
+                📡 Canales Directos M3U8 / HLS (Sin AceStream)
+            </div>
+            <div class="grid-canales">
+                {% for canal in canales_directos %}
+                <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo btn-canal-m3u8" data-canal-name="{{ canal.name | lower }}">
+                    <span>▶</span>
+                    <span>{{ canal.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECCIÓN CANALES ACESTREAM PUROS -->
+        <div class="competition-card" id="card-canales-sistema" style="margin-top: 15px;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
-                📺 Canales Disponibles (Acceso Directo Manual)
+                📺 Canales AceStream (Acceso Directo Manual)
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
@@ -591,7 +607,7 @@
         🔄 Actualizar
     </a>
 
-    <!-- VENTANA EMERGENTE DE AYUDA (TEXTOS CORREGIDOS SEGÚN TU CAPTURA) -->
+    <!-- VENTANA EMERGENTE DE AYUDA -->
     <div id="modal-ayuda-pwa" class="modal-instrucciones" onclick="controlModalInstalacion(false)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📱 Añadir a Pantalla de Inicio</div>
@@ -613,7 +629,8 @@
     </div>
 
     <script>
-        let ocultarSinEnlace = true;
+        // CORREGIDO: Por defecto no se oculta ningún partido de la parrilla al cargar
+        let ocultarSinEnlace = false;
 
         function controlModalInstalacion(abrir) {
             const modal = document.getElementById('modal-ayuda-pwa');
@@ -627,7 +644,7 @@
             let filasConEnlaces = document.querySelectorAll('.fila-partido[data-has-links="true"]');
             
             if (filasConEnlaces.length === 0) {
-                alert("⚠️ No hay eventos deportivos con enlaces AceStream activos en este momento.");
+                alert("⚠️ No hay eventos deportivos con enlaces activos en este momento.");
                 return;
             }
             
@@ -682,24 +699,26 @@
             let btn = document.getElementById('btn-toggle-enlaces');
             
             if (ocultarSinEnlace) {
-                btn.textContent = "👁️ Mostrar Todo";
-                btn.style.background = "rgba(255, 170, 0, 0.1)";
-                btn.style.color = "#ffaa00";
-                btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
-            } else {
                 btn.textContent = "👁️ Solo con Enlace";
                 btn.style.background = "rgba(0, 255, 136, 0.1)";
                 btn.style.color = "#00ff88";
                 btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
+            } else {
+                btn.textContent = "👁️ Mostrar Todo";
+                btn.style.background = "rgba(255, 170, 0, 0.1)";
+                btn.style.color = "#ffaa00";
+                btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
             }
             filtrarTodo();
         }
 
         function bajarACanales() {
-            const target = document.getElementById('card-canales-sistema');
-            const offset = 215; 
-            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+            const target = document.getElementById('card-canales-directos') || document.getElementById('card-canales-sistema');
+            if (target) {
+                const offset = 215; 
+                const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+            }
         }
 
         function filtrarTodo() {
@@ -739,7 +758,6 @@
             });
 
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
-            let canalesVisibles = 0;
 
             botonesCanales.forEach(boton => {
                 let nombreCanal = boton.getAttribute('data-canal-name');
@@ -747,18 +765,10 @@
 
                 if (coincideCanal) {
                     boton.style.display = '';
-                    canalesVisibles++;
                 } else {
                     boton.style.display = 'none';
                 }
             });
-
-            let bloquesCanales = document.getElementById('card-canales-sistema');
-            if (palabrasBusqueda.length > 0 && canalesVisibles === 0) {
-                bloquesCanales.style.display = 'none';
-            } else {
-                bloquesCanales.style.display = '';
-            }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
