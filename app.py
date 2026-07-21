@@ -1,6 +1,7 @@
 import re
 import time
 import urllib.parse
+import requests
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request
 
@@ -9,23 +10,10 @@ from funciones.get_events import extraer_eventos
 
 app = Flask(__name__)
 
-# Tus URLs seguras de canales y eventos
+# Tus URLs seguras de canales, eventos y lista M3U sin AceStream
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
-
-# Diccionario de canales directos M3U8 / HLS
-CANALES_M3U8_DIRECTOS = {
-    "real betis tv": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8",
-    "betis tv": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8",
-    "la 1 tve": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8",
-    "la 1": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8",
-    "teledeporte": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8",
-    "tdp": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8",
-    "esport 3": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8",
-    "esport3": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8",
-    "real madrid tv": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8",
-    "rmtv": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8"
-}
+URL_NOACE = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/noace.m3u'
 
 # Sistema de Caché Unificado (10 minutos)
 cache_datos = None
@@ -40,8 +28,35 @@ def normalizar_cadena(texto):
     texto = re.sub(r'[\(\)\-\[\]\*\_\|\+]', '', texto)
     return " ".join(texto.split())
 
-def vincular_canales_automatico(canales_evento, lista_enlaces):
-    """Algoritmo de cruce avanzado compatible con AceStream y enlaces M3U8 directos"""
+def extraer_canales_m3u(url_m3u):
+    """Descarga y procesa dinámicamente tu lista M3U remota de GitHub"""
+    canales_lista = []
+    dict_m3u = {}
+    try:
+        respuesta = requests.get(url_m3u, timeout=10)
+        if respuesta.status_code == 200:
+            lineas = respuesta.text.splitlines()
+            nombre_actual = ""
+            for linea in lineas:
+                linea = linea.strip()
+                if linea.startswith("#EXTINF:"):
+                    if "," in linea:
+                        nombre_actual = linea.split(",", 1)[1].strip()
+                elif linea and not linea.startswith("#"):
+                    if nombre_actual:
+                        url_stream = linea
+                        canales_lista.append({
+                            'name': nombre_actual,
+                            'stream_url': url_stream
+                        })
+                        dict_m3u[nombre_actual] = url_stream
+                        nombre_actual = ""
+    except Exception as e:
+        print(f"Error cargando lista M3U externa: {e}")
+    return canales_lista, dict_m3u
+
+def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
+    """Algoritmo de cruce avanzado compatible con AceStream y la lista M3U8 dinámica"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -66,15 +81,15 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
 
     for canal in canales_evento:
         canal_limpio = canal.strip()
-        canal_lower = canal_limpio.lower()
+        canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
-        # 1. COMPROBAR PRIMERO SI ES UN CANAL M3U8 DIRECTO
+        # 1. COMPROBAR PRIMERO SI COINCIDE CON TU LISTA M3U DINÁMICA DE GITHUB
         m3u8_encontrado = False
-        for clave_m3u8, url_m3u8 in CANALES_M3U8_DIRECTOS.items():
-            if clave_m3u8 in canal_lower:
-                stream_url = url_m3u8
-                url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(canal_limpio)}"
+        for nombre_m3u, url_m3u in dict_m3u_directos.items():
+            m3u_norm = normalizar_cadena(nombre_m3u)
+            if m3u_norm in canal_norm or canal_norm in m3u_norm:
+                url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(canal_limpio)}"
                 matches_encontrados.append(
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">⚡ {canal_limpio}</a>'
                 )
@@ -85,7 +100,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
             continue
 
-        # 2. SI NO ES M3U8, BUSCAR EN HASHES ACESTREAM (TU ALGORITMO ORIGINAL)
+        # 2. SI NO ESTÁ EN EL M3U, BUSCAR EN HASHES ACESTREAM (TU ALGORITMO ORIGINAL)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if not web_letras and not web_digitos:
@@ -139,15 +154,16 @@ def obtener_datos_completos():
     if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
         return cache_datos
         
-    print("🌐 Cargando cartelera unificada por días y destacantes...")
+    print("🌐 Cargando cartelera unificada por días, M3U dinámico y hashes AceStream...")
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
+    canales_m3u, dict_m3u = extraer_canales_m3u(URL_NOACE)
     
     destacados = []
     eventos_agrupados = {}
     
     for i in range(len(eventos)):
-        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces)
+        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
             partes = eventos[i]['equipos'].split(' - ')
@@ -159,7 +175,7 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-        # MARCAR SI TIENE ENLACE ACTIVO (Verifica la presencia de un botón de reproducción)
+        # MARCAR SI TIENE ENLACE ACTIVO
         eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
 
         # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
@@ -178,7 +194,8 @@ def obtener_datos_completos():
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
         'destacados': destacados,
-        'canales_puros': enlaces
+        'canales_puros': enlaces,
+        'canales_directos_m3u8': canales_m3u
     }
     ultimo_scraping = ahora
     return cache_datos
@@ -199,21 +216,12 @@ def home():
                 'stream_url': stream_url
             })
             
-    # Lista de canales M3U8 para la sección inferior
-    canales_directos_m3u8 = [
-        {"name": "Real Betis TV", "stream_url": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8"},
-        {"name": "La 1 TVE", "stream_url": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8"},
-        {"name": "Teledeporte", "stream_url": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8"},
-        {"name": "Esport 3", "stream_url": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8"},
-        {"name": "Real Madrid TV", "stream_url": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8"}
-    ]
-            
     return render_template(
         'index.html', 
         eventos_agrupados=datos['eventos_agrupados'], 
         destacados=datos['destacados'],
         canales_puros=canales_directos_limpios,
-        canales_directos=canales_directos_m3u8,
+        canales_directos=datos['canales_directos_m3u8'],
         fecha=fecha_actual
     )
 
