@@ -1,5 +1,6 @@
 import re
 import time
+import urllib.parse
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request
 
@@ -12,10 +13,24 @@ app = Flask(__name__)
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
-# Sistema de Caché Unificado (60 minutos)
+# Diccionario de canales directos M3U8 / HLS
+CANALES_M3U8_DIRECTOS = {
+    "real betis tv": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8",
+    "betis tv": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8",
+    "la 1 tve": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8",
+    "la 1": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8",
+    "teledeporte": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8",
+    "tdp": "https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8",
+    "esport 3": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8",
+    "esport3": "https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8",
+    "real madrid tv": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8",
+    "rmtv": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/master.m3u8"
+}
+
+# Sistema de Caché Unificado (10 minutos)
 cache_datos = None
 ultimo_scraping = 0
-CACHE_EXPIRACION = 3600
+CACHE_EXPIRACION = 600
 
 def normalizar_cadena(texto):
     """Limpia tildes, símbolos y estandariza nombres de canales para cruzarlos"""
@@ -26,7 +41,7 @@ def normalizar_cadena(texto):
     return " ".join(texto.split())
 
 def vincular_canales_automatico(canales_evento, lista_enlaces):
-    """Algoritmo de cruce avanzado basado en reglas de exclusión y equivalencias estrictas"""
+    """Algoritmo de cruce avanzado compatible con AceStream y enlaces M3U8 directos"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -51,6 +66,26 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
 
     for canal in canales_evento:
         canal_limpio = canal.strip()
+        canal_lower = canal_limpio.lower()
+        matches_encontrados = []
+
+        # 1. COMPROBAR PRIMERO SI ES UN CANAL M3U8 DIRECTO
+        m3u8_encontrado = False
+        for clave_m3u8, url_m3u8 in CANALES_M3U8_DIRECTOS.items():
+            if clave_m3u8 in canal_lower:
+                stream_url = url_m3u8
+                url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(canal_limpio)}"
+                matches_encontrados.append(
+                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">⚡ {canal_limpio}</a>'
+                )
+                m3u8_encontrado = True
+                break
+
+        if m3u8_encontrado:
+            html_resultado += "".join(sorted(list(set(matches_encontrados))))
+            continue
+
+        # 2. SI NO ES M3U8, BUSCAR EN HASHES ACESTREAM (TU ALGORITMO ORIGINAL)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if not web_letras and not web_digitos:
@@ -58,7 +93,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
             continue
             
         es_bar = "bar" in canal_limpio.lower() or "bar" in web_letras
-        matches_encontrados = []
         
         for enc in lista_enlaces:
             nombre_json = enc['name']
@@ -86,8 +120,9 @@ def vincular_canales_automatico(canales_evento, lista_enlaces):
                     hash_puro = hash_match.group(1)
                     stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                     icono = "★" if "**" in nombre_json else "⚡"
+                    url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
                     matches_encontrados.append(
-                        f'<a href="/reproductor?url={stream_url}&name={nombre_json}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
+                        f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
                     )
         
         if matches_encontrados:
@@ -164,7 +199,7 @@ def home():
                 'stream_url': stream_url
             })
             
-    # NUEVO: Lista de canales directos M3U8 / HLS adicionales que solicitaste
+    # Lista de canales M3U8 para la sección inferior
     canales_directos_m3u8 = [
         {"name": "Real Betis TV", "stream_url": "https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8"},
         {"name": "La 1 TVE", "stream_url": "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8"},
