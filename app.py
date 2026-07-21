@@ -12,7 +12,7 @@ app = Flask(__name__)
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 
-# Sistema de Caché Unificado (10 minutos)
+# Sistema de Caché Unificado (60 minutos)
 cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 3600
