@@ -15,7 +15,7 @@ URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 # Sistema de Caché Unificado (10 minutos)
 cache_datos = None
 ultimo_scraping = 0
-CACHE_EXPIRACION = 600
+CACHE_EXPIRACION = 3600
 
 def normalizar_cadena(texto):
     """Limpia tildes, símbolos y estandariza nombres de canales para cruzarlos"""
