@@ -15,7 +15,7 @@ URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 URL_NOACE = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/noace.m3u'
 
-# Sistema de Caché Unificado (30 minutos recomendado)
+# Sistema de Caché Unificado (30 minutos)
 cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 1800
@@ -25,12 +25,11 @@ def normalizar_cadena(texto):
     texto = texto.lower().strip()
     texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
     texto = texto.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
-    # Elimina espacios, guiones, paréntesis y caracteres especiales para evitar fallos de formato
     texto = re.sub(r'[\(\)\-\[\]\*\_\|\+\s\.\,\/\:\?\#\§]', '', texto)
     return texto
 
 def extraer_canales_m3u(url_m3u):
-    """Descarga y procesa dinámicamente tu lista M3U remota de GitHub"""
+    """Descarga y procesa dinámicamente tu lista M3U extrayendo también los logos"""
     canales_lista = []
     dict_m3u = {}
     try:
@@ -38,9 +37,14 @@ def extraer_canales_m3u(url_m3u):
         if respuesta.status_code == 200:
             lineas = respuesta.text.splitlines()
             nombre_actual = ""
+            logo_actual = ""
             for linea in lineas:
                 linea = linea.strip()
                 if linea.startswith("#EXTINF:"):
+                    # Extraer Logo si existe (tvg-logo="url")
+                    match_logo = re.search(r'tvg-logo="([^"]+)"', linea)
+                    logo_actual = match_logo.group(1) if match_logo else ""
+                    
                     if "," in linea:
                         nombre_actual = linea.split(",", 1)[1].strip()
                 elif linea and not linea.startswith("#"):
@@ -48,16 +52,21 @@ def extraer_canales_m3u(url_m3u):
                         url_stream = linea
                         canales_lista.append({
                             'name': nombre_actual,
-                            'stream_url': url_stream
+                            'stream_url': url_stream,
+                            'logo': logo_actual
                         })
-                        dict_m3u[nombre_actual] = url_stream
+                        dict_m3u[nombre_actual] = {
+                            'url': url_stream,
+                            'logo': logo_actual
+                        }
                         nombre_actual = ""
+                        logo_actual = ""
     except Exception as e:
         print(f"Error cargando lista M3U externa: {e}")
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
-    """Algoritmo de cruce avanzado compatible con AceStream y M3U8 directos en simultáneo"""
+    """Algoritmo de cruce: Inyecta M3U8 y AceStream con sus respectivos logos"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -85,16 +94,20 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
         canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
-        # 1. BUSCAR COINCIDENCIA EN LA LISTA M3U DINÁMICA (Icono 🔸)
-        for nombre_m3u, url_m3u in dict_m3u_directos.items():
+        # 1. BUSCAR EN M3U DINÁMICO (DIRECTOS)
+        for nombre_m3u, datos_m3u in dict_m3u_directos.items():
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
+                url_m3u = datos_m3u['url']
+                logo_m3u = datos_m3u['logo']
+                
+                icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy">' if logo_m3u else "🔸"
                 url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(canal_limpio)}"
                 matches_encontrados.append(
-                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">🔸 {canal_limpio}</a>'
+                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
-        # 2. TAMBIÉN BUSCAR COINCIDENCIA EN HASHES ACESTREAM (Iconos 🔹 / 🔸)
+        # 2. BUSCAR EN HASHES ACESTREAM
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -102,6 +115,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
             
             for enc in lista_enlaces:
                 nombre_json = enc['name']
+                logo_ace = enc.get('logo', '') or enc.get('tvg-logo', '')
                 json_letras, json_digitos = simplificar_canal(nombre_json)
                 
                 json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
@@ -125,10 +139,12 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     if hash_match:
                         hash_puro = hash_match.group(1)
                         stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
-                        icono = "🔸" if "**" in nombre_json else "🔹"
+                        icono_char = "🔸" if "**" in nombre_json else "🔹"
+                        icono_html = f'<img src="{logo_ace}" class="icono-canal-peq" loading="lazy">' if logo_ace else icono_char
+                        
                         url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
                         matches_encontrados.append(
-                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
+                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
                         )
         
         if matches_encontrados:
@@ -188,7 +204,7 @@ def obtener_datos_completos():
         'canales_puros': enlaces,
         'canales_directos_m3u8': canales_m3u
     }
-    ultimo_scraping = ahorra = time.time()
+    ultimo_scraping = ahora
     return cache_datos
 
 @app.route('/')
@@ -204,7 +220,8 @@ def home():
             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
             canales_directos_limpios.append({
                 'name': c['name'],
-                'stream_url': stream_url
+                'stream_url': stream_url,
+                'logo': c.get('logo', '') or c.get('tvg-logo', '')
             })
             
     return render_template(
