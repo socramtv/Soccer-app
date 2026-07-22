@@ -15,18 +15,19 @@ URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 URL_NOACE = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/noace.m3u'
 
-# Sistema de Caché Unificado (10 minutos)
+# Sistema de Caché Unificado (30 minutos recomendado)
 cache_datos = None
 ultimo_scraping = 0
-CACHE_EXPIRACION = 600
+CACHE_EXPIRACION = 1800
 
 def normalizar_cadena(texto):
-    """Limpia tildes, símbolos y estandariza nombres de canales para cruzarlos"""
+    """Limpia tildes, símbolos, espacios y estandariza nombres para un cruce perfecto"""
     texto = texto.lower().strip()
     texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
     texto = texto.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
-    texto = re.sub(r'[\(\)\-\[\]\*\_\|\+]', '', texto)
-    return " ".join(texto.split())
+    # Elimina espacios, guiones, paréntesis y caracteres especiales para evitar fallos de formato
+    texto = re.sub(r'[\(\)\-\[\]\*\_\|\+\s\.\,\/\:\?\#\§]', '', texto)
+    return texto
 
 def extraer_canales_m3u(url_m3u):
     """Descarga y procesa dinámicamente tu lista M3U remota de GitHub"""
@@ -187,7 +188,7 @@ def obtener_datos_completos():
         'canales_puros': enlaces,
         'canales_directos_m3u8': canales_m3u
     }
-    ultimo_scraping = ahora
+    ultimo_scraping = ahorra = time.time()
     return cache_datos
 
 @app.route('/')
