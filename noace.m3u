@@ -1,7 +1,8 @@
 #EXTM3U
 
 #EXTINF:-1 tvg-name="Real Betis TV" group-title="Deportes",Real Betis TV
-https://betistv-live.flumotion.com/hlEESLzaIq4rITfqQ5eU-g/1784668734/betistv/live_all/playlist.m3u8
+https://betistv-live.flumotion.com/1bShWTgEvpYkhRRMcIWTEA/1784761688/betistv/live_all/playlist.m3u8
+
 
 #EXTINF:-1 tvg-name="La 1 TVE" group-title="Generalistas",La 1 TVE
 https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8
