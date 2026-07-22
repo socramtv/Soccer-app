@@ -56,7 +56,7 @@ def extraer_canales_m3u(url_m3u):
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
-    """Algoritmo de cruce avanzado compatible con AceStream y la lista M3U8 dinámica"""
+    """Algoritmo de cruce avanzado compatible con AceStream y M3U8 directos en simultáneo"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -84,61 +84,51 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
         canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
-        # 1. COMPROBAR PRIMERO SI COINCIDE CON TU LISTA M3U DINÁMICA DE GITHUB
-        m3u8_encontrado = False
+        # 1. BUSCAR COINCIDENCIA EN LA LISTA M3U DINÁMICA (Icono 🔸)
         for nombre_m3u, url_m3u in dict_m3u_directos.items():
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
                 url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(canal_limpio)}"
                 matches_encontrados.append(
-                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">⚡ {canal_limpio}</a>'
+                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">🔸 {canal_limpio}</a>'
                 )
-                m3u8_encontrado = True
-                break
 
-        if m3u8_encontrado:
-            html_resultado += "".join(sorted(list(set(matches_encontrados))))
-            continue
-
-        # 2. SI NO ESTÁ EN EL M3U, BUSCAR EN HASHES ACESTREAM (TU ALGORITMO ORIGINAL)
+        # 2. TAMBIÉN BUSCAR COINCIDENCIA EN HASHES ACESTREAM (Iconos 🔹 / 🔸)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
-        if not web_letras and not web_digitos:
-            html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
-            continue
+        if web_letras or web_digitos:
+            es_bar = "bar" in canal_limpio.lower() or "bar" in web_letras
             
-        es_bar = "bar" in canal_limpio.lower() or "bar" in web_letras
-        
-        for enc in lista_enlaces:
-            nombre_json = enc['name']
-            json_letras, json_digitos = simplificar_canal(nombre_json)
-            
-            json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
-            if es_bar != json_es_bar:
-                continue
+            for enc in lista_enlaces:
+                nombre_json = enc['name']
+                json_letras, json_digitos = simplificar_canal(nombre_json)
                 
-            KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2', 'baloncesto'}
-            conflicto_tematico = False
-            for kw in KEYWORDS_CRITICOS:
-                if (kw in web_letras) != (kw in json_letras):
-                    conflicto_tematico = True
-                    break
-            if conflicto_tematico:
-                continue
-                
-            coincide_letras = web_letras.issubset(json_letras) or json_letras.issubset(web_letras)
-            coincide_numeros = (web_digitos == json_digitos)
+                json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
+                if es_bar != json_es_bar:
+                    continue
+                    
+                KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2', 'baloncesto'}
+                conflicto_tematico = False
+                for kw in KEYWORDS_CRITICOS:
+                    if (kw in web_letras) != (kw in json_letras):
+                        conflicto_tematico = True
+                        break
+                if conflicto_tematico:
+                    continue
+                    
+                coincide_letras = web_letras.issubset(json_letras) or json_letras.issubset(web_letras)
+                coincide_numeros = (web_digitos == json_digitos)
 
-            if coincide_letras and coincide_numeros:
-                hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
-                if hash_match:
-                    hash_puro = hash_match.group(1)
-                    stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
-                    icono = "★" if "**" in nombre_json else "⚡"
-                    url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
-                    matches_encontrados.append(
-                        f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
-                    )
+                if coincide_letras and coincide_numeros:
+                    hash_match = re.search(r'([a-fA-F0-9]{40})', enc['id'])
+                    if hash_match:
+                        hash_puro = hash_match.group(1)
+                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                        icono = "🔸" if "**" in nombre_json else "🔹"
+                        url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
+                        matches_encontrados.append(
+                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono} {nombre_json}</a>'
+                        )
         
         if matches_encontrados:
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
