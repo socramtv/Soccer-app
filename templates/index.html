@@ -254,6 +254,25 @@
             display: block;
         }
 
+        /* CLASES PARA LOS LOGOS PEQUEÑOS DE LOS CANALES */
+        .icono-canal-peq {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            border-radius: 2px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .icono-canal-grid {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            border-radius: 3px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .btn-canal {
             display: inline-flex;
             align-items: center;
@@ -271,6 +290,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            gap: 4px;
         }
 
         .grid-canales {
@@ -292,7 +312,7 @@
             font-size: 0.7rem;
             font-weight: bold;
             border: 1px solid #333333;
-            gap: 4px;
+            gap: 6px;
         }
 
         .btn-canal-m3u8 {
@@ -571,7 +591,11 @@
             <div class="grid-canales">
                 {% for canal in canales_directos %}
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo btn-canal-m3u8" data-canal-name="{{ canal.name | lower }}">
-                    <span>▶</span>
+                    {% if canal.logo %}
+                        <img src="{{ canal.logo }}" class="icono-canal-grid" alt="">
+                    {% else %}
+                        <span>🔸</span>
+                    {% endif %}
                     <span>{{ canal.name }}</span>
                 </a>
                 {% endfor %}
@@ -587,7 +611,11 @@
             <div class="grid-canales">
                 {% for canal in canales_puros %}
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
-                    <span>▶</span>
+                    {% if canal.logo %}
+                        <img src="{{ canal.logo }}" class="icono-canal-grid" alt="">
+                    {% else %}
+                        <span>🔹</span>
+                    {% endif %}
                     <span>{{ canal.name }}</span>
                 </a>
                 {% endfor %}
@@ -629,7 +657,6 @@
     </div>
 
     <script>
-        // CORREGIDO: Por defecto no se oculta ningún partido de la parrilla al cargar
         let ocultarSinEnlace = false;
 
         function controlModalInstalacion(abrir) {
