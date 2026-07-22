@@ -9,7 +9,7 @@ https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8
 #EXTINF:-1 tvg-name="Teledeporte" group-title="Deportes",Teledeporte
 https://rtvelivestream.rtve.es/rtvesec/tdp/tdp_main.m3u8
 
-#EXTINF:-1 tvg-name="Esport 3" group-title="Deportes",Esport 3
+#EXTINF:-1 tvg-name="Esport3" group-title="Deportes",Esport3
 https://directes-tv-es.3catdirectes.cat/live-origin/esport3-hls/master.m3u8
 
 #EXTINF:-1 tvg-name="Real Madrid TV" group-title="Deportes",Real Madrid TV
