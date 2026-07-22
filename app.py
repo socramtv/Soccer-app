@@ -20,6 +20,32 @@ cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 1800
 
+# 🌟 NUEVO: DICCIONARIO INTELIGENTE DE LOGOS
+# Se aplican automáticamente sin que tengas que ponerlos en tu M3U o JSON
+LOGOS_CANALES = {
+    "betis": "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/Real_Betis_logo.svg/150px-Real_Betis_logo.svg.png",
+    "madrid": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/150px-Real_Madrid_CF.svg.png",
+    "la 1": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/TVE-La_1_-_Logo_2008.svg/150px-TVE-La_1_-_Logo_2008.svg.png",
+    "teledeporte": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/TVE-Teledeporte_-_Logo_2008.svg/150px-TVE-Teledeporte_-_Logo_2008.svg.png",
+    "tdp": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/TVE-Teledeporte_-_Logo_2008.svg/150px-TVE-Teledeporte_-_Logo_2008.svg.png",
+    "esport": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Esport3_logo.svg/150px-Esport3_logo.svg.png",
+    "dazn": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/DAZN_logo.svg/150px-DAZN_logo.svg.png",
+    "movistar": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Movistar_Plus%2B_2023.svg/150px-Movistar_Plus%2B_2023.svg.png",
+    "m+": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Movistar_Plus%2B_2023.svg/150px-Movistar_Plus%2B_2023.svg.png",
+    "eurosport": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Eurosport_1_Logo_2015.svg/150px-Eurosport_1_Logo_2015.svg.png",
+    "gol": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gol_Play_2022.svg/150px-Gol_Play_2022.svg.png",
+    "laliga": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/LaLiga_EA_Sports_2023.svg/150px-LaLiga_EA_Sports_2023.svg.png",
+    "liga tv": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/LaLiga_EA_Sports_2023.svg/150px-LaLiga_EA_Sports_2023.svg.png"
+}
+
+def obtener_logo_fallback(nombre_canal):
+    """Busca un logo por defecto si el canal no lo trae"""
+    nombre_lower = nombre_canal.lower()
+    for clave, url_logo in LOGOS_CANALES.items():
+        if clave in nombre_lower:
+            return url_logo
+    return ""
+
 def normalizar_cadena(texto):
     """Limpia tildes, símbolos, espacios y estandariza nombres para un cruce perfecto"""
     texto = texto.lower().strip()
@@ -29,7 +55,7 @@ def normalizar_cadena(texto):
     return texto
 
 def extraer_canales_m3u(url_m3u):
-    """Descarga y procesa dinámicamente tu lista M3U extrayendo también los logos"""
+    """Descarga tu lista M3U y aplica los logos automáticos"""
     canales_lista = []
     dict_m3u = {}
     try:
@@ -41,8 +67,8 @@ def extraer_canales_m3u(url_m3u):
             for linea in lineas:
                 linea = linea.strip()
                 if linea.startswith("#EXTINF:"):
-                    # Extraer Logo si existe (tvg-logo="url")
-                    match_logo = re.search(r'tvg-logo="([^"]+)"', linea)
+                    # Intenta extraer logo si lo hubieras puesto manual
+                    match_logo = re.search(r'tvg-logo=["\']?(http[^"\', ]+)["\']?', linea, re.IGNORECASE)
                     logo_actual = match_logo.group(1) if match_logo else ""
                     
                     if "," in linea:
@@ -50,14 +76,16 @@ def extraer_canales_m3u(url_m3u):
                 elif linea and not linea.startswith("#"):
                     if nombre_actual:
                         url_stream = linea
+                        # Si no hay logo manual, usa el automático de arriba
+                        logo_final = logo_actual or obtener_logo_fallback(nombre_actual)
                         canales_lista.append({
                             'name': nombre_actual,
                             'stream_url': url_stream,
-                            'logo': logo_actual
+                            'logo': logo_final
                         })
                         dict_m3u[nombre_actual] = {
                             'url': url_stream,
-                            'logo': logo_actual
+                            'logo': logo_final
                         }
                         nombre_actual = ""
                         logo_actual = ""
@@ -99,9 +127,10 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
                 url_m3u = datos_m3u['url']
-                logo_m3u = datos_m3u['logo']
-                
+                # Asigna logo o pone el punto naranja por defecto
+                logo_m3u = datos_m3u['logo'] or obtener_logo_fallback(canal_limpio)
                 icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy">' if logo_m3u else "🔸"
+                
                 url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(canal_limpio)}"
                 matches_encontrados.append(
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
@@ -115,7 +144,8 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
             
             for enc in lista_enlaces:
                 nombre_json = enc['name']
-                logo_ace = enc.get('logo', '') or enc.get('tvg-logo', '')
+                # Asigna logo de AceStream o el logo automático de arriba
+                logo_ace = enc.get('logo', '') or enc.get('tvg-logo', '') or obtener_logo_fallback(nombre_json)
                 json_letras, json_digitos = simplificar_canal(nombre_json)
                 
                 json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
@@ -221,7 +251,7 @@ def home():
             canales_directos_limpios.append({
                 'name': c['name'],
                 'stream_url': stream_url,
-                'logo': c.get('logo', '') or c.get('tvg-logo', '')
+                'logo': c.get('logo', '') or c.get('tvg-logo', '') or obtener_logo_fallback(c['name'])
             })
             
     return render_template(
