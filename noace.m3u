@@ -33,3 +33,6 @@ https://d1oyt3v08gcy18.cloudfront.net/index-events.m3u8
 
 #EXTINF:-1 tvg-name="GOL" group-title="Deportes",GOL (Síguelo en directo)
 https://live2.eu-north-1b.cf.dmcdn.net/sec2(KvHbYs9zcWOQwnY5G4g0EuyIG_A5v5fSszhHklW7yhrCarCg65XHgrNEUqCqUaLVkwmncfOuyq1fetagugp8_KyL9o6cbk4OpzJSD-21fWXTjB3YZMNyYHk_J61itR4q)/cloud/3/xa34sdg/d/live-720.m3u8
+
+#EXTINF:-1 tvg-name="TVG (Galicia)" group-title="Autonómicas",TVG (Galicia)
+https://crtvg-europa.flumotion.cloud/playlist.m3u8
