@@ -328,6 +328,7 @@
             justify-content: center;
         }
 
+        /* ESTILO PARA LOS BOTONES DE SUBIR ARRIBA */
         .btn-subir-arriba {
             display: flex;
             justify-content: center;
@@ -503,6 +504,7 @@
             <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
                 <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u">📥 Lista M3U</button>
+                <!-- Predeterminado en "Mostrar Todo" porque ocultarSinEnlace empieza en true -->
                 <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
@@ -659,19 +661,23 @@
             </div>
         </div>
 
-        <!-- NUEVA SECCIÓN: DESCARGAR MOTOR ACESTREAM (APK) -->
+        <!-- NUEVA SECCIÓN: DESCARGAR HERRAMIENTAS Y APKs -->
         <div class="competition-card" id="card-descargar-aceserve" style="margin-top: 15px;">
             <div class="competition-header" style="background-color: #2a182a; color: #ff88ff;">
-                📦 Descargar Motor AceStream (APK)
+                📦 Aplicaciones y Utilidades (APKs)
             </div>
             <div class="grid-canales" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
                 <a href="https://www.dropbox.com/scl/fi/12f6tn2gqgt1houm56bdh/org.free.aceserve-1.5.7-arm64.apk?rlkey=8b5mh80z8sio6yaqs4brd1dm2&st=l1kd7ekd&dl=1" class="btn-canal-directo btn-apk" target="_blank">
                     <span>📱</span>
-                    <span>Descargar para Móvil</span>
+                    <span>AceStream Móvil</span>
                 </a>
                 <a href="https://www.dropbox.com/scl/fi/1u8iojs7kai79921j7snn/org.free.aceserve-1.5.7-arm.apk?rlkey=pvj02s4nmzc01nrq5h5tmzwty&st=gx1l32ou&dl=1" class="btn-canal-directo btn-apk" target="_blank">
                     <span>📺</span>
-                    <span>Descargar para TV</span>
+                    <span>AceStream TV</span>
+                </a>
+                <a href="https://www.dropbox.com/scl/fi/fpz8euolfb1v2i4o05hzl/Web-Video-Cast-Premium-v6.0.1-androforever.com.apk?rlkey=vkj2cdww92mdlle7ugi10q0bp&st=vlycmvt9&dl=1" class="btn-canal-directo btn-apk" target="_blank">
+                    <span>📡</span>
+                    <span>Web Video Caster</span>
                 </a>
             </div>
         </div>
@@ -789,15 +795,15 @@
             let btn = document.getElementById('btn-toggle-enlaces');
             
             if (ocultarSinEnlace) {
-                btn.textContent = "👁️ Solo con Enlace";
-                btn.style.background = "rgba(0, 255, 136, 0.1)";
-                btn.style.color = "#00ff88";
-                btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
-            } else {
                 btn.textContent = "👁️ Mostrar Todo";
                 btn.style.background = "rgba(255, 170, 0, 0.1)";
                 btn.style.color = "#ffaa00";
                 btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
+            } else {
+                btn.textContent = "👁️ Solo con Enlace";
+                btn.style.background = "rgba(0, 255, 136, 0.1)";
+                btn.style.color = "#00ff88";
+                btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
             }
             filtrarTodo();
         }
