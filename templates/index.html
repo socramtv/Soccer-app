@@ -185,7 +185,7 @@
             table-layout: fixed;
         }
 
-        /* ANCHO DE COLUMNAS REAJUSTADO */
+        /* ANCHO DE COLUMNAS ACTUALIZADO (14 - 50 - 36) */
         th:nth-child(1), td:nth-child(1) { width: 14%; text-align: center; }
         th:nth-child(2), td:nth-child(2) { width: 50%; }
         th:nth-child(3), td:nth-child(3) { width: 36%; }
@@ -319,6 +319,32 @@
             background: linear-gradient(135deg, #1e2d3d 0%, #111c27 100%);
             border-color: #0088ff;
             color: #66c2ff;
+        }
+
+        /* ESTILO PARA LOS BOTONES DE SUBIR ARRIBA */
+        .btn-subir-arriba {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            background: #1a1a1a;
+            color: #00ff88;
+            border: 1px solid #2a2a2a;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 0 5px 0;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+
+        .btn-subir-arriba:hover {
+            background: #222222;
+            border-color: #00ff88;
         }
 
         .btn-recargar {
@@ -471,6 +497,7 @@
             <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
                 <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u">📥 Lista M3U</button>
+                <!-- Predeterminado en "Mostrar Todo" porque ocultarSinEnlace empieza en true -->
                 <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
@@ -582,6 +609,11 @@
             {% endfor %}
         </div>
 
+        <!-- Botón Subir Arriba tras los días -->
+        <button class="btn-subir-arriba" onclick="subirArriba()">
+            ⬆️ Volver arriba
+        </button>
+
         <!-- SECCIÓN CANALES DIRECTOS M3U8 -->
         {% if canales_directos %}
         <div class="competition-card" id="card-canales-directos" style="margin-top: 25px;">
@@ -622,6 +654,11 @@
             </div>
         </div>
 
+        <!-- Botón Subir Arriba al final de todo -->
+        <button class="btn-subir-arriba" onclick="subirArriba()">
+            ⬆️ Volver arriba de la web
+        </button>
+
     </div>
 
     <!-- BOTÓN FLOTANTE IZQUIERDO -->
@@ -657,7 +694,12 @@
     </div>
 
     <script>
-        let ocultarSinEnlace = false;
+        // PREDETERMINADO: Mostrar solo los que tienen enlace activo al cargar
+        let ocultarSinEnlace = true;
+
+        function subirArriba() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         function controlModalInstalacion(abrir) {
             const modal = document.getElementById('modal-ayuda-pwa');
@@ -726,15 +768,15 @@
             let btn = document.getElementById('btn-toggle-enlaces');
             
             if (ocultarSinEnlace) {
-                btn.textContent = "👁️ Solo con Enlace";
-                btn.style.background = "rgba(0, 255, 136, 0.1)";
-                btn.style.color = "#00ff88";
-                btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
-            } else {
                 btn.textContent = "👁️ Mostrar Todo";
                 btn.style.background = "rgba(255, 170, 0, 0.1)";
                 btn.style.color = "#ffaa00";
                 btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
+            } else {
+                btn.textContent = "👁️ Solo con Enlace";
+                btn.style.background = "rgba(0, 255, 136, 0.1)";
+                btn.style.color = "#00ff88";
+                btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
             }
             filtrarTodo();
         }
