@@ -185,7 +185,7 @@
             table-layout: fixed;
         }
 
-        /* ANCHO DE COLUMNAS ACTUALIZADO (14 - 50 - 36) */
+        /* ANCHO DE COLUMNAS (14 - 50 - 36) */
         th:nth-child(1), td:nth-child(1) { width: 14%; text-align: center; }
         th:nth-child(2), td:nth-child(2) { width: 50%; }
         th:nth-child(3), td:nth-child(3) { width: 36%; }
@@ -321,7 +321,13 @@
             color: #66c2ff;
         }
 
-        /* ESTILO PARA LOS BOTONES DE SUBIR ARRIBA */
+        .btn-apk {
+            background: linear-gradient(135deg, #3d1e3d 0%, #271127 100%);
+            border-color: #ff00ff;
+            color: #ff88ff;
+            justify-content: center;
+        }
+
         .btn-subir-arriba {
             display: flex;
             justify-content: center;
@@ -497,7 +503,6 @@
             <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
                 <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u">📥 Lista M3U</button>
-                <!-- Predeterminado en "Mostrar Todo" porque ocultarSinEnlace empieza en true -->
                 <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
@@ -654,6 +659,23 @@
             </div>
         </div>
 
+        <!-- NUEVA SECCIÓN: DESCARGAR MOTOR ACESTREAM (APK) -->
+        <div class="competition-card" id="card-descargar-aceserve" style="margin-top: 15px;">
+            <div class="competition-header" style="background-color: #2a182a; color: #ff88ff;">
+                📦 Descargar Motor AceStream (APK)
+            </div>
+            <div class="grid-canales" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+                <a href="https://www.dropbox.com/scl/fi/12f6tn2gqgt1houm56bdh/org.free.aceserve-1.5.7-arm64.apk?rlkey=8b5mh80z8sio6yaqs4brd1dm2&st=l1kd7ekd&dl=1" class="btn-canal-directo btn-apk" target="_blank">
+                    <span>📱</span>
+                    <span>Descargar para Móvil</span>
+                </a>
+                <a href="https://www.dropbox.com/scl/fi/1u8iojs7kai79921j7snn/org.free.aceserve-1.5.7-arm.apk?rlkey=pvj02s4nmzc01nrq5h5tmzwty&st=gx1l32ou&dl=1" class="btn-canal-directo btn-apk" target="_blank">
+                    <span>📺</span>
+                    <span>Descargar para TV</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Botón Subir Arriba al final de todo -->
         <button class="btn-subir-arriba" onclick="subirArriba()">
             ⬆️ Volver arriba de la web
@@ -694,7 +716,6 @@
     </div>
 
     <script>
-        // PREDETERMINADO: Mostrar solo los que tienen enlace activo al cargar
         let ocultarSinEnlace = true;
 
         function subirArriba() {
@@ -768,21 +789,21 @@
             let btn = document.getElementById('btn-toggle-enlaces');
             
             if (ocultarSinEnlace) {
-                btn.textContent = "👁️ Mostrar Todo";
-                btn.style.background = "rgba(255, 170, 0, 0.1)";
-                btn.style.color = "#ffaa00";
-                btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
-            } else {
                 btn.textContent = "👁️ Solo con Enlace";
                 btn.style.background = "rgba(0, 255, 136, 0.1)";
                 btn.style.color = "#00ff88";
                 btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
+            } else {
+                btn.textContent = "👁️ Mostrar Todo";
+                btn.style.background = "rgba(255, 170, 0, 0.1)";
+                btn.style.color = "#ffaa00";
+                btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
             }
             filtrarTodo();
         }
 
         function bajarACanales() {
-            const target = document.getElementById('card-canales-directos') || document.getElementById('card-canales-sistema');
+            const target = document.getElementById('card-descargar-aceserve') || document.getElementById('card-canales-directos');
             if (target) {
                 const offset = 215; 
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
