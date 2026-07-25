@@ -65,7 +65,7 @@ def extraer_canales_m3u(url_m3u):
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
-    """Algoritmo de cruce: Inyecta M3U8 y AceStream leyendo correctamente la clave 'logo' del JSON"""
+    """Algoritmo de cruce: Inyecta M3U8 y AceStream leyendo correctamente la clave 'logo' y detectando infohash o id"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -110,7 +110,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
-        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo')
+        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo' e infohash/id)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -118,7 +118,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
             
             for enc in lista_enlaces:
                 nombre_json = enc.get('name', '') or enc.get('title', '')
-                # AQUÍ LEEMOS EXACTAMENTE EL CAMPO "logo" DE TU JSON
                 logo_ace = enc.get('logo', '')
                 
                 json_letras, json_digitos = simplificar_canal(nombre_json)
@@ -144,7 +143,13 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
                     if hash_match:
                         hash_puro = hash_match.group(1)
-                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                        
+                        # DETECCIÓN INTELIGENTE DE ID vs INFOHASH
+                        if "infohash=" in hash_val.lower():
+                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+                        else:
+                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                            
                         icono_char = "🔸" if "**" in nombre_json else "🔹"
                         
                         if logo_ace:
@@ -228,7 +233,13 @@ def home():
         hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
         if hash_match:
             hash_puro = hash_match.group(1)
-            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+            
+            # DETECCIÓN INTELIGENTE DE ID vs INFOHASH EN EL BOTÓN DIRECTO
+            if "infohash=" in hash_val.lower():
+                stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+            else:
+                stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                
             nombre_c = c.get('name', '') or c.get('title', '')
             logo_c = c.get('logo', '')
             canales_directos_limpios.append({
