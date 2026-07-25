@@ -1,930 +1,188 @@
 {
-  "generated": "2026-07-25T23:00:56Z",
-  "count": 132,
+  "generated": "2026-07-25T12:00:02Z",
+  "count": 26,
   "hashes": [
     {
-      "title": "24 HORAS",
-      "hash": "infohash=69fb291c6204b5c84b5696579a0c8a343829f1ff",
-      "group": "📰 Informativos",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "La 1",
-      "hash": "infohash=4572c00e7a1eabf1c4310e27e08a497e152569b7",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "La 1",
-      "hash": "infohash=481c1fb401bb4f4b35d272acbd4fedaf96c51aff",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "La 1 720",
-      "hash": "infohash=7134f4cacde888d4f73c1a417aa7ef10db1c0197",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "La 2",
-      "hash": "infohash=b51bf23d9808701536432d8ee960ad76b16316fb",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Antena 3",
-      "hash": "infohash=0c275618ee1208904bc4e7941a695903fb4f081a",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "laSexta HD",
-      "hash": "infohash=1d349b65c0ef3a85533f22ec9d792f41520def47",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Neox",
-      "hash": "infohash=db00212f682521825fd027599490f0a010d3675a",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Nova",
-      "hash": "infohash=9f4168996090c3a0c2e8a8373b88991e30927d28",
-      "group": "🇪🇸 TDT Nacional",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "La 1 TVE",
-      "hash": "979d3b873871a5a9a56d3eb481ca77b707e01102",
-      "group": "TDT",
-      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
-      "tvg_id": "La1.es"
-    },
-    {
-      "title": "Baby TV",
-      "hash": "infohash=09332d8389c7c7371e991b850fb1943e3dbb795c",
-      "group": "👶 Infantil",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Boing",
-      "hash": "infohash=2cad727139ae0fd108dfa9d4b56748418f804072",
-      "group": "👶 Infantil",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Disney Junior",
-      "hash": "infohash=cb04322b2d0a99c42b275284dcf2c4529becc4e2",
-      "group": "👶 Infantil",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "AXN Movies",
-      "hash": "infohash=e075d960a5dc90c4acebe1b8060d8f29a525310b",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Film+ HD",
-      "hash": "infohash=ec7aeef5723f654ee705a192bdcf4eff2fc7c311",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Cine Español HD",
-      "hash": "infohash=812151e00822387172fb695f526415c45ad8cd1b",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Cine Español HD",
-      "hash": "infohash=aeb541f17ec1f647836f8a0735b83328cf972d9d",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Nova Cinema HD",
-      "hash": "infohash=e15cc11e5652d0dbe462710133649510fe57feeb",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Star Cinema",
-      "hash": "infohash=f77691e6419afa90a62b4bbd40629fab751246de",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Star Cinema HD UA",
-      "hash": "infohash=3431011a9c8f9d8f293aa54f530bdf517dfbfc0d",
-      "group": "🎬 Cine",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "AMC HD",
-      "hash": "infohash=b30c0243070267959e999438c9e52ca5fd1214fb",
-      "group": "🎭 Series",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Calle 13",
-      "hash": "infohash=8b2c8d70052f607e3532130260e4bb8d789de0f5",
-      "group": "🎭 Series",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Calle 13 HD",
-      "hash": "infohash=ab04c2ca4d300adb8d17acb054e5a6eedcd4bf27",
-      "group": "🎭 Series",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "SYFY HD",
-      "hash": "infohash=bed9968cc0091f388b166773426550a178d3d684",
-      "group": "🎭 Series",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Comedia HD",
-      "hash": "infohash=28e3a4ee2f3d9876435c534a49e34e1a4ced0f12",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Comedia HD",
-      "hash": "infohash=baf6f414325570425948f7faf7a909590c7c1841",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Drama HD",
-      "hash": "infohash=acc20f3739d9eccd0539f0c62519f35b8750a245",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Hits HD",
-      "hash": "infohash=e10ef7d45baba0ec10a1f237042dc633df947826",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Hits HD",
-      "hash": "infohash=e531e5d415875307b7df86fc8187ad7c754173d5",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Indie HD",
-      "hash": "infohash=060f90e77ec1f3478ef81b58569c0158b7851af5",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Originales HD",
-      "hash": "infohash=fcfe83e9b75169730fedf7375127c0190443972e",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Originales HD",
-      "hash": "infohash=73bd50c8e0d572fc627eefbde4cf5013508beb68",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Romance HD",
-      "hash": "infohash=3e38995391f980d060508c93ab1783cc4d7c42b6",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Terror HD",
-      "hash": "infohash=17ad42b190bd0327984ea7efee661564a61bfc5b",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Wéstern HD",
-      "hash": "infohash=07473038aa16ed164f5989234fafd303eecf67dc",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Movistar Estrenos",
-      "hash": "infohash=52b02a91b0148e289613f5ea949b24e60c7c2fe0",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Movistar+",
-      "hash": "infohash=318c12f5f40d7bd9c0ab0c130bf9b96668098279",
-      "group": "⭐ Movistar+",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "MOVISTAR PLUS",
-      "hash": "1ab443f5b4beb6d586f19e8b25b9f9646cf2ab78",
-      "group": "MOVISTAR",
-      "logo": "https://i.ibb.co/hFYPWbpJ/plus.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Documentales HD",
-      "hash": "infohash=a52f0bf0a381275ccbd65988b803fe4e5930bef7",
-      "group": "📚 Documentales",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Documentales HD",
-      "hash": "infohash=2613b59f12e6b7b7614411a07cdde5a20204ba4c",
-      "group": "📚 Documentales",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "MTV",
-      "hash": "infohash=4d68c789f86376ac12b447e9bcab85af99378ff9",
-      "group": "🎵 Música",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "HBO Max Avances",
-      "hash": "infohash=ca43913e4a8f9c4391f328e68f0751c1f2fe4bbc",
-      "group": "🎞️ Plataformas",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "SkyShowtime 1",
-      "hash": "infohash=f1edc5f73f4e489a607feb755695a2c2dff3f17f",
-      "group": "🎞️ Plataformas",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 1",
-      "hash": "infohash=0560234787945a17522e284c4c22bb4df29f33b0",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 1 1080",
-      "hash": "infohash=492e655a909055fc569277c9d2eec05d0b61f654",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 1 1080",
-      "hash": "infohash=1a3722e65a75e15838a7645a7d04b0bb4e49612f",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 2",
-      "hash": "infohash=c93a0d4914713db942fbb210bac467b0224c63a6",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 3",
-      "hash": "infohash=98fba924421aa1e4bd28e74d74a2726d0459b594",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 4",
-      "hash": "infohash=c21a2524a8de3e1e5b126f2677a3e993d9aa07c4",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 HD",
-      "hash": "infohash=6d325cda6ed591647ef5e91edd043147bce8be30",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 720",
-      "hash": "infohash=a62e4666af0c75e8763421dae7313d9e2a9e02ca",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 1080",
-      "hash": "infohash=ed9ae07d175ecc44ef5341b26137456bedab00e8",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 1080",
-      "hash": "infohash=47eda3cf9ac4b6c4af169315bba9629246afa022",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 1080",
-      "hash": "infohash=b5af7a207c4ef73e66431f02a442d11e2e85a3a3",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1 1080",
-      "hash": "infohash=e6d7b34d8770bc519e24df07c41812eb3bd93db5",
-      "group": "🥊 DAZN",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 1",
-      "hash": "a116ce3ff95c41c60e987e2b1aa247007f707884",
-      "group": "DAZN",
-      "logo": "https://i.ibb.co/FVzKq1y/dazn1.png",
-      "tvg_id": "DAZN1.es"
-    },
-    {
-      "title": "DAZN 1",
-      "hash": "f9c6a0e04cb062098571c6cbaa6fa4b60cc7e0cb",
-      "group": "DAZN",
-      "logo": "https://i.ibb.co/FVzKq1y/dazn1.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN 1",
+      "title": "DAZN 1 1080p *",
       "hash": "dddff67edfa7061f643ec5ae0be110169850363d",
       "group": "DAZN",
       "logo": "https://i.ibb.co/FVzKq1y/dazn1.png",
-      "tvg_id": ""
+      "tvg_id": "DAZN 1 HD"
     },
     {
-      "title": "DAZN 1",
+      "title": "DAZN 1 1080p **",
       "hash": "78124d96a1a4601e7910f50e36a16e35efcfb398",
       "group": "DAZN",
       "logo": "https://i.ibb.co/FVzKq1y/dazn1.png",
-      "tvg_id": ""
+      "tvg_id": "DAZN 1 HD"
     },
     {
-      "title": "DAZN F1",
-      "hash": "f16d68fa5ff64f3894a45062ca28e4e66f142c6a",
-      "group": "FORMULA 1",
-      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
-      "tvg_id": "DAZNF1.es"
-    },
-    {
-      "title": "DAZN F1",
-      "hash": "0a81ba020d498aca1248e0591d8ffab99eb80bd4",
-      "group": "FORMULA 1",
-      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN F1",
-      "hash": "f8b0eae8fda973cf426311541d1668aa592f0a8c",
-      "group": "FORMULA 1",
-      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "DAZN LaLiga",
-      "hash": "infohash=8a25653a2f774f4ae1062d38a30dcd714d304a3a",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga",
-      "hash": "infohash=c1959a27edb0b94c5005a2dea93b7a70d4312f1c",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga (disabled)",
-      "hash": "infohash=83d43d89061d3790c1a9938a967ce8734a0bd6ce",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga 2",
-      "hash": "infohash=ece9d873508195d3cbb61d4edd428b59f47a1541",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga 3",
-      "hash": "infohash=b24546262982de27283bb378307bb427509ed814",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga 4",
-      "hash": "infohash=4406d0bf8ce6ff77e13891a4e7a6e2fea124e4fb",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga 1080",
-      "hash": "infohash=aa424722346ef7060ce60f485c5a9b38e742f62a",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ LaLiga 1080",
-      "hash": "infohash=24df97fc04240ce7d437e2a5f635bfdf16d0e850",
-      "group": "⚽ LaLiga",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Liga de Campeones",
-      "hash": "infohash=8c1c3eae077f3a786ed2f0a426197ea93fdf7373",
-      "group": "🏆 Liga de Campeones",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Liga de Campeones",
-      "hash": "infohash=dfa66881b9613a77bd5479f6eedc5542504c3ef7",
-      "group": "🏆 Liga de Campeones",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Liga de Campeones 2",
-      "hash": "infohash=cc3d749cfd30877b418f1d59a80d9291e0f091c8",
-      "group": "🏆 Liga de Campeones",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Liga de Campeones 3",
-      "hash": "infohash=8cc8e3c092fa238bc0cbc65382ae436131fc3eab",
-      "group": "🏆 Liga de Campeones",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Liga de Campeones 4",
-      "hash": "infohash=2550ea6d32d3384dcc8ac149c711bceb70d4b005",
-      "group": "🏆 Liga de Campeones",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Deportes 1080",
-      "hash": "infohash=9439a40c5e15d8ab2fb2fc47933bee58b02c72c1",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Deportes 2 1080",
-      "hash": "infohash=e2dd4db8595db4ae77b5fa79e412b3cc71dac475",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Euro1 Deportes",
-      "hash": "infohash=0a73631e7def5a336d11f5eff9706a5b0be1e51b",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Formula 1",
-      "hash": "infohash=12dff45a2c819b49fd0a6a9a408a825875870bbd",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes HD",
-      "hash": "infohash=8aba55f4f1f47def54447e845518109d797339e7",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 720",
-      "hash": "infohash=d460e0a12769bb3f51ff06a4ea10d693072d5275",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 2 HD",
-      "hash": "infohash=a0fd9380808627dc9dd061348caa6065e7b6037a",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 2 720",
-      "hash": "infohash=7f1259dba00d871d6f07f439c17111dd174e34ca",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 2 1080",
-      "hash": "infohash=c176e0e17ee45039c22fb6d38c68818185965c2a",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 2 1080",
-      "hash": "infohash=c455170c4c2386ccc5e2a02dc4b8ca28b02f9dd1",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 3 HD",
-      "hash": "infohash=8bea71c9fea2605ee9f0e06b2d3795a10662f223",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 4 HD",
-      "hash": "infohash=12bea597fc5075a07becfd34ba11dcad4f31a2c4",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 5 HD",
-      "hash": "infohash=123271cdd9cbabf1d13b42541a2c73c196d96eb8",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 6 HD",
-      "hash": "infohash=bc7dff93fc8c6eea22c4b12a453de265d63cd457",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Movistar Deportes",
-      "hash": "infohash=b853818b57c4cf6274c60c66aaa539b28e3148c8",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Golf",
-      "hash": "infohash=9a3967b2716b4a6d65c6e51f47723bbff60f25cb",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Golf 1080",
-      "hash": "infohash=a358789a32f3759e4f0cd6dbb1f2d8dab3f72b9a",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Golf 2",
-      "hash": "infohash=1ade295744e9890ce4d2916b1a0f3772ac6b3dd5",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Golf 2 1080",
-      "hash": "infohash=8033b98a3b36be8bfd939efd880503ee5240109f",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ VAMOS 3 720",
-      "hash": "infohash=98da87a6e91b4712530deaa9abe1e1e7d0d1f479",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Sky Bundesliga 1 HD",
-      "hash": "infohash=dfbb321c7ee0d3309a03770fea07c67434182acc",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Teledeporte",
-      "hash": "infohash=079f6ae202fb27fd6c47657579eebd8453a2193d",
-      "group": "🏅 Deportes",
-      "logo": "",
-      "tvg_id": ""
-    },
-    {
-      "title": "Esport3",
-      "hash": "8f59ce96e4c902ba2f5193af07546d7ff17fc3bc",
-      "group": "DEPORTES",
-      "logo": "https://img.3cat.cat/multimedia/jpg/1/5/1697802708951.jpg",
-      "tvg_id": ""
-    },
-    {
-      "title": "RALLY TV",
-      "hash": "64eb19dccf5e60f121a4c1f7c69489af6b1c9ca9",
-      "group": "DEPORTES",
-      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTExzu7xibD1sz89l8PlnxvB8oUMOOhDLKywQ&s",
-      "tvg_id": ""
-    },
-    {
-      "title": "RALLY TV",
-      "hash": "12404b00d2787995d639ccf71a80da5d39d153f9",
-      "group": "DEPORTES",
-      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTExzu7xibD1sz89l8PlnxvB8oUMOOhDLKywQ&s",
-      "tvg_id": ""
-    },
-    {
-      "title": "Teledeporte",
-      "hash": "77cf022557c56cdf8d8115f50e61f846ad72ee05",
-      "group": "DEPORTES",
-      "logo": "https://img2.rtve.es/n/15966755",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Baloncesto",
-      "hash": "34b91125bd752462f1eca2d8d52f5f40fa761aa0",
-      "group": "BALONCESTO",
-      "logo": "https://www.adslzone.net/app/uploads-adslzone.net/2026/04/baloncesto-movistar-plus-canales.jpg",
-      "tvg_id": ""
-    },
-    {
-      "title": "NBA ESPN",
-      "hash": "bf3773e7f5e53c11347c70c18bd085322efbc90f",
-      "group": "NBA",
-      "logo": "https://espnpressroom.com/us/files/2023/02/New-NBA-Logo.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "NBA ESPN",
-      "hash": "812726de17b7fdc6c0b5139b012fe336a049903a",
-      "group": "NBA",
-      "logo": "https://espnpressroom.com/us/files/2023/02/New-NBA-Logo.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "Eurosport 1",
+      "title": "Eurosport 1 720p **",
       "hash": "313213b3b99c0f7437f68c8ea5a7b2b6d7b8a153",
       "group": "EUROSPORT",
       "logo": "https://i.ibb.co/r2Yd7xD/euro1.png",
-      "tvg_id": ""
+      "tvg_id": "Eurosport 1 HD"
     },
     {
-      "title": "Eurosport 1",
+      "title": "Eurosport 1 1080p **",
       "hash": "8522af51ae7189b12effabbb448dcb707195ce1a",
       "group": "EUROSPORT",
       "logo": "https://i.ibb.co/r2Yd7xD/euro1.png",
-      "tvg_id": ""
+      "tvg_id": "Eurosport 1 HD"
     },
     {
-      "title": "Eurosport 2",
-      "hash": "c6180a86440004748e2abe34d6f31eed8a218a3a",
-      "group": "EUROSPORT",
-      "logo": "https://i.ibb.co/M6h4Qyd/euro2.png",
-      "tvg_id": ""
+      "title": "DAZN F1 720p **",
+      "hash": "f16d68fa5ff64f3894a45062ca28e4e66f142c6a",
+      "group": "FORMULA 1",
+      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
+      "tvg_id": "DAZN F1 HD"
     },
     {
-      "title": "Tennis Channel",
-      "hash": "43c549e5781f5a923b76f8f29cde122b5be164eb",
-      "group": "TENNIS",
-      "logo": "https://www.sportsvideo.org/wp-content/uploads/2016/01/tennis-channel-logo-e1518530950839.jpg",
-      "tvg_id": ""
+      "title": "DAZN F1 1080p **",
+      "hash": "f8b0eae8fda973cf426311541d1668aa592f0a8c",
+      "group": "FORMULA 1",
+      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
+      "tvg_id": "DAZN F1 HD"
     },
     {
-      "title": "TIMVISION",
-      "hash": "60d362ac493aebcf82ec88f2f617d24cec5632a0",
-      "group": "TENNIS",
-      "logo": "",
-      "tvg_id": ""
+      "title": "DAZN F1 1080p **",
+      "hash": "02be332ebead0484a5354fa25e97b6833b8b129e",
+      "group": "FORMULA 1",
+      "logo": "https://i.ibb.co/2Ndmtbp/f1.png",
+      "tvg_id": "DAZN F1 HD"
     },
     {
-      "title": "M+ Deportes",
-      "hash": "6e031aed136bf97d8667fcd5fc49c73256928281",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/CV4CLjz/deportes.png",
-      "tvg_id": ""
+      "title": "M+ Liga de Campeones 2 1080p *",
+      "hash": "8156912ae14f6174a19c8a4efcf36a06e847f632",
+      "group": "LIGA DE CAMPEONES",
+      "logo": "https://raw.githubusercontent.com/davidmuma/picons_dobleM/master/icon/M%2B%20Liga%20de%20Campeones%202.png",
+      "tvg_id": "M+ Liga de Campeones 2 HD"
     },
     {
-      "title": "M+ Deportes",
-      "hash": "7f8b4f57bf234510d3f607492508d68167d4b0ab",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/CV4CLjz/deportes.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes",
-      "hash": "c6a824a81b36f6c3529826477caf2ad94b45776d",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/CV4CLjz/deportes.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes",
-      "hash": "cf5327fe9c962a29dfff3868f4349ff2b0b4662f",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/CV4CLjz/deportes.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 2",
+      "title": "M+ Deportes 2 720p *",
       "hash": "6b15368775693c33c49fab02e7900c1976a5da90",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/q95fBKV/deportes2.png",
-      "tvg_id": ""
+      "tvg_id": "M+ Deportes 2 HD"
     },
     {
-      "title": "M+ Deportes 2",
-      "hash": "8cd8fd69c6755ec452e9e74b33a0d1a653452191",
+      "title": "M+ Deportes 2 1080p *",
+      "hash": "3774d8feab016ca766b35ea8488e7514ca30e0ee",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/q95fBKV/deportes2.png",
-      "tvg_id": ""
+      "tvg_id": "M+ Deportes 2 HD"
     },
     {
-      "title": "M+ Deportes 2",
+      "title": "M+ Deportes 2 1080p **",
       "hash": "3ee6a0b0e3cacea68107f61bf398f651d8159eed",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/q95fBKV/deportes2.png",
-      "tvg_id": ""
+      "tvg_id": "M+ Deportes 2 HD"
     },
     {
-      "title": "M+ Deportes 3",
-      "hash": "d448a45840bfd60678abb2a45dd6044c9c8d11f8",
+      "title": "M+ Deportes 2 1080p **",
+      "hash": "8cd8fd69c6755ec452e9e74b33a0d1a653452191",
       "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/jDg5qWD/deportes3.png",
-      "tvg_id": ""
+      "logo": "https://i.ibb.co/q95fBKV/deportes2.png",
+      "tvg_id": "M+ Deportes 2 HD"
     },
     {
-      "title": "M+ Deportes 3",
-      "hash": "f4d9011721fad5098febbe4d7c078a582e176a01",
+      "title": "M+ Golf 1080p *",
+      "hash": "9bb2a7dc6c6a296609df8cc50e742a78194f7530",
       "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/jDg5qWD/deportes3.png",
-      "tvg_id": ""
+      "logo": "https://www.vhv.rs/dpng/d/424-4244985_file-movistar-golf-svg-logo-movistar-golf-hd.png",
+      "tvg_id": "M+ Golf HD"
     },
     {
-      "title": "M+ Deportes 3",
-      "hash": "84aed52c5deb78f58595d88250e7a2bd04dfd810",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/jDg5qWD/deportes3.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 4",
-      "hash": "4abe06c5cce7cb3c6bef2c3bccaafefd3299794f",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/WDN9NN9/deportes4.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 4",
-      "hash": "7bede102385c65a545db531af476ef18c31f6258",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/WDN9NN9/deportes4.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 5",
-      "hash": "15ec214bb10925dadd16a1716bb2042af6008a93",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/deportes-5-por-movistar-plus-es.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 6",
-      "hash": "e6cd9205e26b3b6680f607030c702e911272524a",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://www.movistarplus.es/recorte/n/caratula5/M2114916V1621463",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 7",
-      "hash": "9b38816906198580dbeb35b68673e1d060668e05",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://www.movistarplus.es/recorte/n/caratula5/M2114916V1621463",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 7",
-      "hash": "2d549bbcd898b09c4b736e6e3e83e8e8c19fcbda",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://www.movistarplus.es/recorte/n/caratula5/M2114916V1621463",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 8",
-      "hash": "f5c100695175ba52099664ddb4c5fc4ae0ebe99a",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/deportes-8-por-movistar-plus-es.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 8",
-      "hash": "abe6834b6e2509d2ff5b5b04f7ecb1db6e81083a",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/deportes-8-por-movistar-plus-es.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Deportes 8",
-      "hash": "56820609907a5405f8fa4ddc06eb9af04f6e64d4",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/deportes-8-por-movistar-plus-es.png",
-      "tvg_id": ""
-    },
-    {
-      "title": "M+ Golf",
+      "title": "M+ Golf 1080p **",
       "hash": "8121478d3d3e563ad6b98018bc1c0aeb2f6166eb",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://www.vhv.rs/dpng/d/424-4244985_file-movistar-golf-svg-logo-movistar-golf-hd.png",
-      "tvg_id": ""
+      "tvg_id": "M+ Golf HD"
     },
     {
-      "title": "M+ Golf 2",
+      "title": "M+ Golf 2 1080p **",
       "hash": "882074140fca664e119a43294afa2fb4a64917ef",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://r2.thesportsdb.com/images/media/channel/logo/irjqp71744196637.png",
-      "tvg_id": ""
+      "tvg_id": "M+ Golf 2 HD"
     },
     {
-      "title": "M+ Vamos",
-      "hash": "8686522bd5d0b123cbc94ad4a12f2d3a18492479",
+      "title": "M+ Golf 2 *",
+      "hash": "ac321484243571f59e077f2a2521e648dc0c7b03",
+      "group": "MOVISTAR DEPORTES",
+      "logo": "https://r2.thesportsdb.com/images/media/channel/logo/irjqp71744196637.png",
+      "tvg_id": "M+ Golf 2 HD"
+    },
+    {
+      "title": "M+ Vamos 1080p *",
+      "hash": "ad5ca6e24f87f47a9c3c5bc10c7e8e5af46767fc",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/gWMRpFB/vamos.png",
-      "tvg_id": "MVamos.es"
+      "tvg_id": "M+ Vamos HD"
     },
     {
-      "title": "M+ Vamos",
+      "title": "M+ Vamos 1080p **",
       "hash": "7e4f6eb38e0d5ef52b7f8b96eb80c1d8c87dad16",
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/gWMRpFB/vamos.png",
-      "tvg_id": "MVamos.es"
+      "tvg_id": "M+ Vamos HD"
+    },
+    {
+      "title": "La 1 TVE 720p *",
+      "hash": "02622fa2fab63847d88dc14fd9fa5c2fc35de8a8",
+      "group": "TDT",
+      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
+      "tvg_id": "La 1 HD"
+    },
+    {
+      "title": "La 1 TVE 720p **",
+      "hash": "6a494f8e736b962d94f63425ebe3df90723af0fa",
+      "group": "TDT",
+      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
+      "tvg_id": "La 1 HD"
+    },
+    {
+      "title": "La 1 TVE 1080p **",
+      "hash": "37c7e8bbc2fb95d29a063bef2e569ad3858f8edd",
+      "group": "TDT",
+      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
+      "tvg_id": "La 1 HD"
+    },
+    {
+      "title": "La 1 TVE 4K *",
+      "hash": "da38a21a9509be8c03b0fdb539cb1485843330c3",
+      "group": "TDT",
+      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
+      "tvg_id": "La 1 HD"
+    },
+    {
+      "title": "La 1 TVE 4K **",
+      "hash": "23c952c5b375715db822f2783803c6e28fab0e34",
+      "group": "TDT",
+      "logo": "https://i.ibb.co/Vf2GT70/la1.png",
+      "tvg_id": "La 1 HD"
+    },
+    {
+      "title": "Esport3 720p *",
+      "hash": "739792a3225e5eb3056f4faa7b1137c7f161f23c",
+      "group": "DEPORTES",
+      "logo": "https://img.3cat.cat/multimedia/jpg/1/5/1697802708951.jpg",
+      "tvg_id": "Esport 3"
+    },
+    {
+      "title": "Teledeporte 1080p **",
+      "hash": "77cf022557c56cdf8d8115f50e61f846ad72ee05",
+      "group": "DEPORTES",
+      "logo": "https://img2.rtve.es/n/15966755",
+      "tvg_id": "Teledeporte"
+    },
+    {
+      "title": "Tennis Channel 1080p *",
+      "hash": "a4cbadd19442b800727be713270fa9c917cc8582",
+      "group": "TENNIS",
+      "logo": "https://www.sportsvideo.org/wp-content/uploads/2016/01/tennis-channel-logo-e1518530950839.jpg",
+      "tvg_id": ""
     }
   ]
 }
