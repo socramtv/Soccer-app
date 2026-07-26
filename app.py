@@ -39,7 +39,7 @@ def asignar_logo_deporte(evento):
     # 🏎️ Automovilismo
     if any(x in texto for x in ["f1", "f2", "f3", "fórmula", "automovilismo", "rally", "nascar", "indy", "motorsport", "dtm", "wec", "wrc", "imsa", "le mans", "gt world"]): return base_url + "automovilismo.webp"
     # 🏀 Baloncesto
-    if any(x in texto for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague"]): return base_url + "baloncesto.webp"
+    if any(x in texto for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague", "fiba"]): return base_url + "baloncesto.webp"
     # 🤾 Balonmano
     if any(x in texto for x in ["balonmano", "asobal", "ehf"]): return base_url + "balonmano.webp"
     # 🥊 Boxeo
@@ -57,7 +57,7 @@ def asignar_logo_deporte(evento):
     # 🏍️ Motociclismo
     if any(x in texto for x in ["motogp", "moto2", "moto3", "superbike", "motociclismo"]): return base_url + "motociclismo.webp"
     # 🎾 Pádel
-    if any(x in texto for x in ["pádel", "padel", "premier", "wpt"]): return base_url + "padel.webp"
+    if any(x in texto for x in ["pádel", "padel", "premier padel", "wpt"]): return base_url + "padel.webp"
     # 🎾 Tenis
     if any(x in texto for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
     
