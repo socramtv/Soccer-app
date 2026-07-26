@@ -29,26 +29,39 @@ def normalizar_cadena(texto):
     return texto
 
 def asignar_logo_deporte(evento):
-    """Asigna el icono del deporte correcto analizando liga, equipos y los canales (ej: M+ Golf)"""
-    # Unimos toda la información textual del evento para no fallar
+    """Asigna el icono del deporte correcto analizando liga, equipos y los canales con palabras clave ampliadas"""
     texto = f"{evento.get('liga', '')} {evento.get('equipo_local', '')} {evento.get('equipo_visitante', '')} {' '.join(evento.get('canales', []))}".lower()
     
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
-    if "atletismo" in texto: return base_url + "atletismo.webp"
-    if any(x in texto for x in ["f1", "fórmula", "automovilismo", "rally", "nascar", "indy"]): return base_url + "automovilismo.webp"
+    # 🏃 Atletismo
+    if any(x in texto for x in ["atletismo", "maratón", "marathon", "diamond league", "mitin", "meeting", "sesión matinal", "sesión vespertina", "pista cubierta", "cross country"]): return base_url + "atletismo.webp"
+    # 🏎️ Automovilismo
+    if any(x in texto for x in ["f1", "f2", "f3", "fórmula", "automovilismo", "rally", "nascar", "indy", "motorsport", "dtm", "wec", "wrc", "imsa", "le mans", "gt world"]): return base_url + "automovilismo.webp"
+    # 🏀 Baloncesto
     if any(x in texto for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague"]): return base_url + "baloncesto.webp"
+    # 🤾 Balonmano
     if any(x in texto for x in ["balonmano", "asobal", "ehf"]): return base_url + "balonmano.webp"
+    # 🥊 Boxeo
     if any(x in texto for x in ["boxeo", "boxing", "velada"]): return base_url + "boxeo.webp"
+    # 🚴 Ciclismo
     if any(x in texto for x in ["ciclismo", "tour de", "vuelta a", "giro d"]): return base_url + "ciclismo.webp"
+    # 🏈 Fútbol Americano
     if any(x in texto for x in ["nfl", "fútbol americano", "americano", "super bowl"]): return base_url + "futbol-americano.webp"
+    # ⚽ Fútbol Sala
     if any(x in texto for x in ["sala", "futsal", "lnfs"]): return base_url + "futbol-sala.webp"
+    # ⛳ Golf
     if any(x in texto for x in ["golf", "pga", "masters", "ryder"]): return base_url + "golf.webp"
+    # 🤼 MMA / UFC
     if any(x in texto for x in ["ufc", "mma", "bellator"]): return base_url + "mma.webp"
+    # 🏍️ Motociclismo
     if any(x in texto for x in ["motogp", "moto2", "moto3", "superbike", "motociclismo"]): return base_url + "motociclismo.webp"
+    # 🎾 Pádel
     if any(x in texto for x in ["pádel", "padel", "premier", "wpt"]): return base_url + "padel.webp"
+    # 🎾 Tenis
     if any(x in texto for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
     
+    # ⚽ Por defecto (Si no coincide con nada, será fútbol)
     return base_url + "futbol.webp"
 
 def extraer_canales_m3u(url_m3u):
