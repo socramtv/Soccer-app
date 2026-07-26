@@ -28,24 +28,26 @@ def normalizar_cadena(texto):
     texto = re.sub(r'[\(\)\-\[\]\*\_\|\+\s\.\,\/\:\?\#\§]', '', texto)
     return texto
 
-def asignar_logo_deporte(liga):
-    """Asigna el icono del deporte correcto basándose en palabras clave de la liga"""
-    liga_lower = liga.lower()
+def asignar_logo_deporte(evento):
+    """Asigna el icono del deporte correcto analizando liga, equipos y los canales (ej: M+ Golf)"""
+    # Unimos toda la información textual del evento para no fallar
+    texto = f"{evento.get('liga', '')} {evento.get('equipo_local', '')} {evento.get('equipo_visitante', '')} {' '.join(evento.get('canales', []))}".lower()
+    
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
-    if "atletismo" in liga_lower: return base_url + "atletismo.webp"
-    if any(x in liga_lower for x in ["f1", "fórmula", "automovilismo", "rally", "nascar"]): return base_url + "automovilismo.webp"
-    if any(x in liga_lower for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague"]): return base_url + "baloncesto.webp"
-    if any(x in liga_lower for x in ["balonmano", "asobal"]): return base_url + "balonmano.webp"
-    if any(x in liga_lower for x in ["boxeo", "boxing", "velada"]): return base_url + "boxeo.webp"
-    if any(x in liga_lower for x in ["ciclismo", "tour", "vuelta", "giro"]): return base_url + "ciclismo.webp"
-    if any(x in liga_lower for x in ["nfl", "fútbol americano", "americano"]): return base_url + "futbol-americano.webp"
-    if any(x in liga_lower for x in ["sala", "futsal"]): return base_url + "futbol-sala.webp"
-    if any(x in liga_lower for x in ["golf", "pga", "masters"]): return base_url + "golf.webp"
-    if any(x in liga_lower for x in ["ufc", "mma"]): return base_url + "mma.webp"
-    if any(x in liga_lower for x in ["moto", "motogp", "superbike"]): return base_url + "motociclismo.webp"
-    if any(x in liga_lower for x in ["pádel", "padel", "premier"]): return base_url + "padel.webp"
-    if any(x in liga_lower for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
+    if "atletismo" in texto: return base_url + "atletismo.webp"
+    if any(x in texto for x in ["f1", "fórmula", "automovilismo", "rally", "nascar", "indy"]): return base_url + "automovilismo.webp"
+    if any(x in texto for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague"]): return base_url + "baloncesto.webp"
+    if any(x in texto for x in ["balonmano", "asobal", "ehf"]): return base_url + "balonmano.webp"
+    if any(x in texto for x in ["boxeo", "boxing", "velada"]): return base_url + "boxeo.webp"
+    if any(x in texto for x in ["ciclismo", "tour de", "vuelta a", "giro d"]): return base_url + "ciclismo.webp"
+    if any(x in texto for x in ["nfl", "fútbol americano", "americano", "super bowl"]): return base_url + "futbol-americano.webp"
+    if any(x in texto for x in ["sala", "futsal", "lnfs"]): return base_url + "futbol-sala.webp"
+    if any(x in texto for x in ["golf", "pga", "masters", "ryder"]): return base_url + "golf.webp"
+    if any(x in texto for x in ["ufc", "mma", "bellator"]): return base_url + "mma.webp"
+    if any(x in texto for x in ["motogp", "moto2", "moto3", "superbike", "motociclismo"]): return base_url + "motociclismo.webp"
+    if any(x in texto for x in ["pádel", "padel", "premier", "wpt"]): return base_url + "padel.webp"
+    if any(x in texto for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
     
     return base_url + "futbol.webp"
 
@@ -208,8 +210,8 @@ def obtener_datos_completos():
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
         
-        # ASIGNAR LOGO DE DEPORTE
-        eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i].get('liga', ''))
+        # ASIGNAR LOGO DE DEPORTE (AHORA ANALIZA EL EVENTO COMPLETO)
+        eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
             partes = eventos[i]['equipos'].split(' - ')
