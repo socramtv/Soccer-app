@@ -808,7 +808,15 @@
             let blobArchivo = new Blob([m3uTexto], { type: 'text/plain;charset=utf-8' });
             let elementoDescarga = document.createElement('a');
             elementoDescarga.href = URL.createObjectURL(blobArchivo);
-            elementoDescarga.download = 'SocramTv_Acestream.m3u';
+            
+            // Generar fecha actual para el nombre del archivo
+            let hoy = new Date();
+            let dia = String(hoy.getDate()).padStart(2, '0');
+            let mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            let anio = hoy.getFullYear();
+            let fechaStr = `${dia}-${mes}-${anio}`;
+            
+            elementoDescarga.download = `SocramTv_Acestream_${fechaStr}.m3u`;
             elementoDescarga.click();
         }
 
