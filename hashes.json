@@ -1,6 +1,6 @@
 {
-  "generated": "2026-07-31T23:00:02Z",
-  "count": 22,
+  "generated": "2026-08-02T11:00:02Z",
+  "count": 24,
   "hashes": [
     {
       "title": "Eurosport 1 720p **",
@@ -101,6 +101,13 @@
       "tvg_id": "M+ Deportes 4"
     },
     {
+      "title": "M+ Deportes 5 1080p **",
+      "hash": "15ec214bb10925dadd16a1716bb2042af6008a93",
+      "group": "MOVISTAR DEPORTES",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/deportes-5-por-movistar-plus-es.png",
+      "tvg_id": "M+ Deportes 5"
+    },
+    {
       "title": "M+ Golf 1080p *",
       "hash": "9bb2a7dc6c6a296609df8cc50e742a78194f7530",
       "group": "MOVISTAR DEPORTES",
@@ -129,13 +136,6 @@
       "tvg_id": "M+ Golf 2 HD"
     },
     {
-      "title": "M+ Vamos 720p *",
-      "hash": "866a8af8faacf8fc9eb997ab5a68b4dfee4edc77",
-      "group": "MOVISTAR DEPORTES",
-      "logo": "https://i.ibb.co/gWMRpFB/vamos.png",
-      "tvg_id": "M+ Vamos HD"
-    },
-    {
       "title": "M+ Vamos 1080p *",
       "hash": "ad5ca6e24f87f47a9c3c5bc10c7e8e5af46767fc",
       "group": "MOVISTAR DEPORTES",
@@ -148,6 +148,20 @@
       "group": "MOVISTAR DEPORTES",
       "logo": "https://i.ibb.co/gWMRpFB/vamos.png",
       "tvg_id": "M+ Vamos HD"
+    },
+    {
+      "title": "M+ VAMOS 3 1080p **",
+      "hash": "b7b1c1eeb4be09c63fbc2f319c9760851c274455",
+      "group": "MOVISTAR DEPORTES",
+      "logo": "https://i.ibb.co/gWMRpFB/vamos.png",
+      "tvg_id": "M+ Vamos 3"
+    },
+    {
+      "title": "Real Madrid TV 1080p *",
+      "hash": "ac353757b626cedc6461d8eb73bfffa15fbb7be7",
+      "group": "DEPORTES",
+      "logo": "https://raw.githubusercontent.com/davidmuma/picons_dobleM/refs/heads/master/icon/Real%20Madrid%20TV.png",
+      "tvg_id": ""
     },
     {
       "title": "Teledeporte 1080p **",
