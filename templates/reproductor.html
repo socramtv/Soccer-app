@@ -43,10 +43,10 @@
             pointer-events: none; 
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centra el subtítulo bajo el título */
+            align-items: center; 
             text-shadow: 2px 2px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,0.8);
             user-select: none;
-            opacity: 0.85; /* Ligera transparencia para que no moleste en el vídeo */
+            opacity: 0.85; 
         }
 
         .wm-title {
@@ -59,19 +59,24 @@
 
         .watermark-sub {
             font-size: 0.7rem;
-            color: #00ff88; /* Verde neón característico */
+            color: #00ff88; 
             font-weight: bold;
             letter-spacing: 1.2px;
             text-transform: uppercase;
             margin-top: 2px;
         }
 
-        /* 🔙 BOTÓN PARA ATRÁS */
-        .btn-back {
+        /* 🔙 BOTONES SUPERIORES (TV Y VOLVER) */
+        .top-right-controls {
             position: absolute;
             top: 25px;
             right: 25px;
             z-index: 10000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
             background: rgba(0, 0, 0, 0.6);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -83,12 +88,27 @@
             cursor: pointer;
             backdrop-filter: blur(5px);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn-back:hover {
+        .btn-action:hover {
             background: rgba(0, 255, 136, 0.3);
             border-color: #00ff88;
             color: #00ff88;
+        }
+
+        .btn-cast {
+            background: rgba(0, 136, 255, 0.2);
+            border-color: rgba(0, 136, 255, 0.4);
+            color: #66c2ff;
+        }
+
+        .btn-cast:hover {
+            background: rgba(0, 136, 255, 0.5);
+            border-color: #66c2ff;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -102,17 +122,41 @@
             <span class="watermark-sub">BY MASP</span>
         </div>
 
-        <!-- BOTÓN DE NAVEGACIÓN ATRÁS -->
-        <a href="/" class="btn-back">⬅ Volver</a>
+        <!-- CONTROLES SUPERIORES DERECHOS -->
+        <div class="top-right-controls">
+            <button onclick="castToTV()" class="btn-action btn-cast">📺 Enviar a TV</button>
+            <a href="/" class="btn-action">⬅ Volver</a>
+        </div>
 
-        <!-- REPRODUCTOR DE VIDEO -->
-        <video id="video-player" controls autoplay></video>
+        <!-- REPRODUCTOR DE VIDEO (CON ATRIBUTOS DE CAST NATIVOS AÑADIDOS) -->
+        <video id="video-player" controls autoplay playsinline x-webkit-airplay="allow" disableRemotePlayback="false"></video>
 
     </div>
 
     <script>
         var video = document.getElementById('video-player');
         var urlStream = "{{ stream_url }}";
+
+        // Función personalizada para enviar a la TV
+        function castToTV() {
+            var isAndroid = /android/i.test(navigator.userAgent);
+            
+            if (isAndroid) {
+                // En Android lanza directamente Web Video Caster mediante Intent
+                var intentUrl = urlStream.replace(/^https?:\/\//, '');
+                var scheme = urlStream.startsWith('https') ? 'https' : 'http';
+                window.location.href = "intent://" + intentUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
+            } else {
+                // En otros sistemas intenta levantar el selector de Cast nativo si está disponible
+                if (video.remote && video.remote.state !== 'disconnected') {
+                    video.remote.prompt();
+                } else if (window.WebKitPlaybackTargetAvailabilityEvent) {
+                    video.webkitShowPlaybackTargetPicker();
+                } else {
+                    alert("Para enviar a la TV, pulsa el icono de transmitir en el reproductor si tu navegador lo soporta, o instala Web Video Caster.");
+                }
+            }
+        }
 
         // Inicialización del motor HLS
         if (Hls.isSupported()) {
