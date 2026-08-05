@@ -266,11 +266,11 @@
             }
         }
 
-        // 1. ABRIR EN WEB VIDEO CASTER
+        // 1. ABRIR EN WEB VIDEO CASTER (Forzando inicio directo como vídeo)
         function abrirWVC() {
-            var cleanUrl = urlStream.replace(/^https?:\/\//, '');
-            var scheme = urlStream.startsWith('https') ? 'https' : 'http';
-            var intent = "intent://" + cleanUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
+            // Usamos la URL completa en el cuerpo del intent y forzamos el type=video/*
+            // Esto evita que WVC lo abra en su navegador y pase directamente al menú de casteo
+            var intent = "intent:" + urlStream + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;type=video/*;S.title=" + encodeURIComponent("{{ canal_name }}") + ";end;";
             window.location.href = intent;
             cerrarModal(null, true);
         }
@@ -279,7 +279,7 @@
         function abrirVLC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
-            var intent = "intent://" + cleanUrl + "#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
+            var intent = "intent://" + cleanUrl + "#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;S.title=" + encodeURIComponent("{{ canal_name }}") + ";end;";
             window.location.href = intent;
             cerrarModal(null, true);
         }
