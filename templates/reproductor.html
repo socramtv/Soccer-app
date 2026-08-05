@@ -34,7 +34,7 @@
             outline: none;
         }
 
-        /* 🔴 MARCA DE AGUA (ESTILO APP ORIGINAL) */
+        /* 🔴 MARCA DE AGUA Y TEXTO "ESTÁS VIENDO" */
         .watermark {
             position: absolute;
             top: 25px;
@@ -46,7 +46,6 @@
             align-items: center; 
             text-shadow: 2px 2px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,0.8);
             user-select: none;
-            opacity: 0.85; 
             transition: all 0.3s ease;
         }
 
@@ -66,6 +65,28 @@
             text-transform: uppercase;
             margin-top: 2px;
         }
+
+        /* Indicador del canal actual */
+        .wm-now-playing {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .viendo-txt {
+            color: #00ff88;
+            margin-right: 4px;
+            font-weight: normal;
+        }
+
 
         /* 🛠️ CONTROLES SUPERIORES (TRANSMITIR Y VOLVER) */
         .top-controls {
@@ -111,6 +132,10 @@
             }
             .wm-title {
                 font-size: 1.1rem;
+            }
+            .wm-now-playing {
+                font-size: 0.7rem;
+                padding: 4px 10px;
             }
             .top-controls {
                 top: 15px;
@@ -216,10 +241,13 @@
 
     <div class="player-wrapper">
         
-        <!-- MARCA DE AGUA FLOTANTE -->
+        <!-- MARCA DE AGUA Y ESTADO -->
         <div class="watermark">
             <span class="wm-title">Sσcяαм Tν + Acεѕтяεαм</span>
             <span class="watermark-sub">BY MASP</span>
+            <div class="wm-now-playing">
+                <span class="viendo-txt">Estás viendo:</span> {{ canal_name }}
+            </div>
         </div>
 
         <!-- CONTROLES PARA ABRIR MENÚ Y VOLVER -->
@@ -298,7 +326,6 @@
         function abrirWVC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
-            // Intent puro sin 'type' para que no choque con el reproductor interno del navegador
             var intent = "intent://" + cleanUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";end;";
             forzarAperturaApp(intent);
             cerrarModal(null, true);
