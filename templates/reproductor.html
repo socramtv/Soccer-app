@@ -102,12 +102,12 @@
         .btn-back { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
 
 
-        /* 📱 AJUSTES PARA PANTALLAS MÓVILES (Evita que el título y los botones se choquen) */
+        /* 📱 AJUSTES PARA PANTALLAS MÓVILES */
         @media (max-width: 768px) {
             .watermark {
-                top: 75px; /* Baja el título para que quede debajo de los botones */
+                top: 75px; 
                 left: 15px;
-                align-items: flex-start; /* Lo alinea a la izquierda */
+                align-items: flex-start;
             }
             .wm-title {
                 font-size: 1.1rem;
@@ -119,7 +119,7 @@
         }
 
 
-        /* 🪟 MENÚ MODAL DE TRANSMISIÓN (ESTILO ORIGINAL) */
+        /* 🪟 MENÚ MODAL DE TRANSMISIÓN */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -284,12 +284,23 @@
             }
         }
 
-        // 1. ABRIR EN WEB VIDEO CASTER (Ahora usa el mismo formato de intent limpio que VLC)
+        // FUNCIÓN MAESTRA PARA FORZAR INTENTS (Evita que Brave intercepte)
+        function forzarAperturaApp(intentString) {
+            var link = document.createElement('a');
+            link.href = intentString;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 1. ABRIR EN WEB VIDEO CASTER
         function abrirWVC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
-            var intent = "intent://" + cleanUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;S.title=" + encodeURIComponent("{{ canal_name }}") + ";end;";
-            window.location.href = intent;
+            // Intent puro sin 'type' para que no choque con el reproductor interno del navegador
+            var intent = "intent://" + cleanUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";end;";
+            forzarAperturaApp(intent);
             cerrarModal(null, true);
         }
 
@@ -298,7 +309,7 @@
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
             var intent = "intent://" + cleanUrl + "#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;S.title=" + encodeURIComponent("{{ canal_name }}") + ";end;";
-            window.location.href = intent;
+            forzarAperturaApp(intent);
             cerrarModal(null, true);
         }
 
