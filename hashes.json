@@ -211,6 +211,16 @@
       "group": "MOTOGP",
       "logo": "https://yt3.googleusercontent.com/hXinMW0gpJZ21tefgfVij_aZ3V1g3zS2-Dw5HN2zOXkFZiYrWSHhcEDp9xIKN93eVAgH550-Og=s900-c-k-c0x00ffffff-no-rj",
       "tvg_id": ""
-    }
+    }, 
+
+{
+      "title": "Tennis Channel",
+      "hash": "039fae21c9e7e5214d3d898cba80863e37e623ac",
+      "group": "TENIS",
+      "logo": "",
+      "tvg_id": ""
+    } 
+
+
   ]
 }
