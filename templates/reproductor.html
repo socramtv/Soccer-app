@@ -34,7 +34,7 @@
             outline: none;
         }
 
-        /* 🔴 ESTILOS DE LA MARCA DE AGUA (ESTILO ORIGINAL APP) */
+        /* 🔴 MARCA DE AGUA (ESTILO APP ORIGINAL) */
         .watermark {
             position: absolute;
             top: 25px;
@@ -66,70 +66,69 @@
             margin-top: 2px;
         }
 
-        /* 🔙 BOTONES SUPERIORES (TV Y VOLVER) */
-        .top-right-controls {
+        /* 🛠️ CONTROLES ORIGINALES: VLC, WVC, COPIAR Y VOLVER */
+        .top-controls {
             position: absolute;
             top: 25px;
             right: 25px;
             z-index: 10000;
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 60%;
         }
 
-        .btn-action {
-            background: rgba(0, 0, 0, 0.6);
+        .btn-tool {
+            background: rgba(0, 0, 0, 0.7);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 8px 12px;
+            border-radius: 6px;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: bold;
             cursor: pointer;
             backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+            transition: all 0.2s ease;
         }
 
-        .btn-action:hover {
-            background: rgba(0, 255, 136, 0.3);
-            border-color: #00ff88;
-            color: #00ff88;
+        .btn-tool:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffffff;
         }
 
-        .btn-cast {
-            background: rgba(0, 136, 255, 0.2);
-            border-color: rgba(0, 136, 255, 0.4);
-            color: #66c2ff;
-        }
+        /* Colores específicos para que sean fáciles de identificar */
+        .btn-wvc { color: #ffaa00; border-color: rgba(255, 170, 0, 0.3); }
+        .btn-vlc { color: #ff8800; border-color: rgba(255, 136, 0, 0.3); }
+        .btn-copy { color: #66c2ff; border-color: rgba(102, 194, 255, 0.3); }
+        .btn-back { color: #00ff88; border-color: rgba(0, 255, 136, 0.3); }
 
-        .btn-cast:hover {
-            background: rgba(0, 136, 255, 0.5);
-            border-color: #66c2ff;
-            color: #ffffff;
-        }
     </style>
 </head>
 <body>
 
     <div class="player-wrapper">
         
-        <!-- MARCA DE AGUA EN PANTALLA (IDÉNTICA A LA APP) -->
+        <!-- MARCA DE AGUA FLOTANTE -->
         <div class="watermark">
             <span class="wm-title">Sσcяαм Tν + Acεѕтяεαм</span>
             <span class="watermark-sub">BY MASP</span>
         </div>
 
-        <!-- CONTROLES SUPERIORES DERECHOS -->
-        <div class="top-right-controls">
-            <button onclick="castToTV()" class="btn-action btn-cast">📺 Enviar a TV</button>
-            <a href="/" class="btn-action">⬅ Volver</a>
+        <!-- TUS BOTONES ORIGINALES RESTAURADOS -->
+        <div class="top-controls">
+            <button onclick="abrirWVC()" class="btn-tool btn-wvc">📡 Web Video Cast</button>
+            <button onclick="abrirVLC()" class="btn-tool btn-vlc">🧡 VLC</button>
+            <button onclick="copiarEnlace()" class="btn-tool btn-copy">📋 Copiar Enlace</button>
+            <a href="/" class="btn-tool btn-back">⬅ Volver</a>
         </div>
 
-        <!-- REPRODUCTOR DE VIDEO (CON ATRIBUTOS DE CAST NATIVOS AÑADIDOS) -->
-        <video id="video-player" controls autoplay playsinline x-webkit-airplay="allow" disableRemotePlayback="false"></video>
+        <!-- REPRODUCTOR -->
+        <video id="video-player" controls autoplay playsinline></video>
 
     </div>
 
@@ -137,28 +136,39 @@
         var video = document.getElementById('video-player');
         var urlStream = "{{ stream_url }}";
 
-        // Función personalizada para enviar a la TV
-        function castToTV() {
-            var isAndroid = /android/i.test(navigator.userAgent);
-            
-            if (isAndroid) {
-                // En Android lanza directamente Web Video Caster mediante Intent
-                var intentUrl = urlStream.replace(/^https?:\/\//, '');
-                var scheme = urlStream.startsWith('https') ? 'https' : 'http';
-                window.location.href = "intent://" + intentUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
-            } else {
-                // En otros sistemas intenta levantar el selector de Cast nativo si está disponible
-                if (video.remote && video.remote.state !== 'disconnected') {
-                    video.remote.prompt();
-                } else if (window.WebKitPlaybackTargetAvailabilityEvent) {
-                    video.webkitShowPlaybackTargetPicker();
-                } else {
-                    alert("Para enviar a la TV, pulsa el icono de transmitir en el reproductor si tu navegador lo soporta, o instala Web Video Caster.");
-                }
-            }
+        // 1. ABRIR EN WEB VIDEO CASTER DIRECTAMENTE (Sin pasar por el navegador)
+        function abrirWVC() {
+            var cleanUrl = urlStream.replace(/^https?:\/\//, '');
+            var scheme = urlStream.startsWith('https') ? 'https' : 'http';
+            var intent = "intent://" + cleanUrl + "#Intent;package=com.instantbits.cast.webvideo;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
+            window.location.href = intent;
         }
 
-        // Inicialización del motor HLS
+        // 2. ABRIR EN VLC DIRECTAMENTE
+        function abrirVLC() {
+            var cleanUrl = urlStream.replace(/^https?:\/\//, '');
+            var scheme = urlStream.startsWith('https') ? 'https' : 'http';
+            var intent = "intent://" + cleanUrl + "#Intent;package=org.videolan.vlc;action=android.intent.action.VIEW;scheme=" + scheme + ";type=video/*;end;";
+            window.location.href = intent;
+        }
+
+        // 3. COPIAR ENLACE AL PORTAPAPELES
+        function copiarEnlace() {
+            // Creamos un input temporal para copiar de forma compatible con móviles antiguos
+            var tempInput = document.createElement("input");
+            tempInput.value = urlStream;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand("copy");
+                alert("✅ Enlace copiado correctamente:\n" + urlStream);
+            } catch (err) {
+                alert("❌ Error al copiar el enlace.");
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // Inicialización del motor HLS para el vídeo integrado
         if (Hls.isSupported()) {
             var hls = new Hls({
                 maxBufferLength: 30,
@@ -167,13 +177,11 @@
             hls.loadSource(urlStream);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(function(error) {
-                    console.log("El navegador requiere interacción manual para reproducir el audio");
+                video.play().catch(function() {
+                    console.log("Se requiere interacción manual para el audio.");
                 });
             });
-        }
-        // Soporte nativo para Safari/iOS
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = urlStream;
             video.addEventListener('loadedmetadata', function() {
                 video.play();
