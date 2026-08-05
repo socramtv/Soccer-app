@@ -34,37 +34,36 @@
             outline: none;
         }
 
-        /* 🔴 ESTILOS DE LA MARCA DE AGUA SOCRAM TV+ */
+        /* 🔴 ESTILOS DE LA MARCA DE AGUA (ESTILO ORIGINAL APP) */
         .watermark {
             position: absolute;
             top: 25px;
             left: 25px;
             z-index: 9999;
-            /* pointer-events: none permite que los clics atraviesen el logo y no bloqueen el reproductor */
             pointer-events: none; 
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 2rem;
-            font-weight: 900;
-            font-style: italic;
-            text-shadow: 2px 2px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centra el subtítulo bajo el título */
+            text-shadow: 2px 2px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,0.8);
             user-select: none;
-            letter-spacing: -1.5px;
-            opacity: 0.85; /* Ligera transparencia */
+            opacity: 0.85; /* Ligera transparencia para que no moleste en el vídeo */
         }
 
-        .watermark .wm-red { color: #e50914; } /* Rojo intenso tipo Flix */
-        .watermark .wm-white { color: #ffffff; }
-        
+        .wm-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
         .watermark-sub {
-            display: block;
-            font-size: 0.65rem;
-            color: #cccccc;
-            font-style: normal;
+            font-size: 0.7rem;
+            color: #00ff88; /* Verde neón característico */
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
-            margin-top: -6px;
-            text-shadow: 1px 1px 3px rgba(0,0,0,1);
+            margin-top: 2px;
         }
 
         /* 🔙 BOTÓN PARA ATRÁS */
@@ -87,8 +86,9 @@
         }
 
         .btn-back:hover {
-            background: rgba(229, 9, 20, 0.8);
-            border-color: #e50914;
+            background: rgba(0, 255, 136, 0.3);
+            border-color: #00ff88;
+            color: #00ff88;
         }
     </style>
 </head>
@@ -96,9 +96,9 @@
 
     <div class="player-wrapper">
         
-        <!-- MARCA DE AGUA EN PANTALLA -->
+        <!-- MARCA DE AGUA EN PANTALLA (IDÉNTICA A LA APP) -->
         <div class="watermark">
-            <span class="wm-red">SOCRAM</span><span class="wm-white">TV+</span>
+            <span class="wm-title">Sσcяαм Tν + Acεѕтяεαм</span>
             <span class="watermark-sub">BY MASP</span>
         </div>
 
