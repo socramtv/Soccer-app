@@ -34,7 +34,7 @@ def asignar_logo_deporte(evento):
     
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
-   # 🏃 Atletismo
+    # 🏃 Atletismo
     if any(x in texto for x in ["atletismo", "maratón", "marathon", "diamond league", "mitin", "meeting", "sesión matinal", "sesión vespertina", "pista cubierta", "cross country"]): return base_url + "atletismo.webp"
     # 🏎️ Automovilismo
     if any(x in texto for x in ["f1", "f2", "f3", "fórmula", "automovilismo", "rally", "nascar", "indy", "motorsport", "dtm", "wec", "wrc", "imsa", "le mans", "gt world"]): return base_url + "automovilismo.webp"
@@ -101,6 +101,7 @@ def extraer_canales_m3u(url_m3u):
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
+    """Algoritmo de cruce: Inyecta M3U8 y AceStream leyendo correctamente la clave 'logo' y detectando infohash o id"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -128,6 +129,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
         canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
+        # 1. BUSCAR EN M3U DINÁMICO (DIRECTOS)
         for nombre_m3u, datos_m3u in dict_m3u_directos.items():
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
@@ -144,6 +146,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
+        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo' e infohash/id)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -176,6 +179,8 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
                     if hash_match:
                         hash_puro = hash_match.group(1)
+                        
+                        # DETECCIÓN INTELIGENTE DE ID vs INFOHASH
                         if "infohash=" in hash_val.lower():
                             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
                         else:
@@ -215,24 +220,38 @@ def obtener_datos_completos():
     destacados = []
     eventos_agrupados = {}
     
+    # --- FILTRO DE TIEMPO (2 HORAS) ---
     ahora_dt = datetime.now()
-    # Margen de 2 horas antes (es decir, se ocultan los eventos que empezaron hace más de 2 horas)
     limite_tiempo = ahora_dt - timedelta(hours=2)
+    str_slash = ahora_dt.strftime("%d/%m")
+    str_dash = ahora_dt.strftime("%d-%m")
+    # ----------------------------------
     
     for i in range(len(eventos)):
-        # FILTRO DE EVENTOS PASADOS (Permite ver los que empezaron hace menos de 2 horas)
-        fecha_evento_str = eventos[i].get('fecha', '').strip()
-        hora_evento_str = eventos[i].get('hora', '').strip()
         
-        if fecha_evento_str and hora_evento_str:
+        # --- LÓGICA PARA DESCARTAR EVENTOS QUE EMPEZARON HACE MÁS DE 2 HORAS ---
+        fecha_texto = eventos[i].get('fecha', 'Hoy').strip().lower()
+        es_hoy = "hoy" in fecha_texto or str_slash in fecha_texto or str_dash in fecha_texto
+        
+        if es_hoy:
+            hora_ev = eventos[i].get('hora', '00:00')
             try:
-                # Intentamos parsear la fecha del evento (ej: "26-07-2026" o texto equivalente)
-                # Si la web devuelve formato de fecha legible por días, hacemos comprobación básica
-                pass
+                h_partes = hora_ev.split(':')
+                if len(h_partes) >= 2:
+                    hora_ev_int = int(h_partes[0])
+                    min_ev_int = int(h_partes[1])
+                    ev_dt = ahora_dt.replace(hour=hora_ev_int, minute=min_ev_int, second=0, microsecond=0)
+                    
+                    # Si el evento es de hoy y empezó antes del límite de 2 horas, lo saltamos
+                    if ev_dt < limite_tiempo:
+                        continue
             except Exception:
                 pass
+        # -----------------------------------------------------------------------
 
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
+        
+        # ASIGNAR LOGO DE DEPORTE (AHORA ANALIZA EL EVENTO COMPLETO)
         eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
@@ -245,28 +264,17 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
+        # MARCAR SI TIENE ENLACE ACTIVO
         eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
 
-        # FILTRAR EVENTOS PASADOS (Ocultar si la hora del evento es anterior a hace 2 horas, solo para el día de hoy)
-        # Comparamos la hora si el evento es de hoy
-        fecha_texto = eventos[i].get('fecha', '').lower()
-        if "hoy" in fecha_texto or ah_es_hoy(fecha_evento_str, ahora_dt):
-            hora_ev = eventos[i].get('hora', '00:00')
-            try:
-                h_partes = hora_ev.split(':')
-                ev_dt = ahora_dt.replace(hour=int(h_partes[0]), minute=int(h_partes[1]), second=0, microsecond=0)
-                # Si el evento pasó hace más de 2 horas, nos lo saltamos
-                if ev_dt < limite_tiempo:
-                    continue
-            except Exception:
-                pass
-
+        # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
         nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
         nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
         
         if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
             destacados.append(eventos[i])
 
+        # Agrupación cronológica por Día
         fecha = eventos[i].get('fecha', 'Hoy').strip()
         if fecha not in eventos_agrupados:
             eventos_agrupados[fecha] = []
@@ -281,11 +289,6 @@ def obtener_datos_completos():
     ultimo_scraping = ahora
     return cache_datos
 
-def ah_es_hoy(str_fecha, ahora_dt):
-    # Comprobación auxiliar para saber si la fecha del evento corresponde al día actual
-    hoy_str = ahora_dt.strftime("%d-%m-%Y")
-    return hoy_str in str_fecha
-
 @app.route('/')
 def home():
     datos = obtener_datos_completos()
@@ -297,6 +300,8 @@ def home():
         hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
         if hash_match:
             hash_puro = hash_match.group(1)
+            
+            # DETECCIÓN INTELIGENTE DE ID vs INFOHASH EN EL BOTÓN DIRECTO
             if "infohash=" in hash_val.lower():
                 stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
             else:
