@@ -3,326 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📺 SocramFlix - En Directo</title>
-    <!-- Motor HLS necesario para reproducir el flujo en el navegador -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+    <title>Reproduciendo: {{ canal_name }}</title>
+    
+    <!-- Librería HLS.js para reproducir m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        body, html {
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        .player-container {
+            padding: 0;
             width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: #ffffff;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .actions-box {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-action {
-            background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%);
-            color: #e0e0e0;
-            border: 1px solid #333;
-            padding: 9px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        /* Botón Enviar a TV Premium estilo SocramFlix */
-        .btn-cast {
-            background: linear-gradient(135deg, #00ff88 0%, #00b35f 100%);
-            color: #121212;
-            border-color: #00ff88;
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
-        }
-
-        .btn-cast:active {
-            transform: scale(0.95);
-        }
-
-        .video-wrapper {
-            width: 100%;
-            aspect-ratio: 16/9;
+            height: 100%;
             background-color: #000000;
-            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid #222;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .player-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: contain;
             outline: none;
         }
 
-        .info-footer {
-            text-align: center;
-            color: #555;
-            font-size: 0.8rem;
-            margin: 0;
-            margin-top: 5px;
+        /* 🔴 ESTILOS DE LA MARCA DE AGUA SOCRAM TV+ */
+        .watermark {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 9999;
+            /* pointer-events: none permite que los clics atraviesen el logo y no bloqueen el reproductor */
+            pointer-events: none; 
+            font-family: "Arial Black", Arial, sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            font-style: italic;
+            text-shadow: 2px 2px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,0.6);
+            user-select: none;
+            letter-spacing: -1.5px;
+            opacity: 0.85; /* Ligera transparencia */
         }
 
-        /* ==========================================================
-           MODAL DESPLEGABLE DE TRANSMISIÓN A TV
-        ========================================================== */
-        #cast-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 3000;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
-
-        .cast-window {
-            background-color: #161616;
-            border: 1px solid #2a2a2a;
-            border-radius: 14px;
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-            box-sizing: border-box;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .cast-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #222;
-            padding-bottom: 10px;
-        }
-
-        .cast-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #00ff88;
-        }
-
-        .btn-close-cast {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .cast-options-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-cast-option {
-            width: 100%;
-            padding: 12px;
-            background: #202020;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 0.9rem;
+        .watermark .wm-red { color: #e50914; } /* Rojo intenso tipo Flix */
+        .watermark .wm-white { color: #ffffff; }
+        
+        .watermark-sub {
+            display: block;
+            font-size: 0.65rem;
+            color: #cccccc;
+            font-style: normal;
             font-weight: bold;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: -6px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,1);
+        }
+
+        /* 🔙 BOTÓN PARA ATRÁS */
+        .btn-back {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
             text-decoration: none;
-            box-sizing: border-box;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
 
-        .btn-cast-option:active {
-            background: #282828;
-            border-color: #00ff88;
-        }
-
-        .btn-cast-option .icon-opt {
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
+        .btn-back:hover {
+            background: rgba(229, 9, 20, 0.8);
+            border-color: #e50914;
         }
     </style>
 </head>
 <body>
 
-    <div class="player-container">
-        <div class="top-bar">
-            <!-- Título limpio decodificado automáticamente -->
-            <h2 id="titulo-streaming">📺 Viendo: Cargando...</h2>
-            
-            <div class="actions-box">
-                <!-- Botón Enviar a TV -->
-                <button onclick="abrirMenuTv()" class="btn-action btn-cast">
-                    📺 Enviar a TV
-                </button>
-                <a href="/" class="btn-action">⬅ Agenda</a>
-            </div>
+    <div class="player-wrapper">
+        
+        <!-- MARCA DE AGUA EN PANTALLA -->
+        <div class="watermark">
+            <span class="wm-red">SOCRAM</span><span class="wm-white">TV+</span>
+            <span class="watermark-sub">BY MASP</span>
         </div>
 
-        <div class="video-wrapper">
-            <video id="player" controls autoplay playsinline></video>
-        </div>
+        <!-- BOTÓN DE NAVEGACIÓN ATRÁS -->
+        <a href="/" class="btn-back">⬅ Volver</a>
 
-        <p class="info-footer">Asegúrate de mantener el motor Ace Stream Engine ejecutándose en segundo plano en tu móvil.</p>
-    </div>
+        <!-- REPRODUCTOR DE VIDEO -->
+        <video id="video-player" controls autoplay></video>
 
-    <!-- PANEL MODAL: ENVIAR A TELEVISIÓN -->
-    <div id="cast-modal" onclick="cerrarMenuTvExterno(event)">
-        <div class="cast-window" id="cast-window-box">
-            <div class="cast-header">
-                <h3>📺 Transmitir en Smart TV</h3>
-                <button onclick="cerrarMenuTv()" class="btn-close-cast">✕</button>
-            </div>
-            
-            <div class="cast-options-list">
-                <!-- Opción 1: Lanzar Web Video Caster -->
-                <a id="link-wvc" href="#" class="btn-cast-option">
-                    <span class="icon-opt">🌐</span>
-                    <div>
-                        <div style="color: #fff;">Web Video Caster</div>
-                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Recomendado para LG, Samsung, Chromecast</div>
-                    </div>
-                </a>
-
-                <!-- Opción 2: Lanzar VLC Player -->
-                <a id="link-vlc" href="#" class="btn-cast-option">
-                    <span class="icon-opt">🧡</span>
-                    <div>
-                        <div style="color: #fff;">VLC Media Player</div>
-                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Casteo mediante botón de Chromecast integrado</div>
-                    </div>
-                </a>
-
-                <!-- Opción 3: Copiar enlace de transmisión -->
-                <button onclick="copiarEnlaceHls()" class="btn-cast-option">
-                    <span class="icon-opt">📋</span>
-                    <div>
-                        <div style="color: #fff;">Copiar Enlace HLS (.m3u8)</div>
-                        <div style="font-size: 0.75rem; color: #888; font-weight: normal;">Para pegar en apps IPTV de tu Smart TV</div>
-                    </div>
-                </button>
-            </div>
-        </div>
     </div>
 
     <script>
-        let streamRawUrl = "{{ stream_url | safe }}";
-        let canalRawName = "{{ canal_name | safe }}";
+        var video = document.getElementById('video-player');
+        var urlStream = "{{ stream_url }}";
 
-        // Decodificar parámetros URL para que no muestren símbolos raros en pantalla (%20, etc)
-        let streamUrlClean = decodeURIComponent(streamRawUrl);
-        let canalNameClean = decodeURIComponent(canalRawName);
-
-        document.getElementById('titulo-streaming').textContent = "📺 Viendo: " + canalNameClean;
-
-        // --- REPRODUCCIÓN WEB HLS NATURAl ---
-        document.addEventListener("DOMContentLoaded", function() {
-            let video = document.getElementById('player');
-
-            if (Hls.isSupported()) {
-                let hls = new Hls();
-                hls.loadSource(streamUrlClean);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play();
+        // Inicialización del motor HLS
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+            });
+            hls.loadSource(urlStream);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(error) {
+                    console.log("El navegador requiere interacción manual para reproducir el audio");
                 });
-            } 
-            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = streamUrlClean;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play();
-                });
-            }
-
-            // --- CONFIGURACIÓN DE INTENTS / LANZADORES EXTERNOS ---
-            // Quitamos el protocolo "http://" inicial para construir el Intent de Android de forma limpia
-            let urlSinProtocolo = streamUrlClean.replace(/^https?:\/\//, '');
-
-            // Intent para Web Video Caster
-            document.getElementById('link-wvc').href = "intent://" + urlSinProtocolo + "#Intent;scheme=http;package=com.instantbits.cast.webvideo;end;";
-            
-            // Intent para VLC Player
-            document.getElementById('link-vlc').href = "intent://" + urlSinProtocolo + "#Intent;scheme=http;package=org.videolan.vlc;end;";
-        });
-
-        // --- FUNCIONES DEL PANEL MODAL TV ---
-        function abrirMenuTv() {
-            document.getElementById('cast-modal').style.display = 'flex';
+            });
         }
-
-        function cerrarMenuTv() {
-            document.getElementById('cast-modal').style.display = 'none';
-        }
-
-        function cerrarMenuTvExterno(e) {
-            if (e.target.id === "cast-modal") {
-                cerrarMenuTv();
-            }
-        }
-
-        function copiarEnlaceHls() {
-            navigator.clipboard.writeText(streamUrlClean).then(function() {
-                alert("📋 Enlace de transmisión copiado al portapapeles. ¡Listo para pegar en tu Smart TV!");
-                cerrarMenuTv();
-            }).catch(function() {
-                // Fallback por si el navegador bloquea el portapapeles por seguridad
-                let tempInput = document.createElement("input");
-                tempInput.value = streamUrlClean;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand("copy");
-                document.body.removeChild(tempInput);
-                alert("📋 Enlace de transmisión copiado con éxito.");
-                cerrarMenuTv();
+        // Soporte nativo para Safari/iOS
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = urlStream;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
             });
         }
     </script>
