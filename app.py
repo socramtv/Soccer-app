@@ -101,6 +101,7 @@ def extraer_canales_m3u(url_m3u):
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
+    """Algoritmo de cruce: Inyecta M3U8 y AceStream leyendo correctamente la clave 'logo' y detectando infohash o id"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -128,6 +129,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
         canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
+        # 1. BUSCAR EN M3U DINÁMICO (DIRECTOS)
         for nombre_m3u, datos_m3u in dict_m3u_directos.items():
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
@@ -144,6 +146,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
+        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo' e infohash/id)
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -176,6 +179,8 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
                     if hash_match:
                         hash_puro = hash_match.group(1)
+                        
+                        # DETECCIÓN INTELIGENTE DE ID vs INFOHASH
                         if "infohash=" in hash_val.lower():
                             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
                         else:
@@ -202,9 +207,9 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
 
 def obtener_datos_completos():
     global cache_datos, ultimo_scraping
-    ahora_epoch = time.time()
+    ahora = time.time()
     
-    if cache_datos and (ahora_epoch - ultimo_scraping < CACHE_EXPIRACION):
+    if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
         return cache_datos
         
     print("🌐 Cargando cartelera unificada por días, M3U dinámico y hashes AceStream...")
@@ -215,56 +220,64 @@ def obtener_datos_completos():
     destacados = []
     eventos_agrupados = {}
     
+    # --- FILTRO DE TIEMPO (2 HORAS) ---
     ahora_dt = datetime.now()
     limite_tiempo = ahora_dt - timedelta(hours=2)
     str_slash = ahora_dt.strftime("%d/%m")
     str_dash = ahora_dt.strftime("%d-%m")
-
-    for evento in eventos:
-        fecha_texto = evento.get('fecha', 'Hoy').strip()
+    # ----------------------------------
+    
+    for i in range(len(eventos)):
         
-        es_hoy = False
-        if "hoy" in fecha_texto.lower() or str_slash in fecha_texto or str_dash in fecha_texto:
-            es_hoy = True
-            
+        # --- LÓGICA PARA DESCARTAR EVENTOS QUE EMPEZARON HACE MÁS DE 2 HORAS ---
+        fecha_texto = eventos[i].get('fecha', 'Hoy').strip().lower()
+        es_hoy = "hoy" in fecha_texto or str_slash in fecha_texto or str_dash in fecha_texto
+        
         if es_hoy:
-            hora_ev = evento.get('hora', '00:00')
+            hora_ev = eventos[i].get('hora', '00:00')
             try:
                 h_partes = hora_ev.split(':')
-                hora_ev_int = int(h_partes[0])
-                min_ev_int = int(h_partes[1])
-                
-                ev_dt = ahora_dt.replace(hour=hora_ev_int, minute=min_ev_int, second=0, microsecond=0)
-                
-                if ev_dt < limite_tiempo:
-                    continue
+                if len(h_partes) >= 2:
+                    hora_ev_int = int(h_partes[0])
+                    min_ev_int = int(h_partes[1])
+                    ev_dt = ahora_dt.replace(hour=hora_ev_int, minute=min_ev_int, second=0, microsecond=0)
+                    
+                    if ev_dt < limite_tiempo:
+                        continue
             except Exception:
                 pass
+        # -----------------------------------------------------------------------
 
-        evento['canales_html'] = vincular_canales_automatico(evento['canales'], enlaces, dict_m3u)
-        evento['logo_deporte'] = asignar_logo_deporte(evento)
+        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
         
-        if 'equipo_local' not in evento or 'equipo_visitante' not in evento:
-            partes = evento.get('equipos', '').split(' - ')
-            evento['equipo_local'] = partes[0].strip() if len(partes) >= 1 else evento.get('equipos', '')
-            evento['equipo_visitante'] = partes[1].strip() if len(partes) == 2 else ""
+        # ASIGNAR LOGO DE DEPORTE
+        eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
+        
+        if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
+            partes = eventos[i]['equipos'].split(' - ')
+            eventos[i]['equipo_local'] = partes[0].strip() if len(partes) >= 1 else eventos[i]['equipos']
+            eventos[i]['equipo_visitante'] = partes[1].strip() if len(partes) == 2 else ""
             
-        if not evento.get('logo_local'):
-            evento['logo_local'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
-        if not evento.get('logo_visitante'):
-            evento['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
+        if not eventos[i].get('logo_local'):
+            eventos[i]['logo_local'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
+        if not eventos[i].get('logo_visitante'):
+            eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-        evento['has_links'] = 'btn-canal' in evento['canales_html']
+        # MARCAR SI TIENE ENLACE ACTIVO
+        eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
 
-        nombre_local_norm = normalizar_cadena(evento['equipo_local'])
-        nombre_vis_norm = normalizar_cadena(evento['equipo_visitante'])
+        # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
+        nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
+        nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
         
         if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
-            destacados.append(evento)
+            destacados.append(eventos[i])
 
-        if fecha_texto not in eventos_agrupados:
-            eventos_agrupados[fecha_texto] = []
-        eventos_agrupados[fecha_texto].append(evento)
+        # Agrupación cronológica por Día
+        fecha = eventos[i].get('fecha', 'Hoy').strip()
+        if fecha not in eventos_agrupados:
+            eventos_agrupados[fecha] = []
+        eventos_agrupados[fecha].append(eventos[i])
         
     cache_datos = {
         'eventos_agrupados': eventos_agrupados,
@@ -272,13 +285,10 @@ def obtener_datos_completos():
         'canales_puros': enlaces,
         'canales_directos_m3u8': canales_m3u
     }
-    ultimo_scraping = ahora_epoch
+    ultimo_scraping = ahora
     return cache_datos
 
 
-# ==============================================================
-# RUTA M3U CON NOMBRE DINÁMICO (SocramTv_Acestream_DD-MM-YYYY.m3u)
-# ==============================================================
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
@@ -304,11 +314,8 @@ def descargar_lista_m3u():
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
-    
-    # Generar el nombre del archivo dinámicamente con la fecha actual (ej: SocramTv_Acestream_08-08-2026.m3u)
     hoy_str = datetime.now().strftime("%d-%m-%Y")
     nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
-    
     respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
 
@@ -324,6 +331,7 @@ def home():
         hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
         if hash_match:
             hash_puro = hash_match.group(1)
+            
             if "infohash=" in hash_val.lower():
                 stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
             else:
