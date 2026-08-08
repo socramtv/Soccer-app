@@ -14,7 +14,6 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            /* Margen superior para el diseño de la cabecera */
             padding-top: 235px; 
             display: flex;
             flex-direction: column;
@@ -92,6 +91,7 @@
             gap: 4px;
             transition: all 0.2s;
             outline: none;
+            text-decoration: none;
         }
 
         .btn-directo-canales {
@@ -557,7 +557,8 @@
 
         <!-- 1. Los 4 botones en una sola fila centrada -->
         <div class="top-actions-layout">
-            <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</button>
+            <!-- AHORA EL BOTÓN DE GUARDAR USA EL ENLACE DEL SERVIDOR -->
+            <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</a>
             <button onclick="abrirModalApps()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
             <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
             <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
@@ -767,32 +768,24 @@
     </a>
 
 
-    <!-- MENÚ MODAL DE ENVIAR A APP IPTV -->
+    <!-- MENÚ MODAL DE ENVIAR A APP IPTV (SOLUCIÓN DEFINITIVA URL) -->
     <div id="appsModal" class="modal-instrucciones" onclick="cerrarModalApps(event)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📤 Enviar a App IPTV</div>
             
-            <div class="cast-option" onclick="enviarAppIPTV('com.wiseplay', 'Wiseplay')">
+            <div class="cast-option" onclick="enviarAppIPTV('com.wiseplay')">
                 <div class="cast-icon">▶️</div>
                 <div class="cast-text-block">
                     <span class="cast-title">Wiseplay</span>
-                    <span class="cast-subtitle">Copia la lista y abre la app automáticamente</span>
+                    <span class="cast-subtitle">Abre la app cargando la lista automática</span>
                 </div>
             </div>
 
-            <div class="cast-option" onclick="enviarAppIPTV('co.wuffy.player', 'Wuffy Player')">
+            <div class="cast-option" onclick="enviarAppIPTV('co.wuffy.player')">
                 <div class="cast-icon">🐶</div>
                 <div class="cast-text-block">
                     <span class="cast-title">Wuffy Player</span>
-                    <span class="cast-subtitle">Copia la lista y abre la app automáticamente</span>
-                </div>
-            </div>
-
-            <div class="cast-option" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;" onclick="compartirNativo()">
-                <div class="cast-icon">🔗</div>
-                <div class="cast-text-block">
-                    <span class="cast-title">Compartir clásico</span>
-                    <span class="cast-subtitle">Abre el menú del móvil (Falla en Chrome si estás en red local)</span>
+                    <span class="cast-subtitle">Abre la app cargando la lista automática</span>
                 </div>
             </div>
 
@@ -837,80 +830,7 @@
         }
 
         // ==========================================
-        // FUNCIONES DE GENERACIÓN Y EXPORTACIÓN M3U
-        // ==========================================
-        
-        function generarTextoM3U() {
-            let m3uTexto = "#EXTM3U\n";
-            let filasConEnlaces = document.querySelectorAll('.fila-partido[data-has-links="true"]');
-            
-            if (filasConEnlaces.length === 0) {
-                alert("⚠️ No hay eventos deportivos con enlaces activos en este momento.");
-                return null;
-            }
-            
-            filasConEnlaces.forEach(fila => {
-                let local = fila.querySelector('.txt-local') ? fila.querySelector('.txt-local').textContent.trim() : "";
-                let visitanteEl = fila.querySelector('.txt-visitante');
-                let visitante = visitanteEl ? " vs " + visitanteEl.textContent.trim() : "";
-                let nombrePartido = local + visitante;
-                
-                let ligaEl = fila.querySelector('.txt-liga-sub');
-                let nombreLiga = ligaEl ? ligaEl.textContent.trim() : "Otros Deportes";
-                
-                let logoDeporteEl = fila.querySelector('.icono-deporte');
-                let urlLogoDeporte = logoDeporteEl ? logoDeporteEl.getAttribute('src') : "";
-                
-                let linksStreaming = fila.querySelectorAll('.canales-td a');
-                linksStreaming.forEach(enlace => {
-                    let hrefAce = enlace.getAttribute('href');
-                    let textoCanal = enlace.textContent.trim();
-                    let urlReal = "";
-                    
-                    if (hrefAce) {
-                        if (hrefAce.startsWith('acestream://') || hrefAce.startsWith('http')) {
-                            urlReal = hrefAce;
-                        } else if (hrefAce.includes('url=')) {
-                            try {
-                                let urlParam = hrefAce.split('url=')[1].split('&')[0];
-                                let decoded = decodeURIComponent(urlParam);
-                                if (decoded.startsWith('acestream://') || decoded.startsWith('http')) {
-                                    urlReal = decoded;
-                                }
-                            } catch(e) {}
-                        }
-                    }
-                    
-                    if (urlReal) {
-                        m3uTexto += `#EXTINF:-1 tvg-logo="${urlLogoDeporte}" group-title="${nombreLiga}",${nombrePartido} (${textoCanal})\n`;
-                        m3uTexto += `${urlReal}\n`;
-                    }
-                });
-            });
-            return m3uTexto;
-        }
-
-        function obtenerNombreArchivoM3U() {
-            let hoy = new Date();
-            let dia = String(hoy.getDate()).padStart(2, '0');
-            let mes = String(hoy.getMonth() + 1).padStart(2, '0');
-            let anio = hoy.getFullYear();
-            return `SocramTv_Acestream_${dia}-${mes}-${anio}.m3u`;
-        }
-
-        function descargarListaM3U() {
-            let textoM3U = generarTextoM3U();
-            if (!textoM3U) return;
-            
-            let blobArchivo = new Blob([textoM3U], { type: 'text/plain;charset=utf-8' });
-            let elementoDescarga = document.createElement('a');
-            elementoDescarga.href = URL.createObjectURL(blobArchivo);
-            elementoDescarga.download = obtenerNombreArchivoM3U();
-            elementoDescarga.click();
-        }
-
-        // ==========================================
-        // NUEVAS FUNCIONES: ENVIAR A APP IPTV DIRECTO
+        // NUEVAS FUNCIONES: ENVIAR A APP IPTV CON URL REAL
         // ==========================================
 
         function abrirModalApps() {
@@ -923,70 +843,26 @@
             }
         }
 
-        function enviarAppIPTV(paquete, nombreApp) {
-            let textoM3U = generarTextoM3U();
-            if (!textoM3U) return;
-
-            // Importante: Usar TEXTAREA para no perder los saltos de línea al copiar la lista
-            let tempInput = document.createElement("textarea");
-            tempInput.value = textoM3U;
-            document.body.appendChild(tempInput);
-            tempInput.select();
+        function enviarAppIPTV(paquete) {
+            // Cogemos el dominio exacto en el que estemos (Render, local, etc) y le sumamos la nueva ruta
+            let dominio = window.location.origin;
+            let urlLista = dominio + "/lista.m3u";
             
-            try {
-                document.execCommand("copy");
-                alert(`✅ Lista copiada con éxito.\n\nAbriendo ${nombreApp}...\n👉 Ve a "Añadir Lista" y dale a "Pegar".`);
-                
-                // Forzamos que se abra la app pasándole su identificador oficial
-                let intent = `intent://#Intent;package=${paquete};action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;`;
-                let link = document.createElement('a');
-                link.href = intent;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-            } catch (err) {
-                alert("❌ Error al copiar la lista. Se descargará el archivo de forma tradicional.");
-                descargarListaM3U();
-            }
+            // Limpiamos el inicio de la URL para que Android la lea bien
+            let cleanUrl = urlLista.replace(/^https?:\/\//, '');
+            let scheme = urlLista.startsWith('https') ? 'https' : 'http';
             
-            document.body.removeChild(tempInput);
-            cerrarModalApps(null, true);
-        }
-
-        function compartirNativo() {
-            try {
-                let textoM3U = generarTextoM3U();
-                if (!textoM3U) return; 
-
-                // AVISO PARA CHROME EN RED LOCAL
-                if (!navigator.share) {
-                    alert("⚠️ Tu navegador bloquea esta función porque estás probando en red local (HTTP).\n\nFuncionará cuando la página tenga candado de seguridad (HTTPS).\n\nSe va a descargar el archivo en tu carpeta de descargas.");
-                    descargarListaM3U();
-                    cerrarModalApps(null, true);
-                    return;
-                }
-
-                let nombreArchivo = obtenerNombreArchivoM3U();
-                let file = new File([textoM3U], nombreArchivo, { type: 'audio/x-mpegurl' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({
-                        files: [file],
-                        title: 'Lista M3U SocramTV'
-                    }).catch(function(err) { console.log(err); });
-                } else {
-                    navigator.share({
-                        title: 'Lista M3U SocramTV',
-                        text: textoM3U
-                    }).catch(function(err) { console.log(err); });
-                }
-
-            } catch (error) {
-                alert("❌ Ocurrió un error. Se descargará la lista normal.");
-                descargarListaM3U();
-            }
+            // Construimos la orden (Intent) obligando a que se abra con la App elegida y se le pase el archivo
+            let intent = `intent://${cleanUrl}#Intent;package=${paquete};action=android.intent.action.VIEW;scheme=${scheme};type=video/*;end;`;
+            
+            // Creamos el clic fantasma
+            let link = document.createElement('a');
+            link.href = intent;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
             cerrarModalApps(null, true);
         }
 
