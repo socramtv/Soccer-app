@@ -70,7 +70,6 @@
             text-transform: uppercase;
         }
 
-        /* 🛠️ DISEÑO DE BOTONES EN PRIMERA LÍNEA CENTRADA */
         .top-actions-layout {
             width: 100%;
             max-width: 800px;
@@ -118,7 +117,6 @@
             border: 1px solid rgba(170, 0, 255, 0.3);
         }
 
-        /* 📅 DISEÑO DE LA FECHA EN SEGUNDA LÍNEA */
         .fecha-badge {
             font-size: 0.75rem;
             color: #888888;
@@ -411,7 +409,6 @@
             object-fit: contain;
         }
 
-        /* MODALES COMUNES */
         .modal-instrucciones {
             display: none;
             position: fixed;
@@ -488,7 +485,6 @@
             margin-top: 5px;
         }
 
-        /* 🪟 ESTILOS PARA EL MODAL DE APPS IPTV */
         .cast-option {
             display: flex;
             align-items: center;
@@ -555,16 +551,13 @@
             <span class="subtitle">by Masp</span>
         </div>
 
-        <!-- 1. Los 4 botones en una sola fila centrada -->
         <div class="top-actions-layout">
-            <!-- AHORA EL BOTÓN DE GUARDAR USA EL ENLACE DEL SERVIDOR -->
             <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</a>
             <button onclick="abrirModalApps()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
             <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
             <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
         </div>
 
-        <!-- 2. La fecha en una línea inferior, bien visible -->
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
         <div class="search-container">
@@ -749,7 +742,6 @@
             </div>
         </div>
 
-        <!-- Botón Subir Arriba al final de todo -->
         <button class="btn-subir-arriba" onclick="subirArriba()">
             ⬆️ Volver arriba de la web
         </button>
@@ -767,21 +759,20 @@
         🔄 Actualizar
     </a>
 
-
-    <!-- MENÚ MODAL DE ENVIAR A APP IPTV (SOLUCIÓN DEFINITIVA URL) -->
+    <!-- MENÚ MODAL DE ENVIAR A APP IPTV -->
     <div id="appsModal" class="modal-instrucciones" onclick="cerrarModalApps(event)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📤 Enviar a App IPTV</div>
             
-            <div class="cast-option" onclick="enviarAppIPTV('com.wiseplay')">
+            <div class="cast-option" onclick="enviarWiseplay()">
                 <div class="cast-icon">▶️</div>
                 <div class="cast-text-block">
                     <span class="cast-title">Wiseplay</span>
-                    <span class="cast-subtitle">Abre la app cargando la lista automática</span>
+                    <span class="cast-subtitle">Copia el enlace y abre la app (Dale a pegar)</span>
                 </div>
             </div>
 
-            <div class="cast-option" onclick="enviarAppIPTV('co.wuffy.player')">
+            <div class="cast-option" onclick="enviarWuffy()">
                 <div class="cast-icon">🐶</div>
                 <div class="cast-text-block">
                     <span class="cast-title">Wuffy Player</span>
@@ -792,7 +783,6 @@
             <button class="btn-cerrar-modal" onclick="cerrarModalApps(null, true)">Cancelar</button>
         </div>
     </div>
-
 
     <!-- VENTANA EMERGENTE DE AYUDA PWA -->
     <div id="modal-ayuda-pwa" class="modal-instrucciones" onclick="controlModalInstalacion(false)">
@@ -829,10 +819,6 @@
             }
         }
 
-        // ==========================================
-        // NUEVAS FUNCIONES: ENVIAR A APP IPTV CON URL REAL
-        // ==========================================
-
         function abrirModalApps() {
             document.getElementById('appsModal').style.display = 'flex';
         }
@@ -843,19 +829,43 @@
             }
         }
 
-        function enviarAppIPTV(paquete) {
-            // Cogemos el dominio exacto en el que estemos (Render, local, etc) y le sumamos la nueva ruta
+        // WISEPLAY: Copia la URL de la lista al portapapeles y abre Wiseplay para que pegues
+        function enviarWiseplay() {
             let dominio = window.location.origin;
             let urlLista = dominio + "/lista.m3u";
+
+            let tempInput = document.createElement("input");
+            tempInput.value = urlLista;
+            document.body.appendChild(tempInput);
+            tempInput.select();
             
-            // Limpiamos el inicio de la URL para que Android la lea bien
+            try {
+                document.execCommand("copy");
+                alert("📋 ¡Enlace de la lista copiado!\n\nAbriendo Wiseplay...\n👉 Pulsa en el '+' y dale a 'Pegar'.");
+                
+                let intent = "intent://#Intent;package=com.wiseplay;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;";
+                let link = document.createElement('a');
+                link.href = intent;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                alert("❌ No se pudo copiar el enlace automáticamente.");
+            }
+            
+            document.body.removeChild(tempInput);
+            cerrarModalApps(null, true);
+        }
+
+        // WUFFY: Abre el archivo directamente por URL
+        function enviarWuffy() {
+            let dominio = window.location.origin;
+            let urlLista = dominio + "/lista.m3u";
             let cleanUrl = urlLista.replace(/^https?:\/\//, '');
             let scheme = urlLista.startsWith('https') ? 'https' : 'http';
             
-            // Construimos la orden (Intent) obligando a que se abra con la App elegida y se le pase el archivo
-            let intent = `intent://${cleanUrl}#Intent;package=${paquete};action=android.intent.action.VIEW;scheme=${scheme};type=video/*;end;`;
-            
-            // Creamos el clic fantasma
+            let intent = `intent://${cleanUrl}#Intent;package=co.wuffy.player;action=android.intent.action.VIEW;scheme=${scheme};type=video/*;end;`;
             let link = document.createElement('a');
             link.href = intent;
             link.style.display = 'none';
@@ -865,10 +875,6 @@
             
             cerrarModalApps(null, true);
         }
-
-        // ==========================================
-        // FUNCIONES DE INTERFAZ Y FILTROS
-        // ==========================================
 
         function toggleFiltroEnlaces() {
             ocultarSinEnlace = !ocultarSinEnlace;
