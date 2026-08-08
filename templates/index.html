@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 215px; 
+            padding-top: 235px; /* Un poco más de margen por si los botones bajan de línea */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -98,7 +98,7 @@
         .btn-header-action {
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.7rem;
+            font-size: 0.68rem; /* Un poco más pequeño para que quepan todos */
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -124,6 +124,13 @@
             background: rgba(0, 136, 255, 0.1);
             color: #0088ff;
             border: 1px solid rgba(0, 136, 255, 0.3);
+        }
+
+        /* 🟣 Nuevo color para el botón de enviar a app */
+        .btn-share-m3u {
+            background: rgba(170, 0, 255, 0.1);
+            color: #d580ff;
+            border: 1px solid rgba(170, 0, 255, 0.3);
         }
 
         .search-container {
@@ -514,8 +521,9 @@
         <div class="top-bar-content">
             <div class="fecha-badge">📅 {{ fecha }}</div>
             <div class="top-actions-layout">
-                <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u">📥 Lista M3U</button>
-                <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
+                <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</button>
+                <button onclick="compartirListaM3U()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
+                <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Enlaces</button>
                 <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
             </div>
         </div>
@@ -755,13 +763,17 @@
             }
         }
 
-        function descargarListaM3U() {
+        // ==========================================
+        // FUNCIONES DE GENERACIÓN Y EXPORTACIÓN M3U
+        // ==========================================
+        
+        function generarTextoM3U() {
             let m3uTexto = "#EXTM3U\n";
             let filasConEnlaces = document.querySelectorAll('.fila-partido[data-has-links="true"]');
             
             if (filasConEnlaces.length === 0) {
                 alert("⚠️ No hay eventos deportivos con enlaces activos en este momento.");
-                return;
+                return null;
             }
             
             filasConEnlaces.forEach(fila => {
@@ -773,7 +785,6 @@
                 let ligaEl = fila.querySelector('.txt-liga-sub');
                 let nombreLiga = ligaEl ? ligaEl.textContent.trim() : "Otros Deportes";
                 
-                // EXTRACCIÓN DEL ICONO DEL DEPORTE PARA EL M3U
                 let logoDeporteEl = fila.querySelector('.icono-deporte');
                 let urlLogoDeporte = logoDeporteEl ? logoDeporteEl.getAttribute('src') : "";
                 
@@ -798,27 +809,64 @@
                     }
                     
                     if (urlReal) {
-                        // USA EL LOGO DEL DEPORTE EN EL ARCHIVO M3U
                         m3uTexto += `#EXTINF:-1 tvg-logo="${urlLogoDeporte}" group-title="${nombreLiga}",${nombrePartido} (${textoCanal})\n`;
                         m3uTexto += `${urlReal}\n`;
                     }
                 });
             });
-            
-            let blobArchivo = new Blob([m3uTexto], { type: 'text/plain;charset=utf-8' });
-            let elementoDescarga = document.createElement('a');
-            elementoDescarga.href = URL.createObjectURL(blobArchivo);
-            
-            // Generar fecha actual para el nombre del archivo
+            return m3uTexto;
+        }
+
+        function obtenerNombreArchivoM3U() {
             let hoy = new Date();
             let dia = String(hoy.getDate()).padStart(2, '0');
             let mes = String(hoy.getMonth() + 1).padStart(2, '0');
             let anio = hoy.getFullYear();
-            let fechaStr = `${dia}-${mes}-${anio}`;
+            return `SocramTv_Acestream_${dia}-${mes}-${anio}.m3u`;
+        }
+
+        // 1. FUNCIÓN ORIGINAL: Descarga el archivo a la carpeta local
+        function descargarListaM3U() {
+            let textoM3U = generarTextoM3U();
+            if (!textoM3U) return;
             
-            elementoDescarga.download = `SocramTv_Acestream_${fechaStr}.m3u`;
+            let blobArchivo = new Blob([textoM3U], { type: 'text/plain;charset=utf-8' });
+            let elementoDescarga = document.createElement('a');
+            elementoDescarga.href = URL.createObjectURL(blobArchivo);
+            elementoDescarga.download = obtenerNombreArchivoM3U();
             elementoDescarga.click();
         }
+
+        // 2. NUEVA FUNCIÓN: Envía el archivo directamente a Wiseplay, Wuffy, VLC...
+        function compartirListaM3U() {
+            let textoM3U = generarTextoM3U();
+            if (!textoM3U) return;
+
+            let nombreArchivo = obtenerNombreArchivoM3U();
+            
+            // Creamos un archivo real en memoria con el tipo de archivo de listas IPTV
+            let file = new File([textoM3U], nombreArchivo, { type: 'audio/x-mpegurl' });
+
+            // Comprobamos si el navegador del móvil soporta compartir archivos nativamente
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: 'Lista M3U SocramTV',
+                    text: 'Aquí tienes la lista M3U actualizada de hoy con los partidos.'
+                }).catch(err => {
+                    console.log("Error al abrir el menú de compartir: ", err);
+                });
+            } else {
+                // Si el usuario está en PC o en un navegador que no lo soporta, le bajamos el archivo como siempre
+                alert("Tu dispositivo o navegador no soporta el envío directo a otras aplicaciones. Se descargará el archivo en tu carpeta de descargas.");
+                descargarListaM3U();
+            }
+        }
+
+
+        // ==========================================
+        // FUNCIONES DE INTERFAZ
+        // ==========================================
 
         function toggleFiltroEnlaces() {
             ocultarSinEnlace = !ocultarSinEnlace;
@@ -830,7 +878,7 @@
                 btn.style.color = "#ffaa00";
                 btn.style.borderColor = "rgba(255, 170, 0, 0.3)";
             } else {
-                btn.textContent = "👁️ Solo con Enlace";
+                btn.textContent = "👁️ Solo Enlaces";
                 btn.style.background = "rgba(0, 255, 136, 0.1)";
                 btn.style.color = "#00ff88";
                 btn.style.borderColor = "rgba(0, 255, 136, 0.3)";
@@ -841,7 +889,7 @@
         function bajarACanales() {
             const target = document.getElementById('card-descargar-aceserve') || document.getElementById('card-canales-directos');
             if (target) {
-                const offset = 215; 
+                const offset = 235; 
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: targetPosition, behavior: 'smooth' });
             }
