@@ -14,8 +14,8 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            /* Aumentamos el margen superior para acomodar el nuevo diseño de la cabecera */
-            padding-top: 255px; 
+            /* Margen superior para el diseño de la cabecera */
+            padding-top: 235px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -71,7 +71,7 @@
             text-transform: uppercase;
         }
 
-        /* DISEÑO DE BOTONES EN PRIMERA LÍNEA */
+        /* 🛠️ DISEÑO DE BOTONES EN PRIMERA LÍNEA CENTRADA */
         .top-actions-layout {
             width: 100%;
             max-width: 800px;
@@ -118,13 +118,13 @@
             border: 1px solid rgba(170, 0, 255, 0.3);
         }
 
-        /* DISEÑO DE LA FECHA EN SEGUNDA LÍNEA */
+        /* 📅 DISEÑO DE LA FECHA EN SEGUNDA LÍNEA */
         .fecha-badge {
             font-size: 0.75rem;
             color: #888888;
             font-weight: bold;
             background-color: #1c1c1c;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 4px;
             border: 1px solid #2a2a2a;
             display: inline-block;
@@ -190,7 +190,6 @@
             table-layout: fixed;
         }
 
-        /* ANCHO DE COLUMNAS (14 - 50 - 36) */
         th:nth-child(1), td:nth-child(1) { width: 14%; text-align: center; }
         th:nth-child(2), td:nth-child(2) { width: 50%; }
         th:nth-child(3), td:nth-child(3) { width: 36%; }
@@ -824,7 +823,7 @@
             return `SocramTv_Acestream_${dia}-${mes}-${anio}.m3u`;
         }
 
-        // 1. FUNCIÓN ORIGINAL: Descarga el archivo a la carpeta local
+        // 1. DESCARGA TRADICIONAL
         function descargarListaM3U() {
             let textoM3U = generarTextoM3U();
             if (!textoM3U) return;
@@ -836,50 +835,42 @@
             elementoDescarga.click();
         }
 
-        // 2. NUEVA FUNCIÓN: Envío robusto a prueba de bloqueos de Android/Navegador
+        // 2. FUNCIÓN DE COMPARTIR A PRUEBA DE FALLOS HTTP
         function compartirListaM3U() {
             try {
                 let textoM3U = generarTextoM3U();
-                if (!textoM3U) return; // Si no hay enlaces, el alert ya saltó en generarTextoM3U
+                if (!textoM3U) return; 
+
+                // COMPROBACIÓN CRÍTICA: Android/Chrome exigen HTTPS para usar navigator.share
+                // Si la web corre en localhost o HTTP (IP local), navigator.share no existe.
+                if (!navigator.share) {
+                    alert("⚠️ El navegador está bloqueando la función 'Enviar a App'.\n\nEsto ocurre porque estás probando la página en local (HTTP) sin certificado de seguridad.\n\nCuando la página se suba a GitHub (HTTPS), funcionará perfectamente.\n\nDe momento, se descargará el archivo M3U.");
+                    descargarListaM3U();
+                    return;
+                }
 
                 let nombreArchivo = obtenerNombreArchivoM3U();
-                
-                // Verificamos si el navegador soporta compartir de forma nativa
-                if (navigator.share) {
-                    
-                    try {
-                        // Intento 1: Mandarlo como archivo puro .m3u
-                        let file = new File([textoM3U], nombreArchivo, { type: 'audio/x-mpegurl' });
-                        
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            navigator.share({
-                                files: [file],
-                                title: 'Lista M3U SocramTV'
-                            }).catch(err => console.log("Compartir archivo cancelado:", err));
-                            
-                            return; // Si el código llega aquí, salió bien. Paramos.
-                        }
-                    } catch (fileError) {
-                        // Algunos móviles viejos explotan al intentar usar "new File()"
-                        console.log("El móvil no permite crear archivos temporales. Pasando a Modo Texto...", fileError);
-                    }
+                let file = new File([textoM3U], nombreArchivo, { type: 'audio/x-mpegurl' });
 
-                    // Intento 2: Si el móvil bloqueó el archivo, pasamos la lista como texto gigante
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Lista M3U SocramTV'
+                    }).catch(function(err) {
+                        console.log("El usuario canceló o falló:", err);
+                    });
+                } else {
+                    // Si el móvil no soporta compartir archivos, manda el texto plano
                     navigator.share({
                         title: 'Lista M3U SocramTV',
                         text: textoM3U
-                    }).catch(err => console.log("Compartir texto cancelado:", err));
-                    
-                } else {
-                    // Intento 3: Si no hay soporte (PC, HTTP sin candado...), descargamos el archivo
-                    alert("Tu navegador no soporta el envío directo a otras apps. Descargando la lista...");
-                    descargarListaM3U();
+                    }).catch(function(err) {
+                        console.log(err);
+                    });
                 }
 
-            } catch (errorGeneral) {
-                // Si todo falla catastróficamente, salvavidas final
-                console.error("Fallo general:", errorGeneral);
-                alert("Hubo un error inesperado al enviar. Descargando la lista en tu carpeta...");
+            } catch (error) {
+                alert("❌ Hubo un error al preparar el archivo. Se descargará de forma normal.");
                 descargarListaM3U();
             }
         }
@@ -910,7 +901,7 @@
         function bajarACanales() {
             const target = document.getElementById('card-descargar-aceserve') || document.getElementById('card-canales-directos');
             if (target) {
-                const offset = 255; 
+                const offset = 235; 
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: targetPosition, behavior: 'smooth' });
             }
