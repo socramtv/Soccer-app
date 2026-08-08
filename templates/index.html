@@ -411,6 +411,7 @@
             object-fit: contain;
         }
 
+        /* MODALES COMUNES */
         .modal-instrucciones {
             display: none;
             position: fixed;
@@ -487,6 +488,45 @@
             margin-top: 5px;
         }
 
+        /* 🪟 ESTILOS PARA EL MODAL DE APPS IPTV */
+        .cast-option {
+            display: flex;
+            align-items: center;
+            background: #28282b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #333;
+        }
+
+        .cast-option:hover { background: #353538; }
+
+        .cast-icon {
+            font-size: 1.6rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .cast-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cast-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .cast-subtitle {
+            font-size: 0.65rem;
+            color: #999;
+            line-height: 1.2;
+        }
+
         .competition-card {
             background-color: #1e1e1e;
             border-radius: 8px;
@@ -518,7 +558,7 @@
         <!-- 1. Los 4 botones en una sola fila centrada -->
         <div class="top-actions-layout">
             <button onclick="descargarListaM3U()" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</button>
-            <button onclick="compartirListaM3U()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
+            <button onclick="abrirModalApps()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
             <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
             <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
         </div>
@@ -726,7 +766,42 @@
         🔄 Actualizar
     </a>
 
-    <!-- VENTANA EMERGENTE DE AYUDA -->
+
+    <!-- MENÚ MODAL DE ENVIAR A APP IPTV -->
+    <div id="appsModal" class="modal-instrucciones" onclick="cerrarModalApps(event)">
+        <div class="modal-contenido" onclick="event.stopPropagation()">
+            <div class="modal-titulo">📤 Enviar a App IPTV</div>
+            
+            <div class="cast-option" onclick="enviarAppIPTV('com.wiseplay', 'Wiseplay')">
+                <div class="cast-icon">▶️</div>
+                <div class="cast-text-block">
+                    <span class="cast-title">Wiseplay</span>
+                    <span class="cast-subtitle">Copia la lista y abre la app automáticamente</span>
+                </div>
+            </div>
+
+            <div class="cast-option" onclick="enviarAppIPTV('co.wuffy.player', 'Wuffy Player')">
+                <div class="cast-icon">🐶</div>
+                <div class="cast-text-block">
+                    <span class="cast-title">Wuffy Player</span>
+                    <span class="cast-subtitle">Copia la lista y abre la app automáticamente</span>
+                </div>
+            </div>
+
+            <div class="cast-option" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;" onclick="compartirNativo()">
+                <div class="cast-icon">🔗</div>
+                <div class="cast-text-block">
+                    <span class="cast-title">Compartir clásico</span>
+                    <span class="cast-subtitle">Abre el menú del móvil (Falla en Chrome si estás en red local)</span>
+                </div>
+            </div>
+
+            <button class="btn-cerrar-modal" onclick="cerrarModalApps(null, true)">Cancelar</button>
+        </div>
+    </div>
+
+
+    <!-- VENTANA EMERGENTE DE AYUDA PWA -->
     <div id="modal-ayuda-pwa" class="modal-instrucciones" onclick="controlModalInstalacion(false)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📱 Añadir a Pantalla de Inicio</div>
@@ -823,7 +898,6 @@
             return `SocramTv_Acestream_${dia}-${mes}-${anio}.m3u`;
         }
 
-        // 1. DESCARGA TRADICIONAL
         function descargarListaM3U() {
             let textoM3U = generarTextoM3U();
             if (!textoM3U) return;
@@ -835,17 +909,62 @@
             elementoDescarga.click();
         }
 
-        // 2. FUNCIÓN DE COMPARTIR A PRUEBA DE FALLOS HTTP
-        function compartirListaM3U() {
+        // ==========================================
+        // NUEVAS FUNCIONES: ENVIAR A APP IPTV DIRECTO
+        // ==========================================
+
+        function abrirModalApps() {
+            document.getElementById('appsModal').style.display = 'flex';
+        }
+
+        function cerrarModalApps(e, force = false) {
+            if (force || e.target.id === 'appsModal') {
+                document.getElementById('appsModal').style.display = 'none';
+            }
+        }
+
+        function enviarAppIPTV(paquete, nombreApp) {
+            let textoM3U = generarTextoM3U();
+            if (!textoM3U) return;
+
+            // Importante: Usar TEXTAREA para no perder los saltos de línea al copiar la lista
+            let tempInput = document.createElement("textarea");
+            tempInput.value = textoM3U;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand("copy");
+                alert(`✅ Lista copiada con éxito.\n\nAbriendo ${nombreApp}...\n👉 Ve a "Añadir Lista" y dale a "Pegar".`);
+                
+                // Forzamos que se abra la app pasándole su identificador oficial
+                let intent = `intent://#Intent;package=${paquete};action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;`;
+                let link = document.createElement('a');
+                link.href = intent;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (err) {
+                alert("❌ Error al copiar la lista. Se descargará el archivo de forma tradicional.");
+                descargarListaM3U();
+            }
+            
+            document.body.removeChild(tempInput);
+            cerrarModalApps(null, true);
+        }
+
+        function compartirNativo() {
             try {
                 let textoM3U = generarTextoM3U();
                 if (!textoM3U) return; 
 
-                // COMPROBACIÓN CRÍTICA: Android/Chrome exigen HTTPS para usar navigator.share
-                // Si la web corre en localhost o HTTP (IP local), navigator.share no existe.
+                // AVISO PARA CHROME EN RED LOCAL
                 if (!navigator.share) {
-                    alert("⚠️ El navegador está bloqueando la función 'Enviar a App'.\n\nEsto ocurre porque estás probando la página en local (HTTP) sin certificado de seguridad.\n\nCuando la página se suba a GitHub (HTTPS), funcionará perfectamente.\n\nDe momento, se descargará el archivo M3U.");
+                    alert("⚠️ Tu navegador bloquea esta función porque estás probando en red local (HTTP).\n\nFuncionará cuando la página tenga candado de seguridad (HTTPS).\n\nSe va a descargar el archivo en tu carpeta de descargas.");
                     descargarListaM3U();
+                    cerrarModalApps(null, true);
                     return;
                 }
 
@@ -856,28 +975,23 @@
                     navigator.share({
                         files: [file],
                         title: 'Lista M3U SocramTV'
-                    }).catch(function(err) {
-                        console.log("El usuario canceló o falló:", err);
-                    });
+                    }).catch(function(err) { console.log(err); });
                 } else {
-                    // Si el móvil no soporta compartir archivos, manda el texto plano
                     navigator.share({
                         title: 'Lista M3U SocramTV',
                         text: textoM3U
-                    }).catch(function(err) {
-                        console.log(err);
-                    });
+                    }).catch(function(err) { console.log(err); });
                 }
 
             } catch (error) {
-                alert("❌ Hubo un error al preparar el archivo. Se descargará de forma normal.");
+                alert("❌ Ocurrió un error. Se descargará la lista normal.");
                 descargarListaM3U();
             }
+            cerrarModalApps(null, true);
         }
 
-
         // ==========================================
-        // FUNCIONES DE INTERFAZ
+        // FUNCIONES DE INTERFAZ Y FILTROS
         // ==========================================
 
         function toggleFiltroEnlaces() {
