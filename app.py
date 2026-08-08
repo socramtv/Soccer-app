@@ -34,20 +34,34 @@ def asignar_logo_deporte(evento):
     
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
+    # 🏃 Atletismo
     if any(x in texto for x in ["atletismo", "maratón", "marathon", "diamond league", "mitin", "meeting", "sesión matinal", "sesión vespertina", "pista cubierta", "cross country"]): return base_url + "atletismo.webp"
+    # 🏎️ Automovilismo
     if any(x in texto for x in ["f1", "f2", "f3", "fórmula", "automovilismo", "rally", "nascar", "indy", "motorsport", "dtm", "wec", "wrc", "imsa", "le mans", "gt world"]): return base_url + "automovilismo.webp"
+    # 🏀 Baloncesto
     if any(x in texto for x in ["baloncesto", "nba", "acb", "euroliga", "euroleague", "fiba"]): return base_url + "baloncesto.webp"
+    # 🤾 Balonmano
     if any(x in texto for x in ["balonmano", "asobal", "ehf"]): return base_url + "balonmano.webp"
+    # 🥊 Boxeo
     if any(x in texto for x in ["boxeo", "boxing", "velada"]): return base_url + "boxeo.webp"
+    # 🚴 Ciclismo
     if any(x in texto for x in ["ciclismo", "tour de", "vuelta a", "giro d"]): return base_url + "ciclismo.webp"
+    # 🏈 Fútbol Americano
     if any(x in texto for x in ["nfl", "fútbol americano", "americano", "super bowl"]): return base_url + "futbol-americano.webp"
+    # ⚽ Fútbol Sala
     if any(x in texto for x in ["sala", "futsal", "lnfs"]): return base_url + "futbol-sala.webp"
+    # ⛳ Golf
     if any(x in texto for x in ["golf", "pga", "masters", "ryder"]): return base_url + "golf.webp"
+    # 🤼 MMA / UFC
     if any(x in texto for x in ["ufc", "mma", "bellator"]): return base_url + "mma.webp"
+    # 🏍️ Motociclismo
     if any(x in texto for x in ["motogp", "moto2", "moto3", "superbike", "motociclismo"]): return base_url + "motociclismo.webp"
+    # 🎾 Pádel
     if any(x in texto for x in ["pádel", "padel", "premier padel", "wpt"]): return base_url + "padel.webp"
+    # 🎾 Tenis
     if any(x in texto for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
     
+    # ⚽ Por defecto (Si no coincide con nada, será fútbol)
     return base_url + "futbol.webp"
 
 def extraer_canales_m3u(url_m3u):
@@ -263,14 +277,13 @@ def obtener_datos_completos():
 
 
 # ==============================================================
-# NUEVA RUTA PARA GENERAR LA LISTA M3U DIRECTAMENTE EN EL SERVIDOR
+# RUTA M3U CON NOMBRE DINÁMICO (SocramTv_Acestream_DD-MM-YYYY.m3u)
 # ==============================================================
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
     m3u_texto = "#EXTM3U\n"
     
-    # Recorremos todos los eventos agrupados que hemos procesado
     for fecha, eventos in datos['eventos_agrupados'].items():
         for evento in eventos:
             if evento.get('has_links'):
@@ -281,22 +294,22 @@ def descargar_lista_m3u():
                 logo = evento.get('logo_deporte', '')
                 
                 canales_html = evento.get('canales_html', '')
-                # Usamos una expresión regular para sacar los links ocultos en los botones HTML generados
                 enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
                 
                 for url_codificada, contenido in enlaces:
                     url_real = urllib.parse.unquote(url_codificada)
-                    
-                    # Limpiamos el texto para quitar iconos HTML (como las imágenes pequeñas) o emojis
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
                     m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-title="{liga}",{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
-    # Enviamos la respuesta forzando que los navegadores/apps lo identifiquen como archivo IPTV
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
-    # Añadimos la cabecera para que cuando pulses descargar, te ofrezca guardarlo con este nombre
-    respuesta.headers['Content-Disposition'] = 'attachment; filename="SocramTv_Acestream.m3u"'
+    
+    # Generar el nombre del archivo dinámicamente con la fecha actual (ej: SocramTv_Acestream_08-08-2026.m3u)
+    hoy_str = datetime.now().strftime("%d-%m-%Y")
+    nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
+    
+    respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
 
 
