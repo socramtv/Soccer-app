@@ -314,8 +314,8 @@ def descargar_lista_m3u():
                     url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
-                    # Añadimos el prefijo de la hora justo antes del nombre del partido
-                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
+                    # Añadimos group-logo para que la categoría en la app tenga su propio icono
+                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
