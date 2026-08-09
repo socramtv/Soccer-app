@@ -303,6 +303,10 @@ def descargar_lista_m3u():
                 liga = evento.get('liga', 'Otros Deportes')
                 logo = evento.get('logo_deporte', '')
                 
+                # Extraemos la hora del evento
+                hora = evento.get('hora', '')
+                prefijo_hora = f"[{hora}] " if hora else ""
+                
                 canales_html = evento.get('canales_html', '')
                 enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
                 
@@ -310,7 +314,8 @@ def descargar_lista_m3u():
                     url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
-                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-title="{liga}",{nombre_partido} ({nombre_canal})\n'
+                    # Añadimos el prefijo de la hora justo antes del nombre del partido
+                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
