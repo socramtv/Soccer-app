@@ -292,7 +292,10 @@ def obtener_datos_completos():
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
-    m3u_texto = "#EXTM3U\n"
+    
+    # Añadimos la EPG integrada directamente en la cabecera M3U con tvg-url
+    epg_url = "https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiaiptv.xml"
+    m3u_texto = f'#EXTM3U tvg-url="{epg_url}"\n'
     
     for fecha, eventos in datos['eventos_agrupados'].items():
         for evento in eventos:
@@ -303,7 +306,6 @@ def descargar_lista_m3u():
                 liga = evento.get('liga', 'Otros Deportes')
                 logo = evento.get('logo_deporte', '')
                 
-                # FORMATO COMPATIBLE CON WISEPLAY: Usamos '⏰ HH:MM -' para que no lo borre
                 hora = evento.get('hora', '')
                 prefijo_hora = f"⏰ {hora} - " if hora else ""
                 
@@ -314,8 +316,7 @@ def descargar_lista_m3u():
                     url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
-                    # Incluimos group-logo e icono compatible con Wiseplay
-                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
+                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" tvg-group-logo="{logo}" group-art="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
