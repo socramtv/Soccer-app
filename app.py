@@ -293,9 +293,14 @@ def obtener_datos_completos():
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
     
-    # Añadimos la EPG integrada directamente en la cabecera M3U con tvg-url
     epg_url = "https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiaiptv.xml"
     m3u_texto = f'#EXTM3U tvg-url="{epg_url}"\n'
+    
+    # 📁 AÑADIR GRUPO DE ACTUALIZACIÓN AL PRINCIPIO (CON FECHA Y HORA)
+    ahora_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+    logo_def = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/futbol.webp"
+    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo_def}" group-logo="{logo_def}" tvg-group-logo="{logo_def}" group-art="{logo_def}" group-title="Actualizada",{ahora_str}\n'
+    m3u_texto += 'http://update.local\n'
     
     for fecha, eventos in datos['eventos_agrupados'].items():
         for evento in eventos:
