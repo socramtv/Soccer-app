@@ -2,6 +2,7 @@ import re
 import time
 import urllib.parse
 import requests
+from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, request
 
@@ -9,6 +10,9 @@ from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
 app = Flask(__name__)
+
+# Zona horaria de España para corregir la diferencia con el servidor en la nube
+TIMEZONE_ES = ZoneInfo("Europe/Madrid")
 
 # Tus URLs seguras de canales, eventos y lista M3U sin AceStream
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
@@ -220,12 +224,12 @@ def obtener_datos_completos():
     destacados = []
     eventos_agrupados = {}
     
-    # --- FILTRO DE TIEMPO (2 HORAS) ---
-    ahora_dt = datetime.now()
+    # --- FILTRO DE TIEMPO (2 HORAS) EN HORA ESPAÑOLA ---
+    ahora_dt = datetime.now(TIMEZONE_ES)
     limite_tiempo = ahora_dt - timedelta(hours=2)
     str_slash = ahora_dt.strftime("%d/%m")
     str_dash = ahora_dt.strftime("%d-%m")
-    # ----------------------------------
+    # ---------------------------------------------------
     
     for i in range(len(eventos)):
         
@@ -296,8 +300,9 @@ def descargar_lista_m3u():
     epg_url = "https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiaiptv.xml"
     m3u_texto = f'#EXTM3U tvg-url="{epg_url}"\n'
     
-    # 📁 GRUPO DE ACTUALIZACIÓN CON EL ICONO update.png
-    ahora_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+    # 📁 GRUPO DE ACTUALIZACIÓN EN HORA ESPAÑOLA EXACTA
+    ahora_esp = datetime.now(TIMEZONE_ES)
+    ahora_str = ahora_esp.strftime("%d/%m/%Y %H:%M")
     logo_update = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/update.png"
     m3u_texto += f'#EXTINF:-1 tvg-logo="{logo_update}" group-logo="{logo_update}" tvg-group-logo="{logo_update}" group-art="{logo_update}" group-title="Actualizada",{ahora_str}\n'
     m3u_texto += 'http://update.local\n'
@@ -325,7 +330,7 @@ def descargar_lista_m3u():
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
-    hoy_str = datetime.now().strftime("%d-%m-%Y")
+    hoy_str = ahora_esp.strftime("%d-%m-%Y")
     nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
     respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
@@ -334,7 +339,7 @@ def descargar_lista_m3u():
 @app.route('/')
 def home():
     datos = obtener_datos_completos()
-    fecha_actual = datetime.now().strftime("%d-%m-%Y")
+    fecha_actual = datetime.now(TIMEZONE_ES).strftime("%d-%m-%Y")
     
     canales_directos_limpios = []
     for c in datos['canales_puros']:
