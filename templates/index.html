@@ -499,10 +499,14 @@
 
         .cast-option:hover { background: #353538; }
 
+        /* NUEVO ESTILO DE ICONOS DE IMAGEN */
         .cast-icon {
-            font-size: 1.6rem;
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
             margin-right: 12px;
             flex-shrink: 0;
+            border-radius: 6px;
         }
 
         .cast-text-block {
@@ -759,13 +763,13 @@
         🔄 Actualizar
     </a>
 
-    <!-- MENÚ MODAL DE ENVIAR A APP IPTV -->
+    <!-- MENÚ MODAL DE ENVIAR A APP IPTV CON ICONOS ACTUALIZADOS -->
     <div id="appsModal" class="modal-instrucciones" onclick="cerrarModalApps(event)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📤 Enviar a App IPTV</div>
             
             <div class="cast-option" onclick="enviarWiseplay()">
-                <div class="cast-icon">▶️</div>
+                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/wiseplay.png" class="cast-icon" alt="Wiseplay">
                 <div class="cast-text-block">
                     <span class="cast-title">Wiseplay</span>
                     <span class="cast-subtitle">Copia el enlace y abre la app (Dale a pegar)</span>
@@ -773,7 +777,7 @@
             </div>
 
             <div class="cast-option" onclick="enviarWuffy()">
-                <div class="cast-icon">🐶</div>
+                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/wuffy_player.png" class="cast-icon" alt="Wuffy Player">
                 <div class="cast-text-block">
                     <span class="cast-title">Wuffy Player</span>
                     <span class="cast-subtitle">Abre la app cargando la lista automática</span>
@@ -829,7 +833,6 @@
             }
         }
 
-        // WISEPLAY: Copia la URL de la lista al portapapeles y abre Wiseplay para que pegues
         function enviarWiseplay() {
             let dominio = window.location.origin;
             let urlLista = dominio + "/lista.m3u";
@@ -858,7 +861,6 @@
             cerrarModalApps(null, true);
         }
 
-        // WUFFY: Abre el archivo directamente por URL
         function enviarWuffy() {
             let dominio = window.location.origin;
             let urlLista = dominio + "/lista.m3u";
