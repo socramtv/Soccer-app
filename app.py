@@ -303,9 +303,9 @@ def descargar_lista_m3u():
                 liga = evento.get('liga', 'Otros Deportes')
                 logo = evento.get('logo_deporte', '')
                 
-                # Extraemos la hora del evento
+                # FORMATO COMPATIBLE CON WISEPLAY: Usamos '⏰ HH:MM -' para que no lo borre
                 hora = evento.get('hora', '')
-                prefijo_hora = f"[{hora}] " if hora else ""
+                prefijo_hora = f"⏰ {hora} - " if hora else ""
                 
                 canales_html = evento.get('canales_html', '')
                 enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
@@ -314,7 +314,7 @@ def descargar_lista_m3u():
                     url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
-                    # Añadimos group-logo para que la categoría en la app tenga su propio icono
+                    # Incluimos group-logo e icono compatible con Wiseplay
                     m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
