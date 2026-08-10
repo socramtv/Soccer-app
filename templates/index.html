@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 280px; /* Aumentado para hacer hueco al nuevo banner rojo */
+            padding-top: 280px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -128,7 +128,6 @@
             display: inline-block;
         }
 
-        /* NUEVO BANNER DE AVISO ACE STREAM */
         .banner-aviso {
             width: 100%;
             max-width: 800px;
@@ -248,10 +247,9 @@
         .bloque-equipo {
             display: flex;
             align-items: center;
-            gap: 6px; /* Separación aumentada para los iconos más grandes */
+            gap: 6px;
         }
 
-        /* TAMAÑO DE ESCUDOS AUMENTADO */
         .escudo-team {
             width: 22px; 
             height: 22px;
@@ -263,7 +261,7 @@
             color: #555555;
             font-size: 0.65rem;
             font-weight: bold;
-            padding-left: 28px; /* Ajustado para alinear por el aumento del escudo */
+            padding-left: 28px;
             margin: -2px 0;
         }
 
@@ -274,7 +272,6 @@
             margin-top: 3px;
         }
         
-        /* TAMAÑO DE ICONOS DE DEPORTE AUMENTADO */
         .icono-deporte {
             width: 18px; 
             height: 18px;
@@ -293,7 +290,6 @@
             display: block;
         }
 
-        /* TAMAÑO DE ICONOS DE CANAL AUMENTADO */
         .icono-canal-peq {
             width: 16px;
             height: 16px;
@@ -303,7 +299,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* TAMAÑO DE ICONOS DE CANAL EN LA PARRILLA AUMENTADO */
         .icono-canal-grid {
             width: 22px;
             height: 22px;
@@ -743,7 +738,14 @@
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
+                
+                <!-- 🚀 AQUÍ SE APLICA LA LÓGICA DE ABRIR INFOHASH EN NUEVA PESTAÑA -->
+                {% if 'infohash=' in canal.stream_url %}
+                <a href="{{ canal.stream_url }}" target="_blank" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                {% else %}
                 <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                {% endif %}
+
                     {% if canal.logo %}
                         <img src="{{ canal.logo }}" class="icono-canal-grid" alt="">
                     {% else %}
