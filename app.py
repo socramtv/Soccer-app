@@ -188,18 +188,15 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                         else:
                             icono_html = icono_char
 
-                        # LÓGICA ACTUALIZADA PARA ABRIR INFOHASH EN PESTAÑA NUEVA
                         if "infohash=" in hash_val.lower():
                             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
-                            matches_encontrados.append(
-                                f'<a href="{stream_url}" target="_blank" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
-                            )
                         else:
                             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
-                            url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
-                            matches_encontrados.append(
-                                f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
-                            )
+                            
+                        url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
+                        matches_encontrados.append(
+                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
+                        )
         
         if matches_encontrados:
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
@@ -309,16 +306,10 @@ def descargar_lista_m3u():
                 
                 canales_html = evento.get('canales_html', '')
                 
-                # Regex modificado para atrapar tanto los del reproductor interno como los que van en target blank
-                enlaces = re.findall(r'href="([^"]+)"[^>]*>(.*?)</a>', canales_html)
+                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
                 
-                for url_capturada, contenido in enlaces:
-                    if url_capturada.startswith('/reproductor?url='):
-                        url_encoded = url_capturada.split('url=')[1].split('&')[0]
-                        url_real = urllib.parse.unquote(url_encoded)
-                    else:
-                        url_real = url_capturada
-                        
+                for url_codificada, contenido in enlaces:
+                    url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
                     m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" tvg-group-logo="{logo}" group-art="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
