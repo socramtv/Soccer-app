@@ -38,6 +38,8 @@ def asignar_logo_deporte(evento):
     
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
+    # 🎾 Tenis (Prioridad alta para atrapar torneos como el 'Masters Canadá' sin que pise al golf)
+    if any(x in texto for x in ["tenis", "tennis", "atp", "wta", "wimbledon", "garros", "davis", "masters 1000", "us open"]): return base_url + "tenis.webp"
     # 🏃 Atletismo
     if any(x in texto for x in ["atletismo", "maratón", "marathon", "diamond league", "mitin", "meeting", "sesión matinal", "sesión vespertina", "pista cubierta", "cross country"]): return base_url + "atletismo.webp"
     # 🏎️ Automovilismo
@@ -54,16 +56,14 @@ def asignar_logo_deporte(evento):
     if any(x in texto for x in ["nfl", "fútbol americano", "americano", "super bowl"]): return base_url + "futbol-americano.webp"
     # ⚽ Fútbol Sala
     if any(x in texto for x in ["sala", "futsal", "lnfs"]): return base_url + "futbol-sala.webp"
-    # ⛳ Golf
-    if any(x in texto for x in ["golf", "pga", "masters", "ryder"]): return base_url + "golf.webp"
+    # ⛳ Golf (Palabras específicas para no robar los eventos de tenis)
+    if any(x in texto for x in ["golf", "pga", "masters de augusta", "ryder"]): return base_url + "golf.webp"
     # 🤼 MMA / UFC
     if any(x in texto for x in ["ufc", "mma", "bellator"]): return base_url + "mma.webp"
     # 🏍️ Motociclismo
     if any(x in texto for x in ["motogp", "moto2", "moto3", "superbike", "motociclismo"]): return base_url + "motociclismo.webp"
     # 🎾 Pádel
     if any(x in texto for x in ["pádel", "padel", "premier padel", "wpt"]): return base_url + "padel.webp"
-    # 🎾 Tenis
-    if any(x in texto for x in ["tenis", "atp", "wta", "wimbledon", "garros", "davis"]): return base_url + "tenis.webp"
     
     # ⚽ Por defecto (Si no coincide con nada, será fútbol)
     return base_url + "futbol.webp"
