@@ -66,6 +66,7 @@
             margin-top: 2px;
         }
 
+        /* Indicador del canal actual */
         .wm-now-playing {
             margin-top: 10px;
             font-size: 0.75rem;
@@ -86,7 +87,7 @@
             font-weight: normal;
         }
 
-        /* 🛠️ CONTROLES SUPERIORES */
+        /* 🛠️ CONTROLES SUPERIORES (TRANSMITIR Y VOLVER) */
         .top-controls {
             position: absolute;
             top: 20px;
@@ -120,14 +121,29 @@
         .btn-cast { color: #00ff88; border-color: rgba(0, 255, 136, 0.3); }
         .btn-back { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
 
+
+        /* 📱 AJUSTES PARA PANTALLAS MÓVILES */
         @media (max-width: 768px) {
-            .watermark { top: 75px; left: 15px; align-items: flex-start; }
-            .wm-title { font-size: 1.1rem; }
-            .wm-now-playing { font-size: 0.7rem; padding: 4px 10px; }
-            .top-controls { top: 15px; right: 15px; }
+            .watermark {
+                top: 75px; 
+                left: 15px;
+                align-items: flex-start;
+            }
+            .wm-title {
+                font-size: 1.1rem;
+            }
+            .wm-now-playing {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .top-controls {
+                top: 15px;
+                right: 15px;
+            }
         }
 
-        /* 🪟 MENÚ MODAL */
+
+        /* 🪟 MENÚ MODAL DE TRANSMISIÓN */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -158,14 +174,65 @@
             margin-bottom: 15px;
         }
 
-        .modal-title { color: #00ff88; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .close-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; padding: 0; line-height: 1; }
+        .modal-title {
+            color: #00ff88;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .cast-option { display: flex; align-items: center; background: #28282b; padding: 15px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid #333; }
+        .close-btn {
+            background: none; 
+            border: none; 
+            color: #888; 
+            font-size: 1.4rem; 
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close-btn:hover { color: #fff; }
+
+        .cast-option {
+            display: flex;
+            align-items: center;
+            background: #28282b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #333;
+        }
+
         .cast-option:hover { background: #353538; }
-        .cast-icon { font-size: 1.8rem; margin-right: 15px; flex-shrink: 0; }
-        .cast-title { font-size: 0.95rem; font-weight: bold; color: #fff; }
-        .cast-subtitle { font-size: 0.75rem; color: #999; line-height: 1.3; }
+        .cast-option:last-child { margin-bottom: 0; }
+
+        .cast-icon {
+            font-size: 1.8rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .cast-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .cast-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .cast-subtitle {
+            font-size: 0.75rem;
+            color: #999;
+            line-height: 1.3;
+        }
 
     </style>
 </head>
@@ -173,6 +240,7 @@
 
     <div class="player-wrapper">
         
+        <!-- MARCA DE AGUA Y ESTADO -->
         <div class="watermark">
             <span class="wm-title">Sσcяαм Tν + Acεѕтяεαм</span>
             <span class="watermark-sub">BY MASP</span>
@@ -181,16 +249,21 @@
             </div>
         </div>
 
+        <!-- CONTROLES PARA ABRIR MENÚ Y VOLVER -->
         <div class="top-controls">
             <button onclick="abrirModal()" class="btn-tool btn-cast">📺 Transmitir</button>
             <a href="/" class="btn-tool btn-back">⬅ Volver</a>
         </div>
 
+        <!-- REPRODUCTOR -->
         <video id="video-player" controls autoplay playsinline></video>
+
     </div>
 
+    <!-- MENÚ MODAL DE TRANSMISIÓN -->
     <div id="castModal" class="modal-overlay" onclick="cerrarModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
+            
             <div class="modal-header">
                 <div class="modal-title">📺 Transmitir en Smart TV</div>
                 <button class="close-btn" onclick="cerrarModal(null, true)">✕</button>
@@ -219,6 +292,7 @@
                     <span class="cast-subtitle">Para pegar en apps IPTV de tu Smart TV</span>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -226,9 +300,11 @@
         var video = document.getElementById('video-player');
         var urlStream = "{{ stream_url }}";
 
+        // GESTIÓN DEL MENÚ MODAL
         function abrirModal() { document.getElementById('castModal').style.display = 'flex'; }
         function cerrarModal(e, force = false) { if (force || e.target.id === 'castModal') { document.getElementById('castModal').style.display = 'none'; } }
 
+        // FUNCIÓN MAESTRA PARA FORZAR INTENTS (Evita que Brave intercepte)
         function forzarAperturaApp(intentString) {
             var link = document.createElement('a');
             link.href = intentString;
@@ -238,6 +314,7 @@
             document.body.removeChild(link);
         }
 
+        // --- FUNCIONES APERTURA APPS ---
         function abrirWVC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
@@ -264,26 +341,40 @@
             cerrarModal(null, true);
         }
 
-        // --- CONFIGURACIÓN DE ALTA PACIENCIA PARA INFO-HASH ---
-        if (Hls.isSupported()) {
-            var hls = new Hls({
-                manifestLoadingRetryDelay: 2000, // Espera 2 seg
-                manifestLoadingMaxRetry: 15,     // 15 intentos = 30 segundos de espera total
-                fragLoadingRetryDelay: 1000,
-                maxBufferLength: 30,
-                maxMaxBufferLength: 60,
-            });
-            
-            hls.loadSource(urlStream);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(function() { console.log("Espera de interacción..."); });
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = urlStream;
-            video.addEventListener('loadedmetadata', function() { video.play(); });
+        // --- INICIALIZACIÓN CON RESOLUCIÓN DE URL (WARM-UP) ---
+        async function iniciarReproductor() {
+            try {
+                // Hacemos una petición previa para "calentar" el motor y que resuelva la redirección
+                // Nota: Usamos 'no-cors' porque estamos llamando a localhost (127.0.0.1)
+                await fetch(urlStream, { mode: 'no-cors' });
+                console.log("Motor AceStream contactado...");
+            } catch (e) {
+                console.log("Aviso: No se pudo verificar la conexión, intentando reproducir directamente...");
+            }
+
+            if (Hls.isSupported()) {
+                var hls = new Hls({
+                    manifestLoadingRetryDelay: 2000,
+                    manifestLoadingMaxRetry: 15,
+                    fragLoadingRetryDelay: 1000,
+                    maxBufferLength: 30,
+                    maxMaxBufferLength: 60,
+                });
+                
+                hls.loadSource(urlStream);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(function() { console.log("Espera de interacción..."); });
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = urlStream;
+                video.addEventListener('loadedmetadata', function() { video.play(); });
+            }
         }
+
+        // Lanzamos la función
+        iniciarReproductor();
     </script>
 </body>
 </html>
