@@ -89,6 +89,11 @@ def extraer_canales_m3u(url_m3u):
                 elif linea and not linea.startswith("#"):
                     if nombre_actual:
                         url_stream = linea
+                        
+                        # 🚀 TRANSFORMACIÓN AUTOMÁTICA DE GETSTREAM A MANIFEST.M3U8
+                        url_stream = url_stream.replace("/ace/getstream?infohash=", "/ace/manifest.m3u8?infohash=")
+                        url_stream = url_stream.replace("/ace/getstream?id=", "/ace/manifest.m3u8?id=")
+                        
                         canales_lista.append({
                             'name': nombre_actual,
                             'stream_url': url_stream,
@@ -276,7 +281,7 @@ def obtener_datos_completos():
         'destacados': destacados,
         'canales_puros': enlaces,
         'canales_directos_m3u8': canales_m3u,
-        'otros_canales': otros_canales # SE AÑADE A LA CACHÉ
+        'otros_canales': otros_canales
     }
     ultimo_scraping = ahora
     return cache_datos
@@ -356,7 +361,7 @@ def home():
         destacados=datos['destacados'],
         canales_puros=canales_directos_limpios,
         canales_directos=datos['canales_directos_m3u8'],
-        otros_canales=datos['otros_canales'], # SE ENVÍA AL TEMPLATE
+        otros_canales=datos['otros_canales'],
         fecha=fecha_actual
     )
 
