@@ -123,7 +123,7 @@
 
         /* ⚠️ AVISO CENTRAL PARA INFOHASH */
         .infohash-warning {
-            display: none; /* Oculto por defecto, se muestra vía JS */
+            display: none; 
             position: absolute;
             top: 50%;
             left: 50%;
@@ -132,13 +132,32 @@
             backdrop-filter: blur(8px);
             border: 1px solid #ff4444;
             color: white;
-            padding: 20px 25px;
+            padding: 25px 25px 20px 25px;
             border-radius: 12px;
             text-align: center;
             z-index: 9500; 
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             max-width: 85%;
             width: 320px;
+        }
+
+        /* BOTÓN CERRAR AVISO (NUEVO) */
+        .close-warning-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #888888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .close-warning-btn:hover {
+            color: #ffffff;
         }
 
         .infohash-warning h2 { 
@@ -170,7 +189,7 @@
             .wm-now-playing { font-size: 0.7rem; padding: 4px 10px; }
             .top-controls { top: 15px; right: 15px; gap: 6px; }
             .btn-tool { padding: 6px 10px; font-size: 0.75rem; }
-            .infohash-warning { padding: 15px; width: 280px; }
+            .infohash-warning { padding: 20px 15px 15px 15px; width: 280px; }
         }
 
         /* 🪟 MENÚ MODAL DE TRANSMISIÓN */
@@ -241,6 +260,9 @@
 
         <!-- AVISO INTELIGENTE PARA INFOHASH -->
         <div id="infohash-msg" class="infohash-warning">
+            <!-- X para cerrar -->
+            <button class="close-warning-btn" onclick="cerrarAvisoInfohash()">✕</button>
+            
             <h2>⚠️ Requiere Acción</h2>
             <p>Este canal tarda en procesar aquí. Para verlo directamente, pulsa arriba en <strong>🌐 Pestaña</strong> o envíalo a tu TV desde <strong>📺 Transmitir</strong>.</p>
         </div>
@@ -291,6 +313,14 @@
         // LÓGICA INTELIGENTE: MOSTRAR AVISO SI ES INFOHASH
         if (urlStream.includes('infohash=')) {
             document.getElementById('infohash-msg').style.display = 'block';
+        }
+
+        // NUEVA FUNCIÓN: Cerrar el aviso manualmente o automáticamente
+        function cerrarAvisoInfohash() {
+            var msgDiv = document.getElementById('infohash-msg');
+            if (msgDiv) {
+                msgDiv.style.display = 'none';
+            }
         }
 
         // GESTIÓN DEL MENÚ MODAL
@@ -345,14 +375,20 @@
             });
             hls.loadSource(urlStream);
             hls.attachMedia(video);
+            
+            // EVENTO DE CARGA EXITOSA: Ocultar cartel automáticamente si se detecta que hay video
             hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                cerrarAvisoInfohash(); // Cierra el cartel por sí solo
+                
                 video.play().catch(function() {
                     console.log("Se requiere interacción manual para el audio.");
                 });
             });
+            
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = urlStream;
             video.addEventListener('loadedmetadata', function() {
+                cerrarAvisoInfohash(); // Cierra el cartel por sí solo
                 video.play();
             });
         }
