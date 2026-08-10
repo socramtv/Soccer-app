@@ -87,8 +87,7 @@
             font-weight: normal;
         }
 
-
-        /* 🛠️ CONTROLES SUPERIORES (TRANSMITIR Y VOLVER) */
+        /* 🛠️ CONTROLES SUPERIORES (PESTAÑA, TRANSMITIR Y VOLVER) */
         .top-controls {
             position: absolute;
             top: 20px;
@@ -119,9 +118,9 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .btn-tab { color: #33aaff; border-color: rgba(51, 170, 255, 0.3); }
         .btn-cast { color: #00ff88; border-color: rgba(0, 255, 136, 0.3); }
         .btn-back { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
-
 
         /* 📱 AJUSTES PARA PANTALLAS MÓVILES */
         @media (max-width: 768px) {
@@ -140,9 +139,13 @@
             .top-controls {
                 top: 15px;
                 right: 15px;
+                gap: 6px;
+            }
+            .btn-tool {
+                padding: 6px 10px;
+                font-size: 0.75rem;
             }
         }
-
 
         /* 🪟 MENÚ MODAL DE TRANSMISIÓN */
         .modal-overlay {
@@ -250,8 +253,9 @@
             </div>
         </div>
 
-        <!-- CONTROLES PARA ABRIR MENÚ Y VOLVER -->
+        <!-- CONTROLES SUPERIORES (AHORA CON BOTÓN DE PESTAÑA) -->
         <div class="top-controls">
+            <a href="{{ stream_url }}" target="_blank" class="btn-tool btn-tab" title="Abrir directo en el navegador">🌐 Pestaña</a>
             <button onclick="abrirModal()" class="btn-tool btn-cast">📺 Transmitir</button>
             <a href="/" class="btn-tool btn-back">⬅ Volver</a>
         </div>
@@ -302,15 +306,8 @@
         var urlStream = "{{ stream_url }}";
 
         // GESTIÓN DEL MENÚ MODAL
-        function abrirModal() {
-            document.getElementById('castModal').style.display = 'flex';
-        }
-
-        function cerrarModal(e, force = false) {
-            if (force || e.target.id === 'castModal') {
-                document.getElementById('castModal').style.display = 'none';
-            }
-        }
+        function abrirModal() { document.getElementById('castModal').style.display = 'flex'; }
+        function cerrarModal(e, force = false) { if (force || e.target.id === 'castModal') { document.getElementById('castModal').style.display = 'none'; } }
 
         // FUNCIÓN MAESTRA PARA FORZAR INTENTS (Evita que Brave intercepte)
         function forzarAperturaApp(intentString) {
@@ -356,7 +353,7 @@
             cerrarModal(null, true);
         }
 
-        // INICIALIZACIÓN DEL REPRODUCTOR
+        // INICIALIZACIÓN DEL REPRODUCTOR (RÁPIDA COMO ANTES)
         if (Hls.isSupported()) {
             var hls = new Hls({
                 maxBufferLength: 30,
