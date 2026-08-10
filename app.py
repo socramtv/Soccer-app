@@ -14,10 +14,11 @@ app = Flask(__name__)
 # Zona horaria de España para corregir la diferencia con el servidor en la nube
 TIMEZONE_ES = ZoneInfo("Europe/Madrid")
 
-# Tus URLs seguras de canales, eventos y lista M3U sin AceStream
+# Tus URLs seguras de canales, eventos y listas
 URL_ENLACES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/main/hashes.json'
 URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 URL_NOACE = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/noace.m3u'
+URL_OTROS_CANALES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/hashes_2.txt'
 
 # Sistema de Caché Unificado (30 minutos)
 cache_datos = None
@@ -216,6 +217,7 @@ def obtener_datos_completos():
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     canales_m3u, dict_m3u = extraer_canales_m3u(URL_NOACE)
+    otros_canales, _ = extraer_canales_m3u(URL_OTROS_CANALES) # NUEVA LISTA EXTRAÍDA
     
     destacados = []
     eventos_agrupados = {}
@@ -273,7 +275,8 @@ def obtener_datos_completos():
         'eventos_agrupados': eventos_agrupados,
         'destacados': destacados,
         'canales_puros': enlaces,
-        'canales_directos_m3u8': canales_m3u
+        'canales_directos_m3u8': canales_m3u,
+        'otros_canales': otros_canales # SE AÑADE A LA CACHÉ
     }
     ultimo_scraping = ahora
     return cache_datos
@@ -353,6 +356,7 @@ def home():
         destacados=datos['destacados'],
         canales_puros=canales_directos_limpios,
         canales_directos=datos['canales_directos_m3u8'],
+        otros_canales=datos['otros_canales'], # SE ENVÍA AL TEMPLATE
         fecha=fecha_actual
     )
 
