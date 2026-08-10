@@ -66,7 +66,6 @@
             margin-top: 2px;
         }
 
-        /* Indicador del canal actual */
         .wm-now-playing {
             margin-top: 10px;
             font-size: 0.75rem;
@@ -87,7 +86,7 @@
             font-weight: normal;
         }
 
-        /* 🛠️ CONTROLES SUPERIORES (PESTAÑA, TRANSMITIR Y VOLVER) */
+        /* 🛠️ CONTROLES SUPERIORES */
         .top-controls {
             position: absolute;
             top: 20px;
@@ -122,29 +121,56 @@
         .btn-cast { color: #00ff88; border-color: rgba(0, 255, 136, 0.3); }
         .btn-back { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
 
+        /* ⚠️ AVISO CENTRAL PARA INFOHASH */
+        .infohash-warning {
+            display: none; /* Oculto por defecto, se muestra vía JS */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #ff4444;
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 9500; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            max-width: 85%;
+            width: 320px;
+        }
+
+        .infohash-warning h2 { 
+            margin-top: 0; 
+            font-size: 1.1rem; 
+            color: #ffcc00; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .infohash-warning p { 
+            font-size: 0.85rem; 
+            line-height: 1.5; 
+            margin: 0; 
+            color: #dddddd;
+        }
+
+        .infohash-warning strong {
+            color: #ffffff;
+        }
+
         /* 📱 AJUSTES PARA PANTALLAS MÓVILES */
         @media (max-width: 768px) {
-            .watermark {
-                top: 75px; 
-                left: 15px;
-                align-items: flex-start;
-            }
-            .wm-title {
-                font-size: 1.1rem;
-            }
-            .wm-now-playing {
-                font-size: 0.7rem;
-                padding: 4px 10px;
-            }
-            .top-controls {
-                top: 15px;
-                right: 15px;
-                gap: 6px;
-            }
-            .btn-tool {
-                padding: 6px 10px;
-                font-size: 0.75rem;
-            }
+            .watermark { top: 75px; left: 15px; align-items: flex-start; }
+            .wm-title { font-size: 1.1rem; }
+            .wm-now-playing { font-size: 0.7rem; padding: 4px 10px; }
+            .top-controls { top: 15px; right: 15px; gap: 6px; }
+            .btn-tool { padding: 6px 10px; font-size: 0.75rem; }
+            .infohash-warning { padding: 15px; width: 280px; }
         }
 
         /* 🪟 MENÚ MODAL DE TRANSMISIÓN */
@@ -178,65 +204,18 @@
             margin-bottom: 15px;
         }
 
-        .modal-title {
-            color: #00ff88;
-            font-size: 1.1rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .close-btn {
-            background: none; 
-            border: none; 
-            color: #888; 
-            font-size: 1.4rem; 
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-        }
-
+        .modal-title { color: #00ff88; font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .close-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; padding: 0; line-height: 1; }
         .close-btn:hover { color: #fff; }
 
-        .cast-option {
-            display: flex;
-            align-items: center;
-            background: #28282b;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border: 1px solid #333;
-        }
-
+        .cast-option { display: flex; align-items: center; background: #28282b; padding: 15px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid #333; }
         .cast-option:hover { background: #353538; }
         .cast-option:last-child { margin-bottom: 0; }
 
-        .cast-icon {
-            font-size: 1.8rem;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .cast-text-block {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .cast-title {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .cast-subtitle {
-            font-size: 0.75rem;
-            color: #999;
-            line-height: 1.3;
-        }
+        .cast-icon { font-size: 1.8rem; margin-right: 15px; flex-shrink: 0; }
+        .cast-text-block { display: flex; flex-direction: column; gap: 3px; }
+        .cast-title { font-size: 0.95rem; font-weight: bold; color: #fff; }
+        .cast-subtitle { font-size: 0.75rem; color: #999; line-height: 1.3; }
 
     </style>
 </head>
@@ -253,11 +232,17 @@
             </div>
         </div>
 
-        <!-- CONTROLES SUPERIORES (AHORA CON BOTÓN DE PESTAÑA) -->
+        <!-- CONTROLES SUPERIORES -->
         <div class="top-controls">
             <a href="{{ stream_url }}" target="_blank" class="btn-tool btn-tab" title="Abrir directo en el navegador">🌐 Pestaña</a>
             <button onclick="abrirModal()" class="btn-tool btn-cast">📺 Transmitir</button>
             <a href="/" class="btn-tool btn-back">⬅ Volver</a>
+        </div>
+
+        <!-- AVISO INTELIGENTE PARA INFOHASH -->
+        <div id="infohash-msg" class="infohash-warning">
+            <h2>⚠️ Requiere Acción</h2>
+            <p>Este canal tarda en procesar aquí. Para verlo directamente, pulsa arriba en <strong>🌐 Pestaña</strong> o envíalo a tu TV desde <strong>📺 Transmitir</strong>.</p>
         </div>
 
         <!-- REPRODUCTOR -->
@@ -268,7 +253,6 @@
     <!-- MENÚ MODAL DE TRANSMISIÓN -->
     <div id="castModal" class="modal-overlay" onclick="cerrarModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
-            
             <div class="modal-header">
                 <div class="modal-title">📺 Transmitir en Smart TV</div>
                 <button class="close-btn" onclick="cerrarModal(null, true)">✕</button>
@@ -297,7 +281,6 @@
                     <span class="cast-subtitle">Para pegar en apps IPTV de tu Smart TV</span>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -305,11 +288,15 @@
         var video = document.getElementById('video-player');
         var urlStream = "{{ stream_url }}";
 
+        // LÓGICA INTELIGENTE: MOSTRAR AVISO SI ES INFOHASH
+        if (urlStream.includes('infohash=')) {
+            document.getElementById('infohash-msg').style.display = 'block';
+        }
+
         // GESTIÓN DEL MENÚ MODAL
         function abrirModal() { document.getElementById('castModal').style.display = 'flex'; }
         function cerrarModal(e, force = false) { if (force || e.target.id === 'castModal') { document.getElementById('castModal').style.display = 'none'; } }
 
-        // FUNCIÓN MAESTRA PARA FORZAR INTENTS (Evita que Brave intercepte)
         function forzarAperturaApp(intentString) {
             var link = document.createElement('a');
             link.href = intentString;
@@ -319,7 +306,6 @@
             document.body.removeChild(link);
         }
 
-        // 1. ABRIR EN WEB VIDEO CASTER
         function abrirWVC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
@@ -328,7 +314,6 @@
             cerrarModal(null, true);
         }
 
-        // 2. ABRIR EN VLC
         function abrirVLC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
@@ -337,7 +322,6 @@
             cerrarModal(null, true);
         }
 
-        // 3. COPIAR ENLACE
         function copiarEnlace() {
             var tempInput = document.createElement("input");
             tempInput.value = urlStream;
@@ -353,7 +337,7 @@
             cerrarModal(null, true);
         }
 
-        // INICIALIZACIÓN DEL REPRODUCTOR (RÁPIDA COMO ANTES)
+        // INICIALIZACIÓN DEL REPRODUCTOR RÁPIDO
         if (Hls.isSupported()) {
             var hls = new Hls({
                 maxBufferLength: 30,
