@@ -87,6 +87,7 @@
             font-weight: normal;
         }
 
+
         /* 🛠️ CONTROLES SUPERIORES (TRANSMITIR Y VOLVER) */
         .top-controls {
             position: absolute;
@@ -301,8 +302,15 @@
         var urlStream = "{{ stream_url }}";
 
         // GESTIÓN DEL MENÚ MODAL
-        function abrirModal() { document.getElementById('castModal').style.display = 'flex'; }
-        function cerrarModal(e, force = false) { if (force || e.target.id === 'castModal') { document.getElementById('castModal').style.display = 'none'; } }
+        function abrirModal() {
+            document.getElementById('castModal').style.display = 'flex';
+        }
+
+        function cerrarModal(e, force = false) {
+            if (force || e.target.id === 'castModal') {
+                document.getElementById('castModal').style.display = 'none';
+            }
+        }
 
         // FUNCIÓN MAESTRA PARA FORZAR INTENTS (Evita que Brave intercepte)
         function forzarAperturaApp(intentString) {
@@ -314,7 +322,7 @@
             document.body.removeChild(link);
         }
 
-        // --- FUNCIONES APERTURA APPS ---
+        // 1. ABRIR EN WEB VIDEO CASTER
         function abrirWVC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
@@ -323,6 +331,7 @@
             cerrarModal(null, true);
         }
 
+        // 2. ABRIR EN VLC
         function abrirVLC() {
             var cleanUrl = urlStream.replace(/^https?:\/\//, '');
             var scheme = urlStream.startsWith('https') ? 'https' : 'http';
@@ -331,50 +340,42 @@
             cerrarModal(null, true);
         }
 
+        // 3. COPIAR ENLACE
         function copiarEnlace() {
             var tempInput = document.createElement("input");
             tempInput.value = urlStream;
             document.body.appendChild(tempInput);
             tempInput.select();
-            try { document.execCommand("copy"); alert("✅ Enlace copiado!"); } catch (err) { alert("❌ Error al copiar."); }
+            try {
+                document.execCommand("copy");
+                alert("✅ Enlace copiado correctamente:\n" + urlStream);
+            } catch (err) {
+                alert("❌ Error al copiar el enlace.");
+            }
             document.body.removeChild(tempInput);
             cerrarModal(null, true);
         }
 
-        // --- INICIALIZACIÓN CON RESOLUCIÓN DE URL (WARM-UP) ---
-        async function iniciarReproductor() {
-            try {
-                // Hacemos una petición previa para "calentar" el motor y que resuelva la redirección
-                // Nota: Usamos 'no-cors' porque estamos llamando a localhost (127.0.0.1)
-                await fetch(urlStream, { mode: 'no-cors' });
-                console.log("Motor AceStream contactado...");
-            } catch (e) {
-                console.log("Aviso: No se pudo verificar la conexión, intentando reproducir directamente...");
-            }
-
-            if (Hls.isSupported()) {
-                var hls = new Hls({
-                    manifestLoadingRetryDelay: 2000,
-                    manifestLoadingMaxRetry: 15,
-                    fragLoadingRetryDelay: 1000,
-                    maxBufferLength: 30,
-                    maxMaxBufferLength: 60,
+        // INICIALIZACIÓN DEL REPRODUCTOR
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+            });
+            hls.loadSource(urlStream);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function() {
+                    console.log("Se requiere interacción manual para el audio.");
                 });
-                
-                hls.loadSource(urlStream);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(function() { console.log("Espera de interacción..."); });
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = urlStream;
-                video.addEventListener('loadedmetadata', function() { video.play(); });
-            }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = urlStream;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
         }
-
-        // Lanzamos la función
-        iniciarReproductor();
     </script>
+
 </body>
 </html>
