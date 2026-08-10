@@ -128,7 +128,6 @@
             display: inline-block;
         }
 
-        /* BANNER DE AVISO ACE STREAM */
         .banner-aviso {
             width: 100%;
             max-width: 800px;
@@ -248,10 +247,9 @@
         .bloque-equipo {
             display: flex;
             align-items: center;
-            gap: 6px; 
+            gap: 6px;
         }
 
-        /* TAMAÑO DE ESCUDOS AUMENTADO */
         .escudo-team {
             width: 22px; 
             height: 22px;
@@ -274,7 +272,6 @@
             margin-top: 3px;
         }
         
-        /* TAMAÑO DE ICONOS DE DEPORTE AUMENTADO */
         .icono-deporte {
             width: 18px; 
             height: 18px;
@@ -293,7 +290,6 @@
             display: block;
         }
 
-        /* TAMAÑO DE ICONOS DE CANAL AUMENTADO */
         .icono-canal-peq {
             width: 16px;
             height: 16px;
@@ -303,7 +299,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* TAMAÑO DE ICONOS DE CANAL EN LA PARRILLA AUMENTADO */
         .icono-canal-grid {
             width: 22px;
             height: 22px;
@@ -435,6 +430,34 @@
             object-fit: contain;
         }
 
+        /* DISEÑO PARA ACORDEÓN OTROS CANALES */
+        details.acordeon-otros {
+            width: 100%;
+        }
+        details.acordeon-otros summary {
+            list-style: none;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            user-select: none;
+        }
+        details.acordeon-otros summary::-webkit-details-marker {
+            display: none;
+        }
+        details.acordeon-otros[open] summary {
+            border-bottom: 1px solid #333333;
+        }
+        .icono-desplegable {
+            font-size: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        details.acordeon-otros[open] .icono-desplegable {
+            transform: rotate(180deg);
+        }
+
+        /* MODALES */
         .modal-instrucciones {
             display: none;
             position: fixed;
@@ -755,6 +778,30 @@
             </div>
         </div>
 
+        <!-- SECCIÓN OTROS CANALES (ACORDEÓN OCULTO) -->
+        {% if otros_canales %}
+        <div class="competition-card" id="card-otros-canales" style="margin-top: 15px;">
+            <details class="acordeon-otros">
+                <summary class="competition-header" style="background-color: #3a2218; color: #ffaa00; cursor: pointer;">
+                    <span>📂 Otros Canales (Alternativos)</span>
+                    <span class="icono-desplegable">▼</span>
+                </summary>
+                <div class="grid-canales">
+                    {% for canal in otros_canales %}
+                    <a href="/reproductor?url={{ canal.stream_url | urlencode }}&name={{ canal.name | urlencode }}" class="btn-canal-directo" data-canal-name="{{ canal.name | lower }}">
+                        {% if canal.logo %}
+                            <img src="{{ canal.logo }}" class="icono-canal-grid" alt="">
+                        {% else %}
+                            <span>🔸</span>
+                        {% endif %}
+                        <span>{{ canal.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+        {% endif %}
+
         <!-- SECCIÓN: DESCARGAR HERRAMIENTAS Y APKs -->
         <div class="competition-card" id="card-descargar-aceserve" style="margin-top: 15px;">
             <div class="competition-header" style="background-color: #2a182a; color: #ff88ff;">
@@ -797,7 +844,7 @@
         🔄 Actualizar
     </a>
 
-    <!-- MENÚ MODAL DE ENVIAR A APP IPTV CON ICONOS ACTUALIZADOS -->
+    <!-- MENÚ MODAL DE ENVIAR A APP IPTV -->
     <div id="appsModal" class="modal-instrucciones" onclick="cerrarModalApps(event)">
         <div class="modal-contenido" onclick="event.stopPropagation()">
             <div class="modal-titulo">📤 Enviar a App IPTV</div>
@@ -933,7 +980,7 @@
         function bajarACanales() {
             const target = document.getElementById('card-descargar-aceserve') || document.getElementById('card-canales-directos');
             if (target) {
-                const offset = 285; /* Ajustado por el nuevo tamaño del top-bar */
+                const offset = 285; 
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: targetPosition, behavior: 'smooth' });
             }
@@ -943,8 +990,8 @@
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
+            // Filtro de partidos por días
             let seccionesDias = document.querySelectorAll('.day-section');
-            
             seccionesDias.forEach(seccion => {
                 let filas = seccion.querySelectorAll('.fila-partido');
                 let encuentrosVisiblesEnDia = 0;
@@ -975,7 +1022,10 @@
                 }
             });
 
+            // Filtro de botones de canales (Directos, AceStream y Otros Canales)
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
+            let acordeon = document.querySelector('.acordeon-otros');
+            let resultadosEnAcordeon = false;
 
             botonesCanales.forEach(boton => {
                 let nombreCanal = boton.getAttribute('data-canal-name');
@@ -983,10 +1033,21 @@
 
                 if (coincideCanal) {
                     boton.style.display = '';
+                    // Si el canal está dentro del acordeón, marcamos que hay resultados
+                    if (boton.closest('.acordeon-otros')) {
+                        resultadosEnAcordeon = true;
+                    }
                 } else {
                     boton.style.display = 'none';
                 }
             });
+
+            // Si hay búsqueda y encontró algo en el acordeón, ábrelo automáticamente
+            if (acordeon && query !== '') {
+                if (resultadosEnAcordeon) {
+                    acordeon.open = true;
+                }
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
