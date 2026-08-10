@@ -38,7 +38,7 @@ def asignar_logo_deporte(evento):
     
     base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/icon-depor/"
     
-    # 🎾 Tenis (Prioridad alta para atrapar torneos como el 'Masters Canadá' sin que pise al golf)
+    # 🎾 Tenis
     if any(x in texto for x in ["tenis", "tennis", "atp", "wta", "wimbledon", "garros", "davis", "masters 1000", "us open"]): return base_url + "tenis.webp"
     # 🏃 Atletismo
     if any(x in texto for x in ["atletismo", "maratón", "marathon", "diamond league", "mitin", "meeting", "sesión matinal", "sesión vespertina", "pista cubierta", "cross country"]): return base_url + "atletismo.webp"
@@ -56,7 +56,7 @@ def asignar_logo_deporte(evento):
     if any(x in texto for x in ["nfl", "fútbol americano", "americano", "super bowl"]): return base_url + "futbol-americano.webp"
     # ⚽ Fútbol Sala
     if any(x in texto for x in ["sala", "futsal", "lnfs"]): return base_url + "futbol-sala.webp"
-    # ⛳ Golf (Palabras específicas para no robar los eventos de tenis)
+    # ⛳ Golf 
     if any(x in texto for x in ["golf", "pga", "masters de augusta", "ryder"]): return base_url + "golf.webp"
     # 🤼 MMA / UFC
     if any(x in texto for x in ["ufc", "mma", "bellator"]): return base_url + "mma.webp"
@@ -65,11 +65,10 @@ def asignar_logo_deporte(evento):
     # 🎾 Pádel
     if any(x in texto for x in ["pádel", "padel", "premier padel", "wpt"]): return base_url + "padel.webp"
     
-    # ⚽ Por defecto (Si no coincide con nada, será fútbol)
+    # ⚽ Por defecto
     return base_url + "futbol.webp"
 
 def extraer_canales_m3u(url_m3u):
-    """Descarga tu lista M3U extrayendo el logo (tvg-logo) si existe"""
     canales_lista = []
     dict_m3u = {}
     try:
@@ -105,7 +104,6 @@ def extraer_canales_m3u(url_m3u):
     return canales_lista, dict_m3u
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
-    """Algoritmo de cruce: Inyecta M3U8 y AceStream leyendo correctamente la clave 'logo' y detectando infohash o id"""
     html_resultado = ""
     
     def simplificar_canal(texto):
@@ -133,7 +131,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
         canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
 
-        # 1. BUSCAR EN M3U DINÁMICO (DIRECTOS)
+        # 1. BUSCAR EN M3U DINÁMICO
         for nombre_m3u, datos_m3u in dict_m3u_directos.items():
             m3u_norm = normalizar_cadena(nombre_m3u)
             if m3u_norm in canal_norm or canal_norm in m3u_norm:
@@ -150,7 +148,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
-        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo' e infohash/id)
+        # 2. BUSCAR EN HASHES ACESTREAM
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -183,24 +181,25 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
                     if hash_match:
                         hash_puro = hash_match.group(1)
-                        
-                        # DETECCIÓN INTELIGENTE DE ID vs INFOHASH
-                        if "infohash=" in hash_val.lower():
-                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
-                        else:
-                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
-                            
                         icono_char = "🔸" if "**" in nombre_json else "🔹"
                         
                         if logo_ace:
                             icono_html = f'<img src="{logo_ace}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'{icono_char}\'">'
                         else:
                             icono_html = icono_char
-                        
-                        url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
-                        matches_encontrados.append(
-                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
-                        )
+
+                        # LÓGICA ACTUALIZADA PARA ABRIR INFOHASH EN PESTAÑA NUEVA
+                        if "infohash=" in hash_val.lower():
+                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+                            matches_encontrados.append(
+                                f'<a href="{stream_url}" target="_blank" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
+                            )
+                        else:
+                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                            url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
+                            matches_encontrados.append(
+                                f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
+                            )
         
         if matches_encontrados:
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
@@ -224,16 +223,12 @@ def obtener_datos_completos():
     destacados = []
     eventos_agrupados = {}
     
-    # --- FILTRO DE TIEMPO (2 HORAS) EN HORA ESPAÑOLA ---
     ahora_dt = datetime.now(TIMEZONE_ES)
     limite_tiempo = ahora_dt - timedelta(hours=2)
     str_slash = ahora_dt.strftime("%d/%m")
     str_dash = ahora_dt.strftime("%d-%m")
-    # ---------------------------------------------------
     
     for i in range(len(eventos)):
-        
-        # --- LÓGICA PARA DESCARTAR EVENTOS QUE EMPEZARON HACE MÁS DE 2 HORAS ---
         fecha_texto = eventos[i].get('fecha', 'Hoy').strip().lower()
         es_hoy = "hoy" in fecha_texto or str_slash in fecha_texto or str_dash in fecha_texto
         
@@ -250,11 +245,8 @@ def obtener_datos_completos():
                         continue
             except Exception:
                 pass
-        # -----------------------------------------------------------------------
 
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
-        
-        # ASIGNAR LOGO DE DEPORTE
         eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
@@ -262,23 +254,19 @@ def obtener_datos_completos():
             eventos[i]['equipo_local'] = partes[0].strip() if len(partes) >= 1 else eventos[i]['equipos']
             eventos[i]['equipo_visitante'] = partes[1].strip() if len(partes) == 2 else ""
             
-        # Limpiamos los logos por defecto. Si no hay, se queda vacío para no mostrar el interrogante
         if not eventos[i].get('logo_local'):
             eventos[i]['logo_local'] = ""
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = ""
 
-        # MARCAR SI TIENE ENLACE ACTIVO
         eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
 
-        # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
         nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
         nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
         
         if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
             destacados.append(eventos[i])
 
-        # Agrupación cronológica por Día
         fecha = eventos[i].get('fecha', 'Hoy').strip()
         if fecha not in eventos_agrupados:
             eventos_agrupados[fecha] = []
@@ -301,7 +289,6 @@ def descargar_lista_m3u():
     epg_url = "https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiaiptv.xml"
     m3u_texto = f'#EXTM3U tvg-url="{epg_url}"\n'
     
-    # 📁 GRUPO DE ACTUALIZACIÓN EN HORA ESPAÑOLA EXACTA
     ahora_esp = datetime.now(TIMEZONE_ES)
     ahora_str = ahora_esp.strftime("%d/%m/%Y %H:%M")
     logo_update = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/update.png"
@@ -321,10 +308,17 @@ def descargar_lista_m3u():
                 prefijo_hora = f"⏰ {hora} - " if hora else ""
                 
                 canales_html = evento.get('canales_html', '')
-                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
                 
-                for url_codificada, contenido in enlaces:
-                    url_real = urllib.parse.unquote(url_codificada)
+                # Regex modificado para atrapar tanto los del reproductor interno como los que van en target blank
+                enlaces = re.findall(r'href="([^"]+)"[^>]*>(.*?)</a>', canales_html)
+                
+                for url_capturada, contenido in enlaces:
+                    if url_capturada.startswith('/reproductor?url='):
+                        url_encoded = url_capturada.split('url=')[1].split('&')[0]
+                        url_real = urllib.parse.unquote(url_encoded)
+                    else:
+                        url_real = url_capturada
+                        
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
                     m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" tvg-group-logo="{logo}" group-art="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
