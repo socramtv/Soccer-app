@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 235px; 
+            padding-top: 280px; /* Aumentado para hacer hueco al nuevo banner rojo */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -128,6 +128,28 @@
             display: inline-block;
         }
 
+        /* NUEVO BANNER DE AVISO ACE STREAM */
+        .banner-aviso {
+            width: 100%;
+            max-width: 800px;
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 6px 10px;
+            border-radius: 5px;
+            border: 1px solid #ff4444;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(255, 0, 0, 0.2);
+            margin-top: -2px;
+            letter-spacing: 0.2px;
+        }
+
+        .banner-aviso strong {
+            color: #ffcc00;
+        }
+
         .search-container {
             width: 100%;
             max-width: 800px;
@@ -219,19 +241,20 @@
         .marcador-box {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
             color: #ffffff;
         }
 
         .bloque-equipo {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px; /* Separación aumentada para los iconos más grandes */
         }
 
+        /* TAMAÑO DE ESCUDOS AUMENTADO */
         .escudo-team {
-            width: 14px;
-            height: 14px;
+            width: 22px; 
+            height: 22px;
             object-fit: contain;
             flex-shrink: 0;
         }
@@ -240,26 +263,27 @@
             color: #555555;
             font-size: 0.65rem;
             font-weight: bold;
-            padding-left: 18px;
-            margin: -1px 0;
+            padding-left: 28px; /* Ajustado para alinear por el aumento del escudo */
+            margin: -2px 0;
         }
 
         .contenedor-liga {
             display: flex;
             align-items: center;
-            gap: 5px;
-            margin-top: 2px;
+            gap: 6px;
+            margin-top: 3px;
         }
         
+        /* TAMAÑO DE ICONOS DE DEPORTE AUMENTADO */
         .icono-deporte {
-            width: 13px;
-            height: 13px;
+            width: 18px; 
+            height: 18px;
             object-fit: contain;
-            opacity: 0.85;
+            opacity: 0.9;
         }
 
         .txt-liga-sub {
-            font-size: 0.62rem;
+            font-size: 0.65rem;
             color: #aaaaaa;
         }
 
@@ -269,18 +293,20 @@
             display: block;
         }
 
+        /* TAMAÑO DE ICONOS DE CANAL AUMENTADO */
         .icono-canal-peq {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             object-fit: contain;
             border-radius: 2px;
             flex-shrink: 0;
             background: rgba(255, 255, 255, 0.05);
         }
 
+        /* TAMAÑO DE ICONOS DE CANAL EN LA PARRILLA AUMENTADO */
         .icono-canal-grid {
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             object-fit: contain;
             border-radius: 3px;
             flex-shrink: 0;
@@ -292,11 +318,11 @@
             align-items: center;
             background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%);
             color: #00ff88;
-            padding: 3px 5px;
-            margin: 1px 2px 1px 0;
+            padding: 4px 6px;
+            margin: 1px 2px 2px 0;
             border-radius: 3px;
             text-decoration: none;
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             font-weight: bold;
             border: 1px solid #333333;
             max-width: 100%;
@@ -304,7 +330,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            gap: 4px;
+            gap: 5px;
         }
 
         .grid-canales {
@@ -323,10 +349,10 @@
             padding: 8px 10px;
             border-radius: 5px;
             text-decoration: none;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: bold;
             border: 1px solid #333333;
-            gap: 6px;
+            gap: 8px;
         }
 
         .btn-canal-m3u8 {
@@ -351,7 +377,7 @@
             background: #1a1a1a;
             color: #00ff88;
             border: 1px solid #2a2a2a;
-            padding: 8px;
+            padding: 10px;
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: bold;
@@ -550,7 +576,7 @@
     <div class="top-bar">
         <div class="top-bar-title-row">
             <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/icon-512.png" class="main-logo" alt="Socram Logo">
-            <h1>Sσcяαм Tν +  Acεѕтяεαм</h1>
+            <h1>Sσcяαм Tν + Acεѕтяεαм</h1>
             <span class="subtitle">by Masp</span>
         </div>
 
@@ -562,6 +588,11 @@
         </div>
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
+
+        <!-- BANNER AVISO ACE STREAM -->
+        <div class="banner-aviso">
+            ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero <strong>Ace Stream</strong> y déjalo en segundo plano.
+        </div>
 
         <div class="search-container">
             <input type="text" id="buscador" class="search-input" placeholder="🔍 Escribe un equipo o canal..." onkeyup="filtrarTodo()">
@@ -902,7 +933,7 @@
         function bajarACanales() {
             const target = document.getElementById('card-descargar-aceserve') || document.getElementById('card-canales-directos');
             if (target) {
-                const offset = 235; 
+                const offset = 285; /* Ajustado por el nuevo tamaño del top-bar */
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: targetPosition, behavior: 'smooth' });
             }
