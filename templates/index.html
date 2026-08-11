@@ -186,19 +186,16 @@
 
         .btn-descargar-ace {
             background: #1a0b1a;
-            color: #ff88ff;
-            padding: 2px 8px;
+            padding: 2px 4px;
             border-radius: 10px;
             border: 1px solid rgba(255, 136, 255, 0.4);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-            font-size: 0.65rem;
             transition: all 0.2s;
             margin: 0 2px;
-            font-weight: bold;
             vertical-align: middle;
         }
 
@@ -670,15 +667,15 @@
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
-        <!-- BANNER AVISO ACE SERVE INTERACTIVO -->
+        <!-- BANNER AVISO ACE SERVE INTERACTIVO (BOTÓN INSTALAR SÓLO CON ICONO) -->
         <div class="banner-aviso">
             ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
             <span class="btn-abrir-ace" onclick="abrirAceServe()">
                 <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/aceserve.png" class="icono-btn-mini" alt=""> Ace Serve
             </span> 
             y déjalo en segundo plano. 
-            <span class="btn-descargar-ace" onclick="bajarAAPKs()">
-                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/install.png" class="icono-btn-mini" alt=""> Instalar
+            <span class="btn-descargar-ace" onclick="bajarAAPKs()" title="Instalar App">
+                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/install.png" style="height: 18px; width: auto; border-radius: 2px; object-fit: contain;" alt="Instalar App">
             </span>
         </div>
 
