@@ -925,15 +925,13 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- NUEVA FUNCIÓN PARA ABRIR ACE SERVE ---
+        // --- NUEVA FUNCIÓN PARA ABRIR ACE SERVE CORREGIDA ---
         function abrirAceServe() {
-            let intent = "intent://#Intent;package=org.free.aceserve;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;";
-            let link = document.createElement('a');
-            link.href = intent;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Utilizamos window.location con un intent relajado. 
+            // Al omitir las exigencias de "ACTION_MAIN" o "LAUNCHER", el sistema
+            // busca directamente el paquete sin importar cómo se llame su pantalla principal,
+            // evitando que te mande a buscarla al Play Store si falla.
+            window.location.href = "intent://#Intent;package=org.free.aceserve;end;";
         }
 
         function controlModalInstalacion(abrir) {
