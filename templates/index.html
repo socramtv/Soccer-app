@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 280px; 
+            padding-top: 340px; /* 🔧 Aumentado para que no tape los títulos de los partidos */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -128,7 +128,7 @@
             display: inline-block;
         }
 
-        /* BANNER DE AVISO Y BOTONES ACE SERVE */
+        /* BANNER DE AVISO Y BOTONES */
         .banner-aviso {
             width: 100%;
             max-width: 800px;
@@ -149,6 +149,7 @@
             justify-content: center;
             flex-wrap: wrap;
             gap: 4px;
+            line-height: 1.5;
         }
 
         .banner-aviso strong {
@@ -158,8 +159,8 @@
         .btn-abrir-ace {
             background: #111111;
             color: #00ff88;
-            padding: 4px 10px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             border: 1px solid rgba(0, 255, 136, 0.5);
             cursor: pointer;
             display: inline-flex;
@@ -169,6 +170,7 @@
             font-size: 0.7rem;
             transition: all 0.2s;
             margin: 0 2px;
+            vertical-align: middle;
         }
 
         .btn-abrir-ace:active {
@@ -178,8 +180,8 @@
         .btn-descargar-ace {
             background: #1a0b1a;
             color: #ff88ff;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 136, 255, 0.4);
             cursor: pointer;
             display: inline-flex;
@@ -190,6 +192,7 @@
             transition: all 0.2s;
             margin: 0 2px;
             font-weight: bold;
+            vertical-align: middle;
         }
 
         .btn-descargar-ace:active {
@@ -652,7 +655,7 @@
         </div>
 
         <div class="top-actions-layout">
-            <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</a>
+            <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardار</a>
             <button onclick="abrirModalApps()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
             <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
             <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
@@ -660,12 +663,12 @@
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
-        <!-- BANNER AVISO ACE SERVE INTERACTIVO -->
+        <!-- BANNER AVISO ACE SERVE INTERACTIVO (BOTÓN INSTALAR MOVIDO AL FINAL) -->
         <div class="banner-aviso">
             ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
             <span class="btn-abrir-ace" onclick="abrirAceServe()">▶ Ace Serve</span> 
-            <span class="btn-descargar-ace" onclick="bajarAAPKs()">⬇️ Instalar</span>
-            y déjalo en segundo plano.
+            y déjalo en segundo plano 
+            <span class="btn-descargar-ace" onclick="bajarAAPKs()">⬇️ Instalar</span>.
         </div>
 
         <div class="search-container">
@@ -957,16 +960,13 @@
             document.body.removeChild(link);
         }
 
-        // --- NUEVA FUNCIÓN PARA BAJAR AL APARTADO DE APKS CON DESTELLO VISUAL ---
         function bajarAAPKs() {
             const target = document.getElementById('card-descargar-aceserve');
             if (target) {
-                // Hacemos el scroll hacia abajo
                 const offset = 180; 
                 const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: targetPosition, behavior: 'smooth' });
                 
-                // Efecto visual temporal (brillo rosa)
                 setTimeout(() => {
                     target.style.boxShadow = '0 0 15px 2px #ff88ff';
                     setTimeout(() => {
@@ -1069,7 +1069,6 @@
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
 
-            // Filtro de partidos por días
             let seccionesDias = document.querySelectorAll('.day-section');
             seccionesDias.forEach(seccion => {
                 let filas = seccion.querySelectorAll('.fila-partido');
@@ -1101,7 +1100,6 @@
                 }
             });
 
-            // Filtro de botones de canales (Directos, AceStream y Otros Canales)
             let botonesCanales = document.querySelectorAll('.grid-canales .btn-canal-directo');
             let acordeon = document.querySelector('.acordeon-otros');
             let resultadosEnAcordeon = false;
@@ -1112,7 +1110,6 @@
 
                 if (coincideCanal) {
                     boton.style.display = '';
-                    // Si el canal está dentro del acordeón, marcamos que hay resultados
                     if (boton.closest('.acordeon-otros')) {
                         resultadosEnAcordeon = true;
                     }
@@ -1121,7 +1118,6 @@
                 }
             });
 
-            // Si hay búsqueda y encontró algo en el acordeón, ábrelo automáticamente
             if (acordeon && query !== '') {
                 if (resultadosEnAcordeon) {
                     acordeon.open = true;
