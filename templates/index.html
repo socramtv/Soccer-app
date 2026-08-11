@@ -128,6 +128,7 @@
             display: inline-block;
         }
 
+        /* BANNER DE AVISO Y BOTÓN ACE SERVE */
         .banner-aviso {
             width: 100%;
             max-width: 800px;
@@ -143,10 +144,35 @@
             box-shadow: 0 4px 10px rgba(255, 0, 0, 0.2);
             margin-top: -2px;
             letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         .banner-aviso strong {
             color: #ffcc00;
+        }
+
+        .btn-abrir-ace {
+            background: #111111;
+            color: #00ff88;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            margin: 0 2px;
+        }
+
+        .btn-abrir-ace:active {
+            transform: scale(0.95);
         }
 
         .search-container {
@@ -247,7 +273,7 @@
         .bloque-equipo {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 6px; 
         }
 
         .escudo-team {
@@ -612,9 +638,11 @@
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
-        <!-- BANNER AVISO ACE STREAM -->
+        <!-- BANNER AVISO ACE SERVE INTERACTIVO -->
         <div class="banner-aviso">
-            ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero <strong>Ace Stream</strong> y déjalo en segundo plano.
+            ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
+            <span class="btn-abrir-ace" onclick="abrirAceServe()">▶ Ace Serve</span> 
+            y déjalo en segundo plano.
         </div>
 
         <div class="search-container">
@@ -895,6 +923,17 @@
 
         function subirArriba() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- NUEVA FUNCIÓN PARA ABRIR ACE SERVE ---
+        function abrirAceServe() {
+            let intent = "intent://#Intent;package=org.free.aceserve;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;";
+            let link = document.createElement('a');
+            link.href = intent;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function controlModalInstalacion(abrir) {
