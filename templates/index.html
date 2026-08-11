@@ -128,7 +128,7 @@
             display: inline-block;
         }
 
-        /* BANNER DE AVISO Y BOTÓN ACE SERVE */
+        /* BANNER DE AVISO Y BOTONES ACE SERVE */
         .banner-aviso {
             width: 100%;
             max-width: 800px;
@@ -172,6 +172,27 @@
         }
 
         .btn-abrir-ace:active {
+            transform: scale(0.95);
+        }
+
+        .btn-descargar-ace {
+            background: #1a0b1a;
+            color: #ff88ff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 136, 255, 0.4);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            font-size: 0.65rem;
+            transition: all 0.2s;
+            margin: 0 2px;
+            font-weight: bold;
+        }
+
+        .btn-descargar-ace:active {
             transform: scale(0.95);
         }
 
@@ -607,6 +628,7 @@
             border: 1px solid #2a2a2a;
             margin-bottom: 12px;
             overflow: hidden;
+            transition: box-shadow 0.5s ease;
         }
 
         .competition-header {
@@ -642,6 +664,7 @@
         <div class="banner-aviso">
             ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
             <span class="btn-abrir-ace" onclick="abrirAceServe()">▶ Ace Serve</span> 
+            <span class="btn-descargar-ace" onclick="bajarAAPKs()">⬇️ Instalar</span>
             y déjalo en segundo plano.
         </div>
 
@@ -925,17 +948,32 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- NUEVA FUNCIÓN DEFINITIVA PARA ABRIR ACE SERVE ---
         function abrirAceServe() {
-            // Usamos el protocolo 'acestream' apuntando directamente a tu paquete específico.
-            // Así evitamos la comprobación estricta de Chrome y Google Play Store no interfiere.
             let urlApp = "intent://#Intent;scheme=acestream;package=org.free.aceserve;end;";
-            
             let link = document.createElement('a');
             link.href = urlApp;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // --- NUEVA FUNCIÓN PARA BAJAR AL APARTADO DE APKS CON DESTELLO VISUAL ---
+        function bajarAAPKs() {
+            const target = document.getElementById('card-descargar-aceserve');
+            if (target) {
+                // Hacemos el scroll hacia abajo
+                const offset = 180; 
+                const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+                
+                // Efecto visual temporal (brillo rosa)
+                setTimeout(() => {
+                    target.style.boxShadow = '0 0 15px 2px #ff88ff';
+                    setTimeout(() => {
+                        target.style.boxShadow = 'none';
+                    }, 1500);
+                }, 500); 
+            }
         }
 
         function controlModalInstalacion(abrir) {
