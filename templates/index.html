@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 8px;
-            padding-top: 340px; /* 🔧 Aumentado para que no tape los títulos de los partidos */
+            padding-top: 340px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -154,6 +154,13 @@
 
         .banner-aviso strong {
             color: #ffcc00;
+        }
+
+        .icono-btn-mini {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            border-radius: 2px;
         }
 
         .btn-abrir-ace {
@@ -410,7 +417,7 @@
             background: linear-gradient(135deg, #3d1e3d 0%, #271127 100%);
             border-color: #ff00ff;
             color: #ff88ff;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .btn-subir-arriba {
@@ -655,7 +662,7 @@
         </div>
 
         <div class="top-actions-layout">
-            <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardار</a>
+            <a href="/lista.m3u" class="btn-header-action btn-m3u" title="Descargar al móvil">📥 Guardar</a>
             <button onclick="abrirModalApps()" class="btn-header-action btn-share-m3u" title="Enviar a Wiseplay/Wuffy">📤 Enviar a App</button>
             <button id="btn-toggle-enlaces" onclick="toggleFiltroEnlaces()" class="btn-header-action btn-filter-links">👁️ Mostrar Todo</button>
             <button onclick="bajarACanales()" class="btn-header-action btn-directo-canales">📺 Canales</button>
@@ -663,12 +670,16 @@
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
-        <!-- BANNER AVISO ACE SERVE INTERACTIVO (BOTÓN INSTALAR MOVIDO AL FINAL) -->
+        <!-- BANNER AVISO ACE SERVE INTERACTIVO -->
         <div class="banner-aviso">
             ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
-            <span class="btn-abrir-ace" onclick="abrirAceServe()">▶ Ace Serve</span> 
-            y déjalo en segundo plano 
-            <span class="btn-descargar-ace" onclick="bajarAAPKs()">⬇️ Instalar</span>.
+            <span class="btn-abrir-ace" onclick="abrirAceServe()">
+                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/aceserve.png" class="icono-btn-mini" alt=""> Ace Serve
+            </span> 
+            y déjalo en segundo plano. 
+            <span class="btn-descargar-ace" onclick="bajarAAPKs()">
+                <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/install.png" class="icono-btn-mini" alt=""> Instalar
+            </span>
         </div>
 
         <div class="search-container">
@@ -863,19 +874,19 @@
             </div>
             <div class="grid-canales" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
                 <a href="https://pixeldrain.net/u/FiqCxY3K" class="btn-canal-directo btn-apk" target="_blank">
-                    <span>📱</span>
+                    <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/aceserve.png" class="icono-canal-grid" alt="">
                     <span>AceStream Móvil</span>
                 </a>
                 <a href="https://pixeldrain.net/u/xFKxFipM" class="btn-canal-directo btn-apk" target="_blank">
-                    <span>📺</span>
+                    <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/aceserve.png" class="icono-canal-grid" alt="">
                     <span>AceStream TV</span>
                 </a>
                 <a href="https://pixeldrain.net/u/mwtsGZ3W" class="btn-canal-directo btn-apk" target="_blank">
-                    <span>📡</span>
+                    <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/Web_video.jpg" class="icono-canal-grid" alt="">
                     <span>Web Video Caster</span>
                 </a>
                 <a href="https://pixeldrain.net/u/f2HGUHVd" class="btn-canal-directo btn-apk" target="_blank">
-                    <span>🎬</span>
+                    <img src="https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/wuffy_player.png" class="icono-canal-grid" alt="">
                     <span>Wuffy Player</span>
                 </a>
             </div>
