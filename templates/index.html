@@ -667,7 +667,7 @@
 
         <div class="fecha-badge">📅 {{ fecha }}</div>
 
-        <!-- BANNER AVISO ACE SERVE INTERACTIVO (BOTÓN INSTALAR SÓLO CON ICONO) -->
+        <!-- BANNER AVISO ACE SERVE INTERACTIVO -->
         <div class="banner-aviso">
             ⚠️ <strong>ATENCIÓN:</strong> Para ver los eventos, abre primero 
             <span class="btn-abrir-ace" onclick="abrirAceServe()">
@@ -1073,6 +1073,59 @@
             }
         }
 
+        // --- 🚀 NUEVA MAGIA: AUTO-ENLAZAR CANALES GRISES DE LOS EVENTOS ---
+        function autoEnlazarCanales() {
+            let canalesDisponibles = [];
+            
+            // 1. Recopilar todos los canales que tenemos guardados abajo
+            document.querySelectorAll('.grid-canales .btn-canal-directo').forEach(btn => {
+                if (!btn.classList.contains('btn-apk')) {
+                    let spans = btn.querySelectorAll('span');
+                    if (spans.length > 0) {
+                        let nombreCanal = spans[spans.length - 1].textContent.toLowerCase().trim();
+                        canalesDisponibles.push({
+                            nombre: nombreCanal,
+                            url: btn.href,
+                            esM3U8: btn.classList.contains('btn-canal-m3u8')
+                        });
+                    }
+                }
+            });
+
+            // 2. Buscar textos grises sin enlace en los eventos y reemplazarlos si coinciden
+            document.querySelectorAll('.canales-td .canal-texto-vacio').forEach(span => {
+                let textoGris = span.textContent.toLowerCase().trim();
+                
+                // Buscar si existe coincidencia de nombre (ignora mayúsculas/minúsculas)
+                let coincidencia = canalesDisponibles.find(c => 
+                    textoGris.includes(c.nombre) || c.nombre.includes(textoGris)
+                );
+
+                if (coincidencia) {
+                    // Si coincide, creamos un botón funcional para reemplazar el texto gris
+                    let nuevoBtn = document.createElement('a');
+                    nuevoBtn.href = coincidencia.url;
+                    nuevoBtn.className = 'btn-canal ' + (coincidencia.esM3U8 ? 'btn-canal-m3u8' : '');
+                    
+                    if (coincidencia.esM3U8) {
+                        nuevoBtn.style.background = 'linear-gradient(135deg, #1e2d3d 0%, #111c27 100%)';
+                        nuevoBtn.style.borderColor = '#0088ff';
+                        nuevoBtn.style.color = '#66c2ff';
+                    }
+
+                    // Mantenemos el nombre original pero le añadimos un emoji/asterisco para notarlo
+                    nuevoBtn.innerHTML = `🔸 ${span.textContent} *`; 
+                    
+                    // Reemplazamos
+                    span.parentNode.replaceChild(nuevoBtn, span);
+                    
+                    // Actualizamos la fila entera para que el buscador la catalogue como "con enlaces"
+                    let fila = nuevoBtn.closest('.fila-partido');
+                    if (fila) fila.setAttribute('data-has-links', 'true');
+                }
+            });
+        }
+
         function filtrarTodo() {
             let query = document.getElementById('buscador').value.toLowerCase().trim();
             let palabrasBusqueda = query.split(/\s+/).filter(p => p.length > 0);
@@ -1114,15 +1167,17 @@
 
             botonesCanales.forEach(boton => {
                 let nombreCanal = boton.getAttribute('data-canal-name');
-                let coincideCanal = palabrasBusqueda.every(palabra => nombreCanal.includes(palabra));
+                if (nombreCanal) { // Evita errores con botones sin data-canal-name (APKs)
+                    let coincideCanal = palabrasBusqueda.every(palabra => nombreCanal.includes(palabra));
 
-                if (coincideCanal) {
-                    boton.style.display = '';
-                    if (boton.closest('.acordeon-otros')) {
-                        resultadosEnAcordeon = true;
+                    if (coincideCanal) {
+                        boton.style.display = '';
+                        if (boton.closest('.acordeon-otros')) {
+                            resultadosEnAcordeon = true;
+                        }
+                    } else {
+                        boton.style.display = 'none';
                     }
-                } else {
-                    boton.style.display = 'none';
                 }
             });
 
@@ -1133,8 +1188,10 @@
             }
         }
 
+        // Ejecutar funciones al cargar la web
         document.addEventListener("DOMContentLoaded", function() {
-            filtrarTodo();
+            autoEnlazarCanales(); // 1º Transformamos los textos en botones si hay coincidencia
+            filtrarTodo();        // 2º Filtramos (así el filtro Ocultar ya tiene en cuenta los nuevos enlaces)
         });
     </script>
 
