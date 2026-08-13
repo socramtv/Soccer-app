@@ -1073,7 +1073,7 @@
             }
         }
 
-        // --- 🚀 NUEVA MAGIA: AUTO-ENLAZAR CANALES GRISES DE LOS EVENTOS ---
+        // --- 🚀 AUTO-ENLAZAR CANALES CON ESTILO IDÉNTICO AL ORIGINAL ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
@@ -1082,9 +1082,11 @@
                 if (!btn.classList.contains('btn-apk')) {
                     let spans = btn.querySelectorAll('span');
                     if (spans.length > 0) {
-                        let nombreCanal = spans[spans.length - 1].textContent.toLowerCase().trim();
+                        let nombreOriginal = spans[spans.length - 1].textContent.trim();
+                        let nombreNormalizado = nombreOriginal.toLowerCase();
                         canalesDisponibles.push({
-                            nombre: nombreCanal,
+                            nombreOriginal: nombreOriginal,
+                            nombreNormalizado: nombreNormalizado,
                             url: btn.href,
                             esM3U8: btn.classList.contains('btn-canal-m3u8')
                         });
@@ -1092,34 +1094,39 @@
                 }
             });
 
-            // 2. Buscar textos grises sin enlace en los eventos y reemplazarlos si coinciden
+            // 2. Buscar TODOS los textos grises de los partidos
             document.querySelectorAll('.canales-td .canal-texto-vacio').forEach(span => {
                 let textoGris = span.textContent.toLowerCase().trim();
                 
-                // Buscar si existe coincidencia de nombre (ignora mayúsculas/minúsculas)
-                let coincidencia = canalesDisponibles.find(c => 
-                    textoGris.includes(c.nombre) || c.nombre.includes(textoGris)
-                );
+                // Encontrar coincidencias flexibles
+                let coincidencia = canalesDisponibles.find(c => {
+                    return textoGris === c.nombreNormalizado || 
+                           textoGris.includes(c.nombreNormalizado) || 
+                           (c.nombreNormalizado.includes(textoGris) && textoGris.length > 3);
+                });
 
                 if (coincidencia) {
-                    // Si coincide, creamos un botón funcional para reemplazar el texto gris
+                    // Crear un botón IDÉNTICO a los originales de AceStream/Directos
                     let nuevoBtn = document.createElement('a');
                     nuevoBtn.href = coincidencia.url;
-                    nuevoBtn.className = 'btn-canal ' + (coincidencia.esM3U8 ? 'btn-canal-m3u8' : '');
                     
                     if (coincidencia.esM3U8) {
+                        // Estilo para canales directos m3u8 (Puntito Naranja)
+                        nuevoBtn.className = 'btn-canal btn-canal-m3u8';
                         nuevoBtn.style.background = 'linear-gradient(135deg, #1e2d3d 0%, #111c27 100%)';
                         nuevoBtn.style.borderColor = '#0088ff';
                         nuevoBtn.style.color = '#66c2ff';
+                        nuevoBtn.innerHTML = `🔸 ${span.textContent.trim()} *`;
+                    } else {
+                        // Estilo clásico AceStream (Puntito Azul)
+                        nuevoBtn.className = 'btn-canal';
+                        nuevoBtn.innerHTML = `🔹 ${span.textContent.trim()} *`;
                     }
-
-                    // Mantenemos el nombre original pero le añadimos un emoji/asterisco para notarlo
-                    nuevoBtn.innerHTML = `🔸 ${span.textContent} *`; 
                     
-                    // Reemplazamos
+                    // Cambiamos el texto muerto por el botón interactivo clonado
                     span.parentNode.replaceChild(nuevoBtn, span);
                     
-                    // Actualizamos la fila entera para que el buscador la catalogue como "con enlaces"
+                    // Decimos a la fila que YA TIENE un enlace válido para que el filtro "Solo Enlaces" no la oculte
                     let fila = nuevoBtn.closest('.fila-partido');
                     if (fila) fila.setAttribute('data-has-links', 'true');
                 }
@@ -1167,7 +1174,7 @@
 
             botonesCanales.forEach(boton => {
                 let nombreCanal = boton.getAttribute('data-canal-name');
-                if (nombreCanal) { // Evita errores con botones sin data-canal-name (APKs)
+                if (nombreCanal) {
                     let coincideCanal = palabrasBusqueda.every(palabra => nombreCanal.includes(palabra));
 
                     if (coincideCanal) {
@@ -1190,8 +1197,8 @@
 
         // Ejecutar funciones al cargar la web
         document.addEventListener("DOMContentLoaded", function() {
-            autoEnlazarCanales(); // 1º Transformamos los textos en botones si hay coincidencia
-            filtrarTodo();        // 2º Filtramos (así el filtro Ocultar ya tiene en cuenta los nuevos enlaces)
+            autoEnlazarCanales(); 
+            filtrarTodo();        
         });
     </script>
 
