@@ -112,6 +112,11 @@ def extraer_canales_m3u(url_m3u):
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificado):
     html_resultado = ""
     
+    # 🔥 ARREGLO CLAVE: Iniciamos el set de URLs fuera del bucle para que tenga "memoria" por evento.
+    urls_agregadas = set()
+    matches_encontrados = []
+    textos_vacios = []
+    
     # NUEVO MOTOR ESTRICTO: Calco de la función en JS para que no cruce canales
     def son_canales_equivalentes(orig_abajo, orig_arriba):
         txt_a = str(orig_abajo).lower()
@@ -150,13 +155,14 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
 
     for canal in canales_evento:
         canal_limpio = canal.strip()
-        matches_encontrados = []
-        urls_agregadas = set()
+        encontro_algo = False
 
         # 1. BUSCAR EN M3U Y OTROS CANALES UNIFICADOS
         for nombre_m3u, datos_m3u in dict_m3u_unificado.items():
             if son_canales_equivalentes(nombre_m3u, canal_limpio):
+                encontro_algo = True # Confirmamos que este texto SÍ es de un canal válido
                 url_m3u = datos_m3u['url']
+                # Verificamos la memoria global de URLs de este partido
                 if url_m3u not in urls_agregadas:
                     logo_m3u = datos_m3u['logo']
                     icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'🔸\'">' if logo_m3u else "🔸"
@@ -169,6 +175,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         for enc in lista_enlaces:
             nombre_json = enc.get('name', '') or enc.get('title', '')
             if son_canales_equivalentes(nombre_json, canal_limpio):
+                encontro_algo = True # Confirmamos que este texto SÍ es de un canal válido
                 hash_val = enc.get('id', '') or enc.get('hash', '')
                 hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
                 if hash_match:
@@ -178,6 +185,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
                     else:
                         stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                         
+                    # Verificamos la memoria global de URLs de este partido
                     if stream_url not in urls_agregadas:
                         logo_ace = enc.get('logo', '')
                         icono_char = "🔸" if "**" in nombre_json else "🔹"
@@ -187,11 +195,16 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
                         matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>')
                         urls_agregadas.add(stream_url)
         
-        if matches_encontrados:
-            html_resultado += "".join(sorted(list(set(matches_encontrados))))
-        else:
-            html_resultado += f'<span class="canal-texto-vacio">{canal_limpio}</span>'
+        # Si el scraper trajo un texto rarísimo que no tiene ningún enlace, lo guardamos como texto gris
+        if not encontro_algo:
+            textos_vacios.append(canal_limpio)
             
+    # Finalmente construimos la celda sin botones clonados
+    html_resultado = "".join(sorted(matches_encontrados))
+    # Y metemos los canales que se quedaron sin enlace para que se muestren grises
+    for vacio in set(textos_vacios):
+        html_resultado += f'<span class="canal-texto-vacio">{vacio}</span>'
+        
     return html_resultado
 
 def obtener_datos_completos():
@@ -205,7 +218,7 @@ def obtener_datos_completos():
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     canales_m3u, dict_m3u = extraer_canales_m3u(URL_NOACE)
-    otros_canales, dict_otros = extraer_canales_m3u(URL_OTROS_CANALES) # ¡Solucionado el dict fantasma!
+    otros_canales, dict_otros = extraer_canales_m3u(URL_OTROS_CANALES)
     
     # FUSIÓN: Juntamos los directos y los alternativos para que Python los vea todos
     dict_m3u_unificado = {**dict_m3u, **dict_otros}
@@ -236,7 +249,6 @@ def obtener_datos_completos():
             except Exception:
                 pass
 
-        # Le pasamos el diccionario unificado
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u_unificado)
         eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
