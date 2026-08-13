@@ -1073,11 +1073,11 @@
             }
         }
 
-        // --- 🚀 NUEVO MOTOR SÚPER INTELIGENTE: AÑADIR ALTERNATIVOS LEYENDO TODO EL EVENTO ---
+        // --- 🚀 MOTOR INTELIGENTE ANTI-CONFUSIÓN (DAZN vs MOVISTAR) ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
-            // 1. Recopilamos todos los canales de abajo (Directos y Alternativos)
+            // 1. Recogemos todos los canales de abajo
             document.querySelectorAll('.grid-canales .btn-canal-directo').forEach(btn => {
                 if (!btn.classList.contains('btn-apk')) {
                     let spans = btn.querySelectorAll('span');
@@ -1085,8 +1085,7 @@
                         let nombreOriginal = spans[spans.length - 1].textContent.trim();
                         let nombreNormalizado = nombreOriginal.toLowerCase();
                         
-                        // Solo metemos canales que tengan un nombre real (más de 2 letras) para no confundir.
-                        if (nombreNormalizado.length > 2) { 
+                        if (nombreNormalizado.length > 2) {
                             canalesDisponibles.push({
                                 nombreOriginal: nombreOriginal,
                                 nombreNormalizado: nombreNormalizado,
@@ -1098,7 +1097,6 @@
                 }
             });
 
-            // Función ayudante para crear el diseño del botón idéntico al original
             function crearBotonClon(canalObj, textoAMostrar) {
                 let nuevoBtn = document.createElement('a');
                 nuevoBtn.href = canalObj.url;
@@ -1115,22 +1113,42 @@
                 return nuevoBtn;
             }
 
+            // Función ultra precisa que evita cruzar DAZN con Movistar
+            function sonCanalesEquivalentes(nombreCanalAbajo, textoArriba) {
+                let a = nombreCanalAbajo.replace(/[^a-z0-9]/g, ''); 
+                let b = textoArriba.replace(/[^a-z0-9]/g, '');
+
+                let esDaznAbajo = a.includes('dazn');
+                let esDaznArriba = b.includes('dazn');
+                
+                // Si uno es de DAZN y el otro no, se bloquea al instante (evita el cruce)
+                if (esDaznAbajo !== esDaznArriba) return false;
+
+                // Coincidencia normal
+                if (a.includes(b) || b.includes(a)) return true;
+
+                // Coincidencias específicas para LaLiga de Movistar / M+
+                if ((a.includes('laliga') || a.includes('movistarlaliga')) && (b.includes('laliga') || b.includes('laligatv'))) {
+                    // Asegurar que ninguno sea DAZN
+                    if (!esDaznAbajo && !esDaznArriba) return true;
+                }
+                if (a.includes('campeones') && b.includes('campeones')) return true;
+                if (a.includes('vamos') && b.includes('vamos')) return true;
+
+                return false;
+            }
+
             // 2. Analizamos partido a partido
             document.querySelectorAll('.fila-partido').forEach(fila => {
                 let celdaCanales = fila.querySelector('.canales-td');
                 if (!celdaCanales) return;
 
-                // Anotamos qué URLs ya existen en el evento para no poner 2 botones con el mismo enlace
                 let urlsExistentes = Array.from(celdaCanales.querySelectorAll('a')).map(a => a.href);
 
-                // Paso A: Cambiar los "textos grises" directamente (si los hay)
+                // Paso A: Revisar textos grises muertos
                 celdaCanales.querySelectorAll('.canal-texto-vacio').forEach(span => {
                     let textoGris = span.textContent.toLowerCase().trim();
-                    let coincidencia = canalesDisponibles.find(c => {
-                        return textoGris === c.nombreNormalizado || 
-                               textoGris.includes(c.nombreNormalizado) || 
-                               (c.nombreNormalizado.includes(textoGris) && textoGris.length > 3);
-                    });
+                    let coincidencia = canalesDisponibles.find(c => sonCanalesEquivalentes(c.nombreNormalizado, textoGris));
 
                     if (coincidencia) {
                         if (!urlsExistentes.includes(coincidencia.url)) {
@@ -1139,26 +1157,24 @@
                             urlsExistentes.push(coincidencia.url);
                             fila.setAttribute('data-has-links', 'true');
                         } else {
-                            span.remove(); // Si ya existe esa URL, borramos el texto gris para no ensuciar
+                            span.remove();
                         }
                     }
                 });
 
-                // Paso B (LA MAGIA NUEVA): Buscar coincidencias leyendo TODOS los textos y botones actuales del partido
-                let textoCompletoCelda = celdaCanales.textContent.toLowerCase(); 
+                // Paso B: Añadir alternativos si el partido ya emite ese canal exacto
+                let textoCompletoCelda = celdaCanales.textContent.toLowerCase();
 
                 canalesDisponibles.forEach(canal => {
-                    // Si el nombre del canal que tenemos guardado abajo se menciona en este partido
-                    // (por ejemplo, porque ya hay un botón azul que dice "Movistar Plus 1080")
-                    // Y resulta que todavía no hemos puesto el enlace alternativo de ese canal...
-                    if (textoCompletoCelda.includes(canal.nombreNormalizado) && !urlsExistentes.includes(canal.url)) {
-                        
+                    let yaMencionado = Array.from(celdaCanales.childNodes).some(nodo => {
+                        let txt = nodo.textContent ? nodo.textContent.toLowerCase() : '';
+                        return sonCanalesEquivalentes(canal.nombreNormalizado, txt);
+                    });
+
+                    if (yaMencionado && !urlsExistentes.includes(canal.url)) {
                         let nuevoBtn = crearBotonClon(canal, canal.nombreOriginal);
-                        
-                        // Añadimos el nuevo botón al final de los que ya haya
                         celdaCanales.appendChild(document.createTextNode(" "));
                         celdaCanales.appendChild(nuevoBtn);
-                        
                         urlsExistentes.push(canal.url);
                         fila.setAttribute('data-has-links', 'true');
                     }
@@ -1228,10 +1244,9 @@
             }
         }
 
-        // Ejecutar funciones al cargar la web
         document.addEventListener("DOMContentLoaded", function() {
-            autoEnlazarCanales(); // Magia inteligente primero
-            filtrarTodo();        // Y luego filtramos
+            autoEnlazarCanales(); 
+            filtrarTodo();        
         });
     </script>
 
