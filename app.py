@@ -109,100 +109,83 @@ def extraer_canales_m3u(url_m3u):
         print(f"Error cargando lista M3U externa: {e}")
     return canales_lista, dict_m3u
 
-def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos):
+def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificado):
     html_resultado = ""
     
-    def simplificar_canal(texto):
-        texto = texto.lower().strip()
-        texto = re.sub(r'\(.*?\)', '', texto)
-        texto = texto.replace("m+", "movistar").replace("m. ", "movistar ")
-        texto = texto.replace("la liga", "laliga").replace("la 1", "la1").replace("la 2", "la2")
-        texto = re.sub(r'\b(hd|sd|1080p|720p|4k|1080|720)\b', '', texto)
-        texto = re.sub(r'[\-\[\]\*\_\|\+\(\)\.\,\/\:\?\#\§]', ' ', texto)
-        palabras = texto.split()
+    # NUEVO MOTOR ESTRICTO: Calco de la función en JS para que no cruce canales
+    def son_canales_equivalentes(orig_abajo, orig_arriba):
+        txt_a = str(orig_abajo).lower()
+        txt_b = str(orig_arriba).lower()
+
+        # 1. Bloqueo DAZN vs Movistar
+        if ('dazn' in txt_a) != ('dazn' in txt_b): return False
         
-        stopwords_ruido = {'tv', 'orange', 'vodafone', 'cat', 'de', 'la', 'el', 'los', 'en', 'y', 'plus', 'dial', 'channel', 'tve', 'play', 'rtve'}
-        palabras_limpias = [w for w in palabras if w not in stopwords_ruido]
-        
-        if "dazn" in palabras_limpias and "mundial" in palabras_limpias:
-            if not any(w.isdigit() for w in palabras_limpias):
-                palabras_limpias.append("1")
-                
-        letras = [w for w in palabras_limpias if not w.isdigit()]
-        digitos = [w for w in palabras_limpias if w.isdigit()]
-        return set(letras), set(digitos)
+        # 2. Bloqueo Hipermotion
+        es_hyper_a = 'hipermotion' in txt_a or 'hypermotion' in txt_a
+        es_hyper_b = 'hipermotion' in txt_b or 'hypermotion' in txt_b
+        if es_hyper_a != es_hyper_b: return False
+
+        # 3. Bloqueo numérico exacto (2 al 9)
+        for i in range(2, 10):
+            regex = r'\b' + str(i) + r'\b'
+            if bool(re.search(regex, txt_a)) != bool(re.search(regex, txt_b)):
+                return False
+
+        # 4. Limpieza final para comparar nombres bases
+        limpio_a = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_a)
+        limpio_a = re.sub(r'[^a-z0-9]', '', limpio_a)
+        limpio_b = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_b)
+        limpio_b = re.sub(r'[^a-z0-9]', '', limpio_b)
+
+        if len(limpio_a) < 3 or len(limpio_b) < 3: return False
+        if limpio_a in limpio_b or limpio_b in limpio_a: return True
+
+        # Sinónimos clásicos de Movistar
+        if ('laliga' in limpio_a or 'movistarlaliga' in limpio_a) and ('laliga' in limpio_b or 'laligatv' in limpio_b):
+            return True
+        if 'campeones' in limpio_a and 'campeones' in limpio_b: return True
+        if 'vamos' in limpio_a and 'vamos' in limpio_b: return True
+
+        return False
 
     for canal in canales_evento:
         canal_limpio = canal.strip()
-        canal_norm = normalizar_cadena(canal_limpio)
         matches_encontrados = []
+        urls_agregadas = set()
 
-        # 1. BUSCAR EN M3U DINÁMICO
-        for nombre_m3u, datos_m3u in dict_m3u_directos.items():
-            m3u_norm = normalizar_cadena(nombre_m3u)
-            if m3u_norm in canal_norm or canal_norm in m3u_norm:
+        # 1. BUSCAR EN M3U Y OTROS CANALES UNIFICADOS
+        for nombre_m3u, datos_m3u in dict_m3u_unificado.items():
+            if son_canales_equivalentes(nombre_m3u, canal_limpio):
                 url_m3u = datos_m3u['url']
-                logo_m3u = datos_m3u['logo']
-                
-                if logo_m3u:
-                    icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'🔸\'">'
-                else:
-                    icono_html = "🔸"
-                
-                url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(canal_limpio)}"
-                matches_encontrados.append(
-                    f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
-                )
-
-        # 2. BUSCAR EN HASHES ACESTREAM
-        web_letras, web_digitos = simplificar_canal(canal_limpio)
-        
-        if web_letras or web_digitos:
-            es_bar = "bar" in canal_limpio.lower() or "bar" in web_letras
-            
-            for enc in lista_enlaces:
-                nombre_json = enc.get('name', '') or enc.get('title', '')
-                logo_ace = enc.get('logo', '')
-                
-                json_letras, json_digitos = simplificar_canal(nombre_json)
-                
-                json_es_bar = "bar" in nombre_json.lower() or "bar" in json_letras
-                if es_bar != json_es_bar:
-                    continue
+                if url_m3u not in urls_agregadas:
+                    logo_m3u = datos_m3u['logo']
+                    icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'🔸\'">' if logo_m3u else "🔸"
+                    url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(nombre_m3u)}"
                     
-                KEYWORDS_CRITICOS = {'laliga', 'campeones', 'f1', 'motogp', 'mundial', 'deportes', 'vamos', 'tennis', 'golf', 'bar', 'la1', 'la2', 'baloncesto'}
-                conflicto_tematico = False
-                for kw in KEYWORDS_CRITICOS:
-                    if (kw in web_letras) != (kw in json_letras):
-                        conflicto_tematico = True
-                        break
-                if conflicto_tematico:
-                    continue
-                    
-                coincide_letras = web_letras.issubset(json_letras) or json_letras.issubset(web_letras)
-                coincide_numeros = (web_digitos == json_digitos)
+                    matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_m3u}">{icono_html} {nombre_m3u}</a>')
+                    urls_agregadas.add(url_m3u)
 
-                if coincide_letras and coincide_numeros:
-                    hash_val = enc.get('id', '') or enc.get('hash', '')
-                    hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
-                    if hash_match:
-                        hash_puro = hash_match.group(1)
-                        icono_char = "🔸" if "**" in nombre_json else "🔹"
+        # 2. BUSCAR EN HASHES ACESTREAM (JSON PRINCIPAL)
+        for enc in lista_enlaces:
+            nombre_json = enc.get('name', '') or enc.get('title', '')
+            if son_canales_equivalentes(nombre_json, canal_limpio):
+                hash_val = enc.get('id', '') or enc.get('hash', '')
+                hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
+                if hash_match:
+                    hash_puro = hash_match.group(1)
+                    if "infohash=" in hash_val.lower():
+                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+                    else:
+                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                         
-                        if logo_ace:
-                            icono_html = f'<img src="{logo_ace}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'{icono_char}\'">'
-                        else:
-                            icono_html = icono_char
-
-                        if "infohash=" in hash_val.lower():
-                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
-                        else:
-                            stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
-                            
+                    if stream_url not in urls_agregadas:
+                        logo_ace = enc.get('logo', '')
+                        icono_char = "🔸" if "**" in nombre_json else "🔹"
+                        icono_html = f'<img src="{logo_ace}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'{icono_char}\'">' if logo_ace else icono_char
                         url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
-                        matches_encontrados.append(
-                            f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>'
-                        )
+                        
+                        matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>')
+                        urls_agregadas.add(stream_url)
         
         if matches_encontrados:
             html_resultado += "".join(sorted(list(set(matches_encontrados))))
@@ -222,7 +205,10 @@ def obtener_datos_completos():
     enlaces = extraer_enlaces(URL_ENLACES)
     eventos = extraer_eventos(URL_EVENTOS)
     canales_m3u, dict_m3u = extraer_canales_m3u(URL_NOACE)
-    otros_canales, _ = extraer_canales_m3u(URL_OTROS_CANALES) # NUEVA LISTA EXTRAÍDA
+    otros_canales, dict_otros = extraer_canales_m3u(URL_OTROS_CANALES) # ¡Solucionado el dict fantasma!
+    
+    # FUSIÓN: Juntamos los directos y los alternativos para que Python los vea todos
+    dict_m3u_unificado = {**dict_m3u, **dict_otros}
     
     destacados = []
     eventos_agrupados = {}
@@ -250,7 +236,8 @@ def obtener_datos_completos():
             except Exception:
                 pass
 
-        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
+        # Le pasamos el diccionario unificado
+        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u_unificado)
         eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
