@@ -1073,22 +1073,18 @@
             }
         }
 
-        // --- 🚀 MOTOR INTELIGENTE ANTI-CONFUSIÓN (VERSIÓN CORREGIDA Y SEGURA) ---
+        // --- 🚀 MOTOR DE ENLAZADO CORREGIDO: FILTRA NÚMEROS E HIPERMOTION ESTRICTAMENTE ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
-            // 1. Recogemos todos los canales de abajo
             document.querySelectorAll('.grid-canales .btn-canal-directo').forEach(btn => {
                 if (!btn.classList.contains('btn-apk')) {
                     let spans = btn.querySelectorAll('span');
                     if (spans.length > 0) {
                         let nombreOriginal = spans[spans.length - 1].textContent.trim();
-                        let nombreNormalizado = nombreOriginal.toLowerCase();
-                        
-                        if (nombreNormalizado.length > 2) {
+                        if (nombreOriginal.length > 2) {
                             canalesDisponibles.push({
                                 nombreOriginal: nombreOriginal,
-                                nombreNormalizado: nombreNormalizado,
                                 url: btn.href,
                                 esM3U8: btn.classList.contains('btn-canal-m3u8')
                             });
@@ -1113,50 +1109,64 @@
                 return nuevoBtn;
             }
 
-            // Función ultra precisa que evita cruzar DAZN con Movistar, IGNORANDO ESPACIOS VACÍOS
-            function sonCanalesEquivalentes(nombreCanalAbajo, textoArriba) {
-                let a = nombreCanalAbajo.replace(/[^a-z0-9]/g, ''); 
-                let b = textoArriba.replace(/[^a-z0-9]/g, '');
+            // FUNCIÓN SUPER ESTRICTA
+            function sonCanalesEquivalentes(origAbajo, origArriba) {
+                let txtA = origAbajo.toLowerCase();
+                let txtB = origArriba.toLowerCase();
 
-                // SEGURIDAD MÁXIMA: Si después de limpiar el texto queda vacío o casi vacío, ignoramos.
-                // Esto es lo que evitaba que el código anterior colapsara al leer espacios en blanco.
-                if (a.length < 3 || b.length < 3) return false; 
+                // 1. Bloqueo DAZN vs Movistar
+                let esDaznA = txtA.includes('dazn');
+                let esDaznB = txtB.includes('dazn');
+                if (esDaznA !== esDaznB) return false;
 
-                let esDaznAbajo = a.includes('dazn');
-                let esDaznArriba = b.includes('dazn');
-                
-                // Si uno es de DAZN y el otro no, se bloquea al instante (evita el cruce total)
-                if (esDaznAbajo !== esDaznArriba) return false;
+                // 2. Bloqueo Hipermotion
+                let esHyperA = txtA.includes('hipermotion') || txtA.includes('hypermotion');
+                let esHyperB = txtB.includes('hipermotion') || txtB.includes('hypermotion');
+                if (esHyperA !== esHyperB) return false;
 
-                // Coincidencia normal
-                if (a.includes(b) || b.includes(a)) return true;
-
-                // Coincidencias específicas para LaLiga de Movistar / M+
-                if ((a.includes('laliga') || a.includes('movistarlaliga')) && (b.includes('laliga') || b.includes('laligatv'))) {
-                    if (!esDaznAbajo && !esDaznArriba) return true;
+                // 3. Bloqueo de canales numerados (ej: LaLiga 2, Deportes 3)
+                // Busca si existe un número suelto (del 2 al 9) en los textos originales
+                for (let i = 2; i <= 9; i++) {
+                    let regexNum = new RegExp('\\b' + i + '\\b');
+                    let tieneNumA = regexNum.test(txtA);
+                    let tieneNumB = regexNum.test(txtB);
+                    
+                    // Si uno tiene "2" y el otro no, descartado instantáneamente.
+                    if (tieneNumA !== tieneNumB) return false;
                 }
-                if (a.includes('campeones') && b.includes('campeones')) return true;
-                if (a.includes('vamos') && b.includes('vamos')) return true;
+
+                // 4. Limpieza final para comparar nombres bases
+                let limpioA = txtA.replace(/1080p?|720p?|4k|fhd|hd/g, '').replace(/[^a-z0-9]/g, '');
+                let limpioB = txtB.replace(/1080p?|720p?|4k|fhd|hd/g, '').replace(/[^a-z0-9]/g, '');
+
+                if (limpioA.length < 3 || limpioB.length < 3) return false;
+                if (limpioA.includes(limpioB) || limpioB.includes(limpioA)) return true;
+
+                // Sinónimos clásicos de Movistar
+                if ((limpioA.includes('laliga') || limpioA.includes('movistarlaliga')) && (limpioB.includes('laliga') || limpioB.includes('laligatv'))) {
+                    return true;
+                }
+                if (limpioA.includes('campeones') && limpioB.includes('campeones')) return true;
+                if (limpioA.includes('vamos') && limpioB.includes('vamos')) return true;
 
                 return false;
             }
 
-            // 2. Analizamos partido a partido
             document.querySelectorAll('.fila-partido').forEach(fila => {
                 let celdaCanales = fila.querySelector('.canales-td');
                 if (!celdaCanales) return;
 
                 let urlsExistentes = Array.from(celdaCanales.querySelectorAll('a')).map(a => a.href);
 
-                // Paso A: Revisar textos grises muertos
+                // Reemplazar textos grises
                 celdaCanales.querySelectorAll('.canal-texto-vacio').forEach(span => {
-                    let textoGris = span.textContent.toLowerCase().trim();
-                    if (textoGris.length > 2) {
-                        let coincidencia = canalesDisponibles.find(c => sonCanalesEquivalentes(c.nombreNormalizado, textoGris));
+                    let textoOriginalArriba = span.textContent.trim();
+                    if (textoOriginalArriba.length > 2) {
+                        let coincidencia = canalesDisponibles.find(c => sonCanalesEquivalentes(c.nombreOriginal, textoOriginalArriba));
 
                         if (coincidencia) {
                             if (!urlsExistentes.includes(coincidencia.url)) {
-                                let nuevoBtn = crearBotonClon(coincidencia, span.textContent.trim());
+                                let nuevoBtn = crearBotonClon(coincidencia, textoOriginalArriba);
                                 span.parentNode.replaceChild(nuevoBtn, span);
                                 urlsExistentes.push(coincidencia.url);
                                 fila.setAttribute('data-has-links', 'true');
@@ -1167,13 +1177,12 @@
                     }
                 });
 
-                // Paso B: Añadir alternativos si el partido ya emite ese canal exacto
+                // Añadir alternativos (sin duplicar urls)
                 canalesDisponibles.forEach(canal => {
                     let yaMencionado = Array.from(celdaCanales.childNodes).some(nodo => {
-                        let txt = nodo.textContent ? nodo.textContent.toLowerCase().trim() : '';
-                        // Verificamos que txt tenga sentido antes de pasarlo a la función
+                        let txt = nodo.textContent ? nodo.textContent.trim() : '';
                         if (txt.length > 2) {
-                            return sonCanalesEquivalentes(canal.nombreNormalizado, txt);
+                            return sonCanalesEquivalentes(canal.nombreOriginal, txt);
                         }
                         return false;
                     });
