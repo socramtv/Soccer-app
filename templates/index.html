@@ -1073,7 +1073,7 @@
             }
         }
 
-        // --- 🚀 MOTOR INTELIGENTE ANTI-CONFUSIÓN (DAZN vs MOVISTAR) ---
+        // --- 🚀 MOTOR ULTRARRÁPIDO Y FLEXIBLE PARA COINCIDENCIAS DE CANALES ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
@@ -1113,24 +1113,17 @@
                 return nuevoBtn;
             }
 
-            // Función ultra precisa que evita cruzar DAZN con Movistar
+            // Función inteligente para detectar si un canal de abajo y uno de arriba son el mismo
             function sonCanalesEquivalentes(nombreCanalAbajo, textoArriba) {
-                let a = nombreCanalAbajo.replace(/[^a-z0-9]/g, ''); 
+                let a = nombreCanalAbajo.replace(/[^a-z0-9]/g, ''); // Limpia espacios y símbolos
                 let b = textoArriba.replace(/[^a-z0-9]/g, '');
 
-                let esDaznAbajo = a.includes('dazn');
-                let esDaznArriba = b.includes('dazn');
-                
-                // Si uno es de DAZN y el otro no, se bloquea al instante (evita el cruce)
-                if (esDaznAbajo !== esDaznArriba) return false;
-
-                // Coincidencia normal
+                // Coincidencia exacta o parcial limpia (ej: "mlaliga" dentro de "mlaligahdrm54o110")
                 if (a.includes(b) || b.includes(a)) return true;
 
-                // Coincidencias específicas para LaLiga de Movistar / M+
+                // Casos especiales comunes de Movistar
                 if ((a.includes('laliga') || a.includes('movistarlaliga')) && (b.includes('laliga') || b.includes('laligatv'))) {
-                    // Asegurar que ninguno sea DAZN
-                    if (!esDaznAbajo && !esDaznArriba) return true;
+                    return true;
                 }
                 if (a.includes('campeones') && b.includes('campeones')) return true;
                 if (a.includes('vamos') && b.includes('vamos')) return true;
@@ -1162,10 +1155,11 @@
                     }
                 });
 
-                // Paso B: Añadir alternativos si el partido ya emite ese canal exacto
+                // Paso B: Añadir alternativos si el partido ya emite ese canal
                 let textoCompletoCelda = celdaCanales.textContent.toLowerCase();
 
                 canalesDisponibles.forEach(canal => {
+                    // Comprobamos si alguno de los textos o botones actuales coincide con nuestro canal
                     let yaMencionado = Array.from(celdaCanales.childNodes).some(nodo => {
                         let txt = nodo.textContent ? nodo.textContent.toLowerCase() : '';
                         return sonCanalesEquivalentes(canal.nombreNormalizado, txt);
@@ -1244,6 +1238,7 @@
             }
         }
 
+        // Ejecutar funciones al cargar la web
         document.addEventListener("DOMContentLoaded", function() {
             autoEnlazarCanales(); 
             filtrarTodo();        
