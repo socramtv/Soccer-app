@@ -119,6 +119,12 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         txt_a = str(orig_abajo).lower()
         txt_b = str(orig_arriba).lower()
 
+        # 0. Bloqueo de Canales Promocionales / Avances
+        es_avances_a = any(x in txt_a for x in ['avances', 'promo', 'trailer', 'preview'])
+        es_avances_b = any(x in txt_b for x in ['avances', 'promo', 'trailer', 'preview'])
+        if es_avances_a != es_avances_b:
+            return False
+
         # 1. Bloqueo DAZN vs Movistar
         if ('dazn' in txt_a) != ('dazn' in txt_b): return False
         
@@ -132,7 +138,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         txt_b_sin_res = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_b)
         
         for i in range(2, 10):
-            # Usamos \D (no-dígito) o inicio/fin de línea para aislar el número, incluso si está pegado a letras.
             regex = r'(?:^|\D)' + str(i) + r'(?:\D|$)'
             tiene_num_a = bool(re.search(regex, txt_a_sin_res))
             tiene_num_b = bool(re.search(regex, txt_b_sin_res))
@@ -145,7 +150,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
 
         if len(limpio_a) < 3 or len(limpio_b) < 3: return False
 
-        # 🔥 PROTECCIÓN MOVISTAR+ GENÉRICO (Evita cruces con tenis/otros)
+        # 🔥 PROTECCIÓN MOVISTAR+ GENÉRICO
         if limpio_b == "movistar" or limpio_b == "movistarplus":
             if "laliga" in limpio_a or "campeones" in limpio_a or "deportes" in limpio_a or "golf" in limpio_a:
                 return False
@@ -153,7 +158,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
                 return True
             return False
 
-        # 🔥 PROTECCIÓN LALIGA TV vs MOVISTAR LALIGA (Evita el cruce del Granada)
+        # 🔥 PROTECCIÓN LALIGA TV vs MOVISTAR LALIGA
         es_laligatv_a = 'laligatv' in limpio_a or 'bar' in limpio_a
         es_laligatv_b = 'laligatv' in limpio_b or 'bar' in limpio_b
         
@@ -166,7 +171,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         # Coincidencia base
         if limpio_a in limpio_b or limpio_b in limpio_a: return True
 
-        # Sinónimos si logran pasar los candados anteriores
+        # Sinónimos si logran pasar los candados
         if ('laliga' in limpio_a or 'movistarlaliga' in limpio_a) and ('laliga' in limpio_b or 'laligatv' in limpio_b):
             return True
         if 'campeones' in limpio_a and 'campeones' in limpio_b: return True
