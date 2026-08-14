@@ -111,7 +111,6 @@ def extraer_canales_m3u(url_m3u):
 
 def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificado):
     html_resultado = ""
-    
     urls_agregadas = set()
     matches_encontrados = []
     textos_vacios = []
@@ -128,32 +127,46 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         es_hyper_b = 'hipermotion' in txt_b or 'hypermotion' in txt_b
         if es_hyper_a != es_hyper_b: return False
 
-        # 3. Bloqueo numérico exacto (2 al 9)
+        # 3. Bloqueo numérico (Caza perfectamente los M2, M3, BAR 2, etc.)
+        txt_a_sin_res = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_a)
+        txt_b_sin_res = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_b)
+        
         for i in range(2, 10):
-            regex = r'\b' + str(i) + r'\b'
-            if bool(re.search(regex, txt_a)) != bool(re.search(regex, txt_b)):
+            # Usamos \D (no-dígito) o inicio/fin de línea para aislar el número, incluso si está pegado a letras.
+            regex = r'(?:^|\D)' + str(i) + r'(?:\D|$)'
+            tiene_num_a = bool(re.search(regex, txt_a_sin_res))
+            tiene_num_b = bool(re.search(regex, txt_b_sin_res))
+            if tiene_num_a != tiene_num_b:
                 return False
 
-        # 4. Limpieza para comparar nombres base
-        limpio_a = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_a)
-        limpio_a = re.sub(r'[^a-z0-9]', '', limpio_a)
-        limpio_b = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_b)
-        limpio_b = re.sub(r'[^a-z0-9]', '', limpio_b)
+        # 4. Limpieza base para textos
+        limpio_a = re.sub(r'[^a-z0-9]', '', txt_a_sin_res)
+        limpio_b = re.sub(r'[^a-z0-9]', '', txt_b_sin_res)
 
         if len(limpio_a) < 3 or len(limpio_b) < 3: return False
 
-        # 🔥 PROTECCIÓN ESPECIAL "MOVISTAR+" (Evita que cuele LaLiga en eventos de tenis/otros)
+        # 🔥 PROTECCIÓN MOVISTAR+ GENÉRICO (Evita cruces con tenis/otros)
         if limpio_b == "movistar" or limpio_b == "movistarplus":
-            # El canal de abajo DEBE ser Movistar Plus genérico, no una variante de LaLiga o Campeones
             if "laliga" in limpio_a or "campeones" in limpio_a or "deportes" in limpio_a or "golf" in limpio_a:
                 return False
             if limpio_a == "movistar" or limpio_a == "movistarplus" or limpio_a == "movistarplus1080":
                 return True
             return False
 
+        # 🔥 PROTECCIÓN LALIGA TV vs MOVISTAR LALIGA (Evita el cruce del Granada)
+        es_laligatv_a = 'laligatv' in limpio_a or 'bar' in limpio_a
+        es_laligatv_b = 'laligatv' in limpio_b or 'bar' in limpio_b
+        
+        es_movistarlaliga_a = 'movistarlaliga' in limpio_a or 'mlaliga' in limpio_a
+        es_movistarlaliga_b = 'movistarlaliga' in limpio_b or 'mlaliga' in limpio_b
+        
+        if (es_laligatv_a and es_movistarlaliga_b) or (es_laligatv_b and es_movistarlaliga_a):
+            return False
+
+        # Coincidencia base
         if limpio_a in limpio_b or limpio_b in limpio_a: return True
 
-        # Sinónimos clásicos de Movistar
+        # Sinónimos si logran pasar los candados anteriores
         if ('laliga' in limpio_a or 'movistarlaliga' in limpio_a) and ('laliga' in limpio_b or 'laligatv' in limpio_b):
             return True
         if 'campeones' in limpio_a and 'campeones' in limpio_b: return True
@@ -165,7 +178,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         canal_limpio = canal.strip()
         encontro_algo = False
 
-        # 1. BUSCAR EN M3U Y OTROS CANALES UNIFICADOS
         for nombre_m3u, datos_m3u in dict_m3u_unificado.items():
             if son_canales_equivalentes(nombre_m3u, canal_limpio):
                 encontro_algo = True
@@ -178,7 +190,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
                     matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_m3u}">{icono_html} {nombre_m3u}</a>')
                     urls_agregadas.add(url_m3u)
 
-        # 2. BUSCAR EN HASHES ACESTREAM (JSON PRINCIPAL)
         for enc in lista_enlaces:
             nombre_json = enc.get('name', '') or enc.get('title', '')
             if son_canales_equivalentes(nombre_json, canal_limpio):
@@ -284,9 +295,8 @@ def obtener_datos_completos():
         'canales_directos_m3u8': canales_m3u,
         'otros_canales': otros_canales
     }
-    ultimo_scraping = ahorar = ahora
+    ultimo_scraping = ahora
     return cache_datos
-
 
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
@@ -329,7 +339,6 @@ def descargar_lista_m3u():
     nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
     respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
-
 
 @app.route('/')
 def home():
