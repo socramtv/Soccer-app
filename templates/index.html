@@ -1073,7 +1073,7 @@
             }
         }
 
-        // --- 🚀 MOTOR DE ENLAZADO CORREGIDO: FILTRA NÚMEROS E HIPERMOTION ESTRICTAMENTE ---
+        // --- 🚀 MOTOR DE ENLAZADO CORREGIDO: FILTRA NÚMEROS, HIPERMOTION, MOVISTAR+ Y LALIGA TV ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
@@ -1109,43 +1109,50 @@
                 return nuevoBtn;
             }
 
-            // FUNCIÓN SUPER ESTRICTA
             function sonCanalesEquivalentes(origAbajo, origArriba) {
                 let txtA = origAbajo.toLowerCase();
                 let txtB = origArriba.toLowerCase();
 
-                // 1. Bloqueo DAZN vs Movistar
-                let esDaznA = txtA.includes('dazn');
-                let esDaznB = txtB.includes('dazn');
-                if (esDaznA !== esDaznB) return false;
-
-                // 2. Bloqueo Hipermotion
+                if (txtA.includes('dazn') !== txtB.includes('dazn')) return false;
+                
                 let esHyperA = txtA.includes('hipermotion') || txtA.includes('hypermotion');
                 let esHyperB = txtB.includes('hipermotion') || txtB.includes('hypermotion');
                 if (esHyperA !== esHyperB) return false;
 
-                // 3. Bloqueo de canales numerados (ej: LaLiga 2, Deportes 3)
-                // Busca si existe un número suelto (del 2 al 9) en los textos originales
+                let txtASinRes = txtA.replace(/1080p?|720p?|4k|fhd|hd/g, '');
+                let txtBSinRes = txtB.replace(/1080p?|720p?|4k|fhd|hd/g, '');
+
                 for (let i = 2; i <= 9; i++) {
-                    let regexNum = new RegExp('\\b' + i + '\\b');
-                    let tieneNumA = regexNum.test(txtA);
-                    let tieneNumB = regexNum.test(txtB);
-                    
-                    // Si uno tiene "2" y el otro no, descartado instantáneamente.
+                    let regexSafe = new RegExp(`(?:^|\\D)${i}(?:\\D|$)`);
+                    let tieneNumA = regexSafe.test(txtASinRes);
+                    let tieneNumB = regexSafe.test(txtBSinRes);
                     if (tieneNumA !== tieneNumB) return false;
                 }
 
-                // 4. Limpieza final para comparar nombres bases
-                let limpioA = txtA.replace(/1080p?|720p?|4k|fhd|hd/g, '').replace(/[^a-z0-9]/g, '');
-                let limpioB = txtB.replace(/1080p?|720p?|4k|fhd|hd/g, '').replace(/[^a-z0-9]/g, '');
+                let limpioA = txtASinRes.replace(/[^a-z0-9]/g, '');
+                let limpioB = txtBSinRes.replace(/[^a-z0-9]/g, '');
 
                 if (limpioA.length < 3 || limpioB.length < 3) return false;
+
+                // Bloqueo Movistar+ genérico
+                if (limpioB === "movistar" || limpioB === "movistarplus") {
+                    if (limpioA.includes("laliga") || limpioA.includes("campeones") || limpioA.includes("deportes") || limpioA.includes("golf")) return false;
+                    if (limpioA === "movistar" || limpioA === "movistarplus" || limpioA === "movistarplus1080") return true;
+                    return false;
+                }
+
+                // Bloqueo estricto: LaLiga TV (Bar/M2) vs Movistar LaLiga
+                let esLaLigaTvA = limpioA.includes('laligatv') || limpioA.includes('bar');
+                let esLaLigaTvB = limpioB.includes('laligatv') || limpioB.includes('bar');
+                
+                let esMovLaLigaA = limpioA.includes('movistarlaliga') || limpioA.includes('mlaliga');
+                let esMovLaLigaB = limpioB.includes('movistarlaliga') || limpioB.includes('mlaliga');
+                
+                if ((esLaLigaTvA && esMovLaLigaB) || (esLaLigaTvB && esMovLaLigaA)) return false;
+
                 if (limpioA.includes(limpioB) || limpioB.includes(limpioA)) return true;
 
-                // Sinónimos clásicos de Movistar
-                if ((limpioA.includes('laliga') || limpioA.includes('movistarlaliga')) && (limpioB.includes('laliga') || limpioB.includes('laligatv'))) {
-                    return true;
-                }
+                if ((limpioA.includes('laliga') || limpioA.includes('movistarlaliga')) && (limpioB.includes('laliga') || limpioB.includes('laligatv'))) return true;
                 if (limpioA.includes('campeones') && limpioB.includes('campeones')) return true;
                 if (limpioA.includes('vamos') && limpioB.includes('vamos')) return true;
 
