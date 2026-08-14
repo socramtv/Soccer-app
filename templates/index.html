@@ -1073,7 +1073,7 @@
             }
         }
 
-        // --- 🚀 MOTOR DE ENLAZADO CORREGIDO: FILTRA NÚMEROS, HIPERMOTION, MOVISTAR+ Y LALIGA TV ---
+        // --- 🚀 MOTOR DE ENLAZADO CORREGIDO DEFINITIVO ---
         function autoEnlazarCanales() {
             let canalesDisponibles = [];
             
@@ -1113,12 +1113,20 @@
                 let txtA = origAbajo.toLowerCase();
                 let txtB = origArriba.toLowerCase();
 
+                // 0. Bloqueo de canales Promocionales / Avances
+                let esAvancesA = txtA.includes('avances') || txtA.includes('promo') || txtA.includes('trailer') || txtA.includes('preview');
+                let esAvancesB = txtB.includes('avances') || txtB.includes('promo') || txtB.includes('trailer') || txtB.includes('preview');
+                if (esAvancesA !== esAvancesB) return false;
+
+                // 1. Bloqueo DAZN vs Movistar
                 if (txtA.includes('dazn') !== txtB.includes('dazn')) return false;
                 
+                // 2. Bloqueo Hipermotion
                 let esHyperA = txtA.includes('hipermotion') || txtA.includes('hypermotion');
                 let esHyperB = txtB.includes('hipermotion') || txtB.includes('hypermotion');
                 if (esHyperA !== esHyperB) return false;
 
+                // 3. Bloqueo de números exactos
                 let txtASinRes = txtA.replace(/1080p?|720p?|4k|fhd|hd/g, '');
                 let txtBSinRes = txtB.replace(/1080p?|720p?|4k|fhd|hd/g, '');
 
@@ -1129,19 +1137,20 @@
                     if (tieneNumA !== tieneNumB) return false;
                 }
 
+                // 4. Limpieza base para textos
                 let limpioA = txtASinRes.replace(/[^a-z0-9]/g, '');
                 let limpioB = txtBSinRes.replace(/[^a-z0-9]/g, '');
 
                 if (limpioA.length < 3 || limpioB.length < 3) return false;
 
-                // Bloqueo Movistar+ genérico
+                // 5. Bloqueo Movistar+ genérico
                 if (limpioB === "movistar" || limpioB === "movistarplus") {
                     if (limpioA.includes("laliga") || limpioA.includes("campeones") || limpioA.includes("deportes") || limpioA.includes("golf")) return false;
                     if (limpioA === "movistar" || limpioA === "movistarplus" || limpioA === "movistarplus1080") return true;
                     return false;
                 }
 
-                // Bloqueo estricto: LaLiga TV (Bar/M2) vs Movistar LaLiga
+                // 6. Bloqueo estricto: LaLiga TV (Bar/M2) vs Movistar LaLiga
                 let esLaLigaTvA = limpioA.includes('laligatv') || limpioA.includes('bar');
                 let esLaLigaTvB = limpioB.includes('laligatv') || limpioB.includes('bar');
                 
@@ -1150,8 +1159,10 @@
                 
                 if ((esLaLigaTvA && esMovLaLigaB) || (esLaLigaTvB && esMovLaLigaA)) return false;
 
+                // Coincidencia base
                 if (limpioA.includes(limpioB) || limpioB.includes(limpioA)) return true;
 
+                // Sinónimos clásicos
                 if ((limpioA.includes('laliga') || limpioA.includes('movistarlaliga')) && (limpioB.includes('laliga') || limpioB.includes('laligatv'))) return true;
                 if (limpioA.includes('campeones') && limpioB.includes('campeones')) return true;
                 if (limpioA.includes('vamos') && limpioB.includes('vamos')) return true;
