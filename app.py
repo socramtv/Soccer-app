@@ -4,6 +4,7 @@ import urllib.parse
 import requests
 import threading
 import asyncio
+import os
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, request
@@ -11,7 +12,7 @@ from flask import Flask, render_template, redirect, url_for, request
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
-# Intentamos importar el bot de Telegram
+# --- IMPORTACIÓN DEL BOT DE TELEGRAM ---
 try:
     from telegram import Update
     from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -318,35 +319,30 @@ def obtener_datos_completos():
 
 
 # ==========================================
-# 🤖 FUNCIONES DEL BOT DE TELEGRAM 
+# 🤖 BOT DE TELEGRAM INTEGRADO (CON TU TOKEN)
 # ==========================================
 if TELEGRAM_DISPONIBLE:
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("⚽ ¡Hola Marco! El sistema Sσcяαм Tν está activo.\n\nEscribe /agenda para ver los eventos de hoy.")
+        await update.message.reply_text("⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\nEscribe /agenda para consultar los partidos.")
 
     async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        # Avisamos de que estamos cargando datos
-        msj_temp = await update.message.reply_text("⏳ Procesando canales y agenda... un momento.")
-        
+        msj_temp = await update.message.reply_text("⏳ Consultando cartelera...")
         try:
             datos = obtener_datos_completos()
-            
             fechas_disponibles = list(datos['eventos_agrupados'].keys())
             if not fechas_disponibles:
-                await msj_temp.edit_text("❌ No hay eventos en la cartelera ahora mismo.")
+                await msj_temp.edit_text("❌ No hay eventos disponibles ahora mismo.")
                 return
 
-            # Cogemos solo el primer día (normalmente 'Hoy')
             fecha_hoy = fechas_disponibles[0]
             partidos = datos['eventos_agrupados'][fecha_hoy]
             
             mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
-            
             contador = 0
+            
             for ev in partidos:
-                if contador >= 25: 
-                    # Límite para que Telegram no rechace el mensaje por ser infinito
-                    mensaje += "\n_(Y bastantes más eventos en la web...)_"
+                if contador >= 25:
+                    mensaje += "\n_(Y más eventos disponibles en la web...)_"
                     break
                 
                 local = ev.get('equipo_local', '')
@@ -355,39 +351,27 @@ if TELEGRAM_DISPONIBLE:
                 hora = ev.get('hora', '')
                 liga = ev.get('liga', '')
                 
-                # Indicador visual simple para saber si hay enlace en la web
                 tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
-                
                 mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
                 contador += 1
                 
             await msj_temp.edit_text(mensaje, parse_mode='Markdown')
-            
         except Exception as e:
-            await msj_temp.edit_text(f"⚠️ Hubo un error sacando la agenda: {e}")
+            await msj_temp.edit_text(f"⚠️ Error al obtener la agenda: {e}")
 
     def iniciar_bot_telegram():
         try:
-            # CREAMOS UN HILO ASÍNCRONO SEPARADO DEL FLASK (VITAL)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            
             application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-            
             application.add_handler(CommandHandler("start", cmd_start))
             application.add_handler(CommandHandler("agenda", cmd_agenda))
-            
-            print("🤖 Bot de Telegram arrancado en segundo plano...")
-            # drop_pending_updates evita que el bot lea mensajes viejos si se apaga y enciende
-            application.run_polling(drop_pending_updates=True)
-            
+            print("🤖 Bot de Telegram enlazado correctamente...")
+            application.run_polling(drop_pending_updates=True, stop_signals=())
         except Exception as e:
-            print(f"Error al arrancar el bot de Telegram: {e}")
+            print(f"Error en hilo del bot de Telegram: {e}")
 
 
-# ==========================================
-# RUTAS DE FLASK (LA WEB)
-# ==========================================
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
@@ -398,7 +382,7 @@ def descargar_lista_m3u():
     ahora_esp = datetime.now(TIMEZONE_ES)
     ahora_str = ahora_esp.strftime("%d/%m/%Y %H:%M")
     logo_update = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/update.png"
-    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo_update}" group-logo="{logo_update}" tvg-group-logo="{logo_update}" group-art="{logo_update}" group-title="Actualizada",{ahora_str}\n'
+    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo_update}" group-logo="{logo_update}" group-tag="{logo_update}" group-title="Actualizada",{ahora_str}\n'
     m3u_texto += 'http://update.local\n'
     
     for fecha, eventos in datos['eventos_agrupados'].items():
@@ -421,7 +405,7 @@ def descargar_lista_m3u():
                     url_real = urllib.parse.unquote(url_codificada)
                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                     
-                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" tvg-group-logo="{logo}" group-art="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
+                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" group-tag="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
                     m3u_texto += f'{url_real}\n'
                     
     respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
@@ -429,6 +413,7 @@ def descargar_lista_m3u():
     nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
     respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
+
 
 @app.route('/')
 def home():
@@ -478,12 +463,14 @@ def recargar():
     ultimo_scraping = 0
     return redirect(url_for('home'))
 
+
 if __name__ == '__main__':
-    # 1. Arrancamos el bot en un hilo demonio antes que la web
+    # Arrancamos el hilo del bot de Telegram en segundo plano de forma segura
     if TELEGRAM_DISPONIBLE:
-        hilo_bot = threading.Thread(target=iniciar_bot_telegram, daemon=True)
-        hilo_bot.start()
-        
-    # 2. Arrancamos Flask. IMPORTANTE: use_reloader=False es obligatorio 
-    # para que Flask no intente crear dos bots a la vez y colapsar tu servidor.
+        if not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+            hilo_bot = threading.Thread(target=iniciar_bot_telegram, daemon=True)
+            hilo_bot.start()
+            
     app.run(debug=True, port=5000, use_reloader=False)
+
+
