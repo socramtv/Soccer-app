@@ -2,7 +2,6 @@ import re
 import time
 import urllib.parse
 import requests
-import threading
 import asyncio
 import os
 from zoneinfo import ZoneInfo
@@ -12,10 +11,10 @@ from flask import Flask, render_template, redirect, url_for, request
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
-# --- IMPORTACIÓN DEL BOT DE TELEGRAM ---
+# --- IMPORTACIÓN Y CONFIGURACIÓN DEL BOT DE TELEGRAM (WEBHOOK) ---
 try:
     from telegram import Update
-    from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+    from telegram.ext import Application, CommandHandler, ContextTypes
     TELEGRAM_DISPONIBLE = True
 except ImportError:
     TELEGRAM_DISPONIBLE = False
@@ -33,6 +32,67 @@ URL_OTROS_CANALES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/
 
 # Token de tu Bot de Telegram
 TELEGRAM_TOKEN = '8948215840:AAHCbocnBx2Wk4Nq9vPnMrq49V2FHZyO94g'
+
+# Inicializamos la aplicación de Telegram para Webhook de forma persistente
+if TELEGRAM_DISPONIBLE:
+    application = Application.builder().token(TELEGRAM_TOKEN).updater(None).build()
+
+    async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo por Webhook.\n\nEscribe /agenda para consultar los partidos.")
+
+    async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        msg = await update.message.reply_text("⏳ Consultando cartelera...")
+        try:
+            datos = obtener_datos_completos()
+            fechas_disponibles = list(datos['eventos_agrupados'].keys())
+            if not fechas_disponibles:
+                await msg.edit_text("❌ No hay eventos disponibles ahora mismo.")
+                return
+
+            fecha_hoy = fechas_disponibles[0]
+            partidos = datos['eventos_agrupados'][fecha_hoy]
+            
+            mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
+            contador = 0
+            
+            for ev in partidos:
+                if contador >= 25:
+                    mensaje += "\n_(Y más eventos disponibles en la web...)_"
+                    break
+                
+                local = ev.get('equipo_local', '')
+                visit = ev.get('equipo_visitante', '')
+                partido_txt = f"{local} vs {visit}" if visit else local
+                hora = ev.get('hora', '')
+                liga = ev.get('liga', '')
+                
+                tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
+                mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
+                contador += 1
+                
+            await msg.edit_text(mensaje, parse_mode='Markdown')
+        except Exception as e:
+            await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
+
+    application.add_handler(CommandHandler("start", cmd_start))
+    application.add_handler(CommandHandler("agenda", cmd_agenda))
+
+    # Inicialización única del bot al arrancar el servidor
+    loop_inicial = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop_inicial)
+    
+    async def inicializar_sistema_bot():
+        await application.initialize()
+        render_url = os.environ.get("RENDER_EXTERNAL_URL")
+        if render_url:
+            webhook_url = f"{render_url}/webhook/{TELEGRAM_TOKEN}"
+            await application.bot.set_webhook(url=webhook_url)
+            print(f"🔗 Webhook configurado correctamente en: {webhook_url}")
+
+    try:
+        loop_inicial.run_until_complete(inicializar_sistema_bot())
+    except Exception as e:
+        print(f"Aviso al iniciar webhook: {e}")
 
 # Sistema de Caché Unificado (30 minutos)
 cache_datos = None
@@ -147,7 +207,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         es_hyper_b = 'hipermotion' in txt_b or 'hypermotion' in txt_b
         if es_hyper_a != es_hyper_b: return False
 
-        # 3. Bloqueo numérico
+        # 3. Bloqueo numérico (Caza perfectamente los M2, M3, BAR 2, etc.)
         txt_a_sin_res = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_a)
         txt_b_sin_res = re.sub(r'1080p?|720p?|4k|fhd|hd', '', txt_b)
         
@@ -185,7 +245,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
         # Coincidencia base
         if limpio_a in limpio_b or limpio_b in limpio_a: return True
 
-        # Sinónimos
+        # Sinónimos si logran pasar los candados
         if ('laliga' in limpio_a or 'movistarlaliga' in limpio_a) and ('laliga' in limpio_b or 'laligatv' in limpio_b):
             return True
         if 'campeones' in limpio_a and 'campeones' in limpio_b: return True
@@ -314,62 +374,27 @@ def obtener_datos_completos():
         'canales_directos_m3u8': canales_m3u,
         'otros_canales': otros_canales
     }
-    ultimo_scraping = ahorasino = ahora
+    ultimo_scraping = ahora
     return cache_datos
 
 
 # ==========================================
-# 🤖 BOT DE TELEGRAM (POLLING ESTABLE)
+# RUTA WEBHOOK DE TELEGRAM
 # ==========================================
-if TELEGRAM_DISPONIBLE:
-    async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\nEscribe /agenda para consultar los partidos.")
-
-    async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        msj_temp = await update.message.reply_text("⏳ Consultando cartelera...")
+@app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
+def webhook():
+    if TELEGRAM_DISPONIBLE:
+        json_data = request.get_json(force=True)
+        update = Update.de_json(json_data, application.bot)
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
-            datos = obtener_datos_completos()
-            fechas_disponibles = list(datos['eventos_agrupados'].keys())
-            if not fechas_disponibles:
-                await msj_temp.edit_text("❌ No hay eventos disponibles ahora mismo.")
-                return
-
-            fecha_hoy = fechas_disponibles[0]
-            partidos = datos['eventos_agrupados'][fecha_hoy]
+            loop.run_until_complete(application.process_update(update))
+        finally:
+            loop.close()
             
-            mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
-            contador = 0
-            
-            for ev in partidos:
-                if contador >= 25:
-                    mensaje += "\n_(Y más eventos disponibles en la web...)_"
-                    break
-                
-                local = ev.get('equipo_local', '')
-                visit = ev.get('equipo_visitante', '')
-                partido_txt = f"{local} vs {visit}" if visit else local
-                hora = ev.get('hora', '')
-                liga = ev.get('liga', '')
-                
-                tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
-                mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
-                contador += 1
-                
-            await msj_temp.edit_text(mensaje, parse_mode='Markdown')
-        except Exception as e:
-            await msj_temp.edit_text(f"⚠️ Error al obtener la agenda: {e}")
-
-    def iniciar_bot_telegram():
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-            application.add_handler(CommandHandler("start", cmd_start))
-            application.add_handler(CommandHandler("agenda", cmd_agenda))
-            print("🤖 Bot de Telegram enlazado correctamente...")
-            application.run_polling(drop_pending_updates=True, stop_signals=())
-        except Exception as e:
-            print(f"Error en hilo del bot de Telegram: {e}")
+    return 'OK', 200
 
 
 # ==========================================
@@ -432,7 +457,7 @@ def home():
             if "infohash=" in hash_val.lower():
                 stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
             else:
-                stream_url = f"http127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}" if False else f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
                 
             nombre_c = c.get('name', '') or c.get('title', '')
             logo_c = c.get('logo', '')
@@ -467,9 +492,4 @@ def recargar():
 
 
 if __name__ == '__main__':
-    if TELEGRAM_DISPONIBLE:
-        if not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-            hilo_bot = threading.Thread(target=iniciar_bot_telegram, daemon=True)
-            hilo_bot.start()
-            
     app.run(debug=True, port=5000)
