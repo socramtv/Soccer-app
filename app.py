@@ -420,22 +420,28 @@ def obtener_datos_completos():
 
 
 # ==========================================
-# RUTA WEBHOOK DE TELEGRAM
+# RUTA WEBHOOK DE TELEGRAM (CORREGIDA Y PERSISTENTE)
 # ==========================================
 @app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
 def webhook():
     if TELEGRAM_DISPONIBLE:
-        json_data = request.get_json(force=True)
-        update = Update.de_json(json_data, application.bot)
+        data = request.get_json(force=True)
+        update = Update.de_json(data, application.bot)
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
         try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+        if loop.is_running():
+            # Si el bucle ya está corriendo, programamos la tarea
+            asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
+        else:
             loop.run_until_complete(application.process_update(update))
-        finally:
-            loop.close()
             
     return 'OK', 200
+
 
 
 # ==========================================
