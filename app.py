@@ -38,10 +38,28 @@ if TELEGRAM_DISPONIBLE:
     application = Application.builder().token(TELEGRAM_TOKEN).updater(None).build()
 
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo por Webhook.\n\nEscribe /agenda para consultar los partidos.")
+        await update.message.reply_text(
+            "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
+            "Comandos disponibles:\n"
+            "/agenda - Ver partidos de hoy y sus enlaces\n"
+            "/m3u - Descargar lista M3U completa"
+        )
+
+    async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
+        url_lista = f"{render_url}/lista.m3u"
+        
+        teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U", url=url_lista)]]
+        reply_markup = InlineKeyboardMarkup(teclado)
+        
+        await update.message.reply_text(
+            "📁 *Tu lista M3U unificada está lista para descargar o usar en tus apps:*",
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )
 
     async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        msg = await update.message.reply_text("⏳ Consultando cartelera...")
+        msg = await update.message.reply_text("⏳ Consultando cartelera y enlaces...")
         try:
             datos = obtener_datos_completos()
             fechas_disponibles = list(datos['eventos_agrupados'].keys())
@@ -52,11 +70,13 @@ if TELEGRAM_DISPONIBLE:
             fecha_hoy = fechas_disponibles[0]
             partidos = datos['eventos_agrupados'][fecha_hoy]
             
+            render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
+            
             mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
             contador = 0
             
             for ev in partidos:
-                if contador >= 25:
+                if contador >= 15: # Límite para no saturar el chat de Telegram
                     mensaje += "\n_(Y más eventos disponibles en la web...)_"
                     break
                 
@@ -68,14 +88,34 @@ if TELEGRAM_DISPONIBLE:
                 
                 tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
                 mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
-                contador += 1
                 
-            await msg.edit_text(mensaje, parse_mode='Markdown')
+                # Si tiene canales enlazados, sacamos los enlaces web del reproductor
+                canales_html = ev.get('canales_html', '')
+                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                
+                if enlaces:
+                    mensaje.endswith("") # separador
+                    for url_codificada, contenido in enlaces:
+                        url_real = urllib.parse.unquote(url_codificada)
+                        nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                        mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                else:
+                    mensaje += f"   └ _Sin enlaces activos_\n"
+                
+                mensaje += "\n"
+                contador += 1
+            
+            # Botón directo para descargar la lista M3U al final de la agenda
+            teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+            reply_markup = InlineKeyboardMarkup(teclado)
+                
+            await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
         except Exception as e:
             await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
 
     application.add_handler(CommandHandler("start", cmd_start))
     application.add_handler(CommandHandler("agenda", cmd_agenda))
+    application.add_handler(CommandHandler("m3u", cmd_m3u))
 
     # Inicialización única del bot al arrancar el servidor
     loop_inicial = asyncio.new_event_loop()
@@ -93,6 +133,7 @@ if TELEGRAM_DISPONIBLE:
         loop_inicial.run_until_complete(inicializar_sistema_bot())
     except Exception as e:
         print(f"Aviso al iniciar webhook: {e}")
+
 
 # Sistema de Caché Unificado (30 minutos)
 cache_datos = None
