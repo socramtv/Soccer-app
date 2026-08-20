@@ -130,7 +130,9 @@ if TELEGRAM_DISPONIBLE:
         hilo_bot.start()
 
 
-# Sistema de Caché Unificado (30 minutos)
+# ==========================================
+# SISTEMA DE CACHÉ Y LÓGICA DE SCRAPING
+# ==========================================
 cache_datos = None
 ultimo_scraping = 0
 CACHE_EXPIRACION = 1800
@@ -261,7 +263,7 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     f'<a href="{url_reproductor}" class="btn-canal" title="{canal_limpio}">{icono_html} {canal_limpio}</a>'
                 )
 
-        # 2. BUSCAR EN HASHES ACESTREAM (Leyendo correctamente la clave 'logo' e infohash/id)
+        # 2. BUSCAR EN HASHES ACESTREAM
         web_letras, web_digitos = simplificar_canal(canal_limpio)
         
         if web_letras or web_digitos:
@@ -295,7 +297,6 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_directos
                     if hash_match:
                         hash_puro = hash_match.group(1)
                         
-                        # DETECCIÓN INTELIGENTE DE ID vs INFOHASH
                         if "infohash=" in hash_val.lower():
                             stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
                         else:
@@ -338,7 +339,6 @@ def obtener_datos_completos():
     for i in range(len(eventos)):
         eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u)
         
-        # ASIGNAR LOGO DE DEPORTE (AHORA ANALIZA EL EVENTO COMPLETO)
         eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
         
         if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
@@ -351,17 +351,14 @@ def obtener_datos_completos():
         if not eventos[i].get('logo_visitante'):
             eventos[i]['logo_visitante'] = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/></svg>"
 
-        # MARCAR SI TIENE ENLACE ACTIVO
         eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
 
-        # DETECTAR SI ES PARTIDO DEL SEVILLA O DEL BETIS
         nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
         nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
         
         if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
             destacados.append(eventos[i])
 
-        # Agrupación cronológica por Día
         fecha = eventos[i].get('fecha', 'Hoy').strip()
         if fecha not in eventos_agrupados:
             eventos_agrupados[fecha] = []
@@ -443,7 +440,6 @@ def home():
         if hash_match:
             hash_puro = hash_match.group(1)
             
-            # DETECCIÓN INTELIGENTE DE ID vs INFOHASH EN EL BOTÓN DIRECTO
             if "infohash=" in hash_val.lower():
                 stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
             else:
@@ -481,3 +477,5 @@ def recargar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+# --- FIN DEL ARCHIVO app.py ---
