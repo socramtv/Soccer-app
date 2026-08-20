@@ -4,7 +4,6 @@ import urllib.parse
 import requests
 import asyncio
 import os
-import threading
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, request
@@ -12,10 +11,10 @@ from flask import Flask, render_template, redirect, url_for, request
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
-# --- IMPORTACIÓN CORRECTA DE TELEGRAM Y SUS BOTONES ---
+# --- IMPORTACIÓN CORRECTA DE TELEGRAM Y BOTONES ---
 try:
     from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-    from telegram.ext import Application, CommandHandler, ContextTypes
+    from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
     TELEGRAM_DISPONIBLE = True
 except ImportError:
     TELEGRAM_DISPONIBLE = False
@@ -33,106 +32,6 @@ URL_OTROS_CANALES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/
 
 # Token de tu Bot de Telegram
 TELEGRAM_TOKEN = '8948215840:AAHCbocnBx2Wk4Nq9vPnMrq49V2FHZyO94g'
-
-# ==========================================
-# 🤖 CONFIGURACIÓN GLOBAL DEL BOT DE TELEGRAM
-# ==========================================
-if TELEGRAM_DISPONIBLE:
-    application = Application.builder().token(TELEGRAM_TOKEN).updater(None).build()
-    bot_loop = asyncio.new_event_loop()
-
-    async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text(
-            "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
-            "Comandos disponibles:\n"
-            "/agenda - Ver partidos de hoy y sus enlaces\n"
-            "/m3u - Descargar lista M3U completa"
-        )
-
-    async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-        url_lista = f"{render_url}/lista.m3u"
-        
-        teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U", url=url_lista)]]
-        reply_markup = InlineKeyboardMarkup(teclado)
-        
-        await update.message.reply_text(
-            "📁 *Tu lista M3U unificada está lista para descargar o usar en tus apps:*",
-            parse_mode='Markdown',
-            reply_markup=reply_markup
-        )
-
-    async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        msg = await update.message.reply_text("⏳ Consultando cartelera y enlaces...")
-        try:
-            datos = obtener_datos_completos()
-            fechas_disponibles = list(datos['eventos_agrupados'].keys())
-            if not fechas_disponibles:
-                await msg.edit_text("❌ No hay eventos disponibles ahora mismo.")
-                return
-
-            fecha_hoy = fechas_disponibles[0]
-            partidos = datos['eventos_agrupados'][fecha_hoy]
-            render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-            
-            mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
-            contador = 0
-            
-            for ev in partidos:
-                if contador >= 15:
-                    mensaje += "\n_(Y bastantes más eventos en la web...)_"
-                    break
-                
-                local = ev.get('equipo_local', '')
-                visit = ev.get('equipo_visitante', '')
-                partido_txt = f"{local} vs {visit}" if visit else local
-                hora = ev.get('hora', '')
-                liga = ev.get('liga', '')
-                
-                tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
-                mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
-                
-                canales_html = ev.get('canales_html', '')
-                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
-                
-                if enlaces:
-                    for url_codificada, contenido in enlaces:
-                        url_real = urllib.parse.unquote(url_codificada)
-                        nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
-                        mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
-                else:
-                    mensaje += f"   └ _Sin enlaces activos_\n"
-                
-                mensaje += "\n"
-                contador += 1
-            
-            teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
-            reply_markup = InlineKeyboardMarkup(teclado)
-                
-            await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
-        except Exception as e:
-            await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
-
-    application.add_handler(CommandHandler("start", cmd_start))
-    application.add_handler(CommandHandler("agenda", cmd_agenda))
-    application.add_handler(CommandHandler("m3u", cmd_m3u))
-
-    async def setup_and_run_bot():
-        await application.initialize()
-        await application.start()
-        render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-        webhook_url = f"{render_url}/webhook/{TELEGRAM_TOKEN}"
-        await application.bot.set_webhook(url=webhook_url)
-        print(f"🔗 Webhook configurado correctamente en: {webhook_url}")
-
-    def run_bot_thread():
-        asyncio.set_event_loop(bot_loop)
-        bot_loop.run_until_complete(setup_and_run_bot())
-        bot_loop.run_forever()
-
-    if not os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        hilo_bot = threading.Thread(target=run_bot_thread, daemon=True)
-        hilo_bot.start()
 
 # Sistema de Caché Unificado (30 minutos)
 cache_datos = None
@@ -417,17 +316,107 @@ def obtener_datos_completos():
     ultimo_scraping = ahora
     return cache_datos
 
+
+# ==========================================
+# 🤖 RUTA WEBHOOK DE TELEGRAM (BLINDADA A DEMANDA)
+# ==========================================
 @app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
 def webhook():
     if TELEGRAM_DISPONIBLE:
-        try:
+        async def procesar_peticion():
+            application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+            
+            async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                await update.message.reply_text(
+                    "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
+                    "Comandos disponibles:\n"
+                    "/agenda - Ver partidos de hoy y sus enlaces\n"
+                    "/m3u - Descargar lista M3U completa"
+                )
+
+            async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
+                url_lista = f"{render_url}/lista.m3u"
+                teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U", url=url_lista)]]
+                await update.message.reply_text(
+                    "📁 *Tu lista M3U unificada está lista para descargar:*",
+                    parse_mode='Markdown',
+                    reply_markup=InlineKeyboardMarkup(teclado)
+                )
+
+            async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                msg = await update.message.reply_text("⏳ Consultando cartelera y enlaces...")
+                try:
+                    datos = obtener_datos_completos()
+                    fechas_disponibles = list(datos['eventos_agrupados'].keys())
+                    if not fechas_disponibles:
+                        await msg.edit_text("❌ No hay eventos disponibles ahora mismo.")
+                        return
+
+                    fecha_hoy = fechas_disponibles[0]
+                    partidos = datos['eventos_agrupados'][fecha_hoy]
+                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
+                    
+                    mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
+                    contador = 0
+                    
+                    for ev in partidos:
+                        if contador >= 15:
+                            mensaje += "\n_(Y más eventos en la web...)_"
+                            break
+                        
+                        local = ev.get('equipo_local', '')
+                        visit = ev.get('equipo_visitante', '')
+                        partido_txt = f"{local} vs {visit}" if visit else local
+                        hora = ev.get('hora', '')
+                        liga = ev.get('liga', '')
+                        
+                        tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
+                        mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
+                        
+                        canales_html = ev.get('canales_html', '')
+                        enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                        
+                        if enlaces:
+                            for url_codificada, contenido in enlaces:
+                                url_real = urllib.parse.unquote(url_codificada)
+                                nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                        else:
+                            mensaje += f"   └ _Sin enlaces activos_\n"
+                        
+                        mensaje += "\n"
+                        contador += 1
+                    
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+                    await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
+                except Exception as e:
+                    await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
+
+            application.add_handler(CommandHandler("start", cmd_start))
+            application.add_handler(CommandHandler("agenda", cmd_agenda))
+            application.add_handler(CommandHandler("m3u", cmd_m3u))
+
             data = request.get_json(force=True)
             update = Update.de_json(data, application.bot)
-            asyncio.run_coroutine_threadsafe(application.process_update(update), bot_loop)
+            
+            await application.initialize()
+            await application.start()
+            await application.process_update(update)
+            await application.stop()
+            await application.shutdown()
+
+        try:
+            asyncio.run(procesar_peticion())
         except Exception as e:
-            print(f"Error procesando webhook: {e}")
+            print(f"Error procesando webhook en async: {e}")
+            
     return 'OK', 200
 
+
+# ==========================================
+# RUTAS DE FLASK
+# ==========================================
 @app.route('/lista.m3u')
 def descargar_lista_m3u():
     datos = obtener_datos_completos()
