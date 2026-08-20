@@ -318,7 +318,7 @@ def obtener_datos_completos():
 
 
 # ==========================================
-# 🤖 RUTA WEBHOOK DE TELEGRAM (BLINDADA A DEMANDA)
+# 🤖 RUTA WEBHOOK DE TELEGRAM (AISLADA PARA GUNICORN)
 # ==========================================
 @app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
 def webhook():
@@ -330,7 +330,7 @@ def webhook():
                 await update.message.reply_text(
                     "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
                     "Comandos disponibles:\n"
-                    "/agenda - Ver partidos de hoy y sus enlaces\n"
+                    "/agenda - Ver próximos partidos con enlaces\n"
                     "/m3u - Descargar lista M3U completa"
                 )
 
@@ -344,64 +344,64 @@ def webhook():
                     reply_markup=InlineKeyboardMarkup(teclado)
                 )
 
-                        async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-                msg = await update.message.reply_text("⏳ Consultando cartelera y enlaces...")
+            async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                msg = await update.message.reply_text("⏳ Buscando eventos con enlaces activos...")
                 try:
                     datos = obtener_datos_completos()
                     agrupados = datos['eventos_agrupados']
                     
                     if not agrupados:
-                        await msg.edit_text("❌ No hay eventos disponibles ahora mismo.")
+                        await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
                         return
 
-                    # 🔍 BÚSQUEDA INTELIGENTE: Buscamos el primer día que tenga partidos (priorizando los que tengan enlaces)
-                    fecha_hoy = None
-                    partidos = []
+                    mensaje = "📅 *AGENDA Sσcяαм Tν*\n_(Solo eventos con enlaces)_\n\n"
+                    dias_mostrados = 0
+                    total_eventos = 0
+                    LIMITE_EVENTOS = 20
                     
-                    for f, lista_evs in agrupados.items():
-                        if lista_evs:
-                            fecha_hoy = f
-                            partidos = lista_evs
-                            break # Encontramos el primer día con eventos
-
-                    if not fecha_hoy or not partidos:
-                        await msg.edit_text("❌ No hay partidos en la cartelera actual.")
-                        return
-
-                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-                    
-                    mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
-                    contador = 0
-                    
-                    for ev in partidos:
-                        if contador >= 15:
-                            mensaje += "\n_(Y más eventos en la web...)_"
+                    for fecha, lista_evs in agrupados.items():
+                        if dias_mostrados >= 2 or total_eventos >= LIMITE_EVENTOS:
                             break
+                            
+                        partidos_con_enlaces = [ev for ev in lista_evs if ev.get('has_links')]
                         
-                        local = ev.get('equipo_local', '')
-                        visit = ev.get('equipo_visitante', '')
-                        partido_txt = f"{local} vs {visit}" if visit else local
-                        hora = ev.get('hora', '')
-                        liga = ev.get('liga', '')
+                        if not partidos_con_enlaces:
+                            continue  
+                            
+                        mensaje += f"🗓️ *{fecha}*\n"
+                        dias_mostrados += 1
                         
-                        tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
-                        mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga})\n"
-                        
-                        canales_html = ev.get('canales_html', '')
-                        enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
-                        
-                        if enlaces:
+                        for ev in partidos_con_enlaces:
+                            if total_eventos >= LIMITE_EVENTOS:
+                                mensaje += "_(Y más eventos disponibles en la web...)_\n"
+                                break
+                                
+                            local = ev.get('equipo_local', '')
+                            visit = ev.get('equipo_visitante', '')
+                            partido_txt = f"{local} vs {visit}" if visit else local
+                            hora = ev.get('hora', '')
+                            liga = ev.get('liga', '')
+                            
+                            mensaje += f"• `{hora}` 🟢 *{partido_txt}* ({liga})\n"
+                            
+                            canales_html = ev.get('canales_html', '')
+                            enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                            
                             for url_codificada, contenido in enlaces:
                                 url_real = urllib.parse.unquote(url_codificada)
                                 nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
                                 mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
-                        else:
-                            mensaje += f"   └ _Sin enlaces activos_\n"
-                        
-                        mensaje += "\n"
-                        contador += 1
-                    
+                            
+                            mensaje += "\n"
+                            total_eventos += 1
+
+                    if dias_mostrados == 0:
+                        await msg.edit_text("❌ Ahora mismo no hay ningún partido con enlaces activos programado.")
+                        return
+
+                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
                     teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+                    
                     await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
                 except Exception as e:
                     await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
