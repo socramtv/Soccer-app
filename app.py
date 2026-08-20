@@ -344,17 +344,30 @@ def webhook():
                     reply_markup=InlineKeyboardMarkup(teclado)
                 )
 
-            async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                        async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg = await update.message.reply_text("⏳ Consultando cartelera y enlaces...")
                 try:
                     datos = obtener_datos_completos()
-                    fechas_disponibles = list(datos['eventos_agrupados'].keys())
-                    if not fechas_disponibles:
+                    agrupados = datos['eventos_agrupados']
+                    
+                    if not agrupados:
                         await msg.edit_text("❌ No hay eventos disponibles ahora mismo.")
                         return
 
-                    fecha_hoy = fechas_disponibles[0]
-                    partidos = datos['eventos_agrupados'][fecha_hoy]
+                    # 🔍 BÚSQUEDA INTELIGENTE: Buscamos el primer día que tenga partidos (priorizando los que tengan enlaces)
+                    fecha_hoy = None
+                    partidos = []
+                    
+                    for f, lista_evs in agrupados.items():
+                        if lista_evs:
+                            fecha_hoy = f
+                            partidos = lista_evs
+                            break # Encontramos el primer día con eventos
+
+                    if not fecha_hoy or not partidos:
+                        await msg.edit_text("❌ No hay partidos en la cartelera actual.")
+                        return
+
                     render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
                     
                     mensaje = f"📅 *AGENDA Sσcяαм Tν* - {fecha_hoy}\n\n"
