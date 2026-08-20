@@ -12,7 +12,7 @@ from flask import Flask, render_template, redirect, url_for, request
 from funciones.get_links import extraer_enlaces
 from funciones.get_events import extraer_eventos
 
-# --- IMPORTACIÓN DEL BOT DE TELEGRAM ---
+# --- IMPORTACIÓN CORRECTA DE TELEGRAM Y SUS BOTONES ---
 try:
     from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
     from telegram.ext import Application, CommandHandler, ContextTypes
