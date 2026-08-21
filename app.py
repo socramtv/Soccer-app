@@ -331,6 +331,7 @@ def webhook():
                     "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
                     "Comandos disponibles:\n"
                     "/agenda - Ver próximos partidos con enlaces\n"
+                    "/buscar <texto> - Busca equipos, ligas o deportes\n"
                     "/m3u - Descargar lista M3U completa"
                 )
 
@@ -354,7 +355,6 @@ def webhook():
                         await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
                         return
 
-                    # --- AQUÍ ESTÁ EL MENSAJE DE ALERTA LLAMATIVO ---
                     mensaje = (
                         "📅 *AGENDA Sσcяαм Tν*\n"
                         "_(Solo eventos con enlaces)_\n\n"
@@ -413,8 +413,97 @@ def webhook():
                 except Exception as e:
                     await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
 
+            # --- NUEVO COMANDO: /buscar ---
+            async def cmd_buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                if not context.args:
+                    await update.message.reply_text(
+                        "⚠️ *Falta el término de búsqueda.*\n\n"
+                        "💡 *Uso:* `/buscar <equipo, liga o deporte>`\n"
+                        "📌 *Ejemplo:* `/buscar sevilla` o `/buscar f1`", 
+                        parse_mode='Markdown'
+                    )
+                    return
+
+                termino = " ".join(context.args).lower()
+                msg = await update.message.reply_text(f"🔍 Buscando '{termino}' en la cartelera...")
+                
+                try:
+                    datos = obtener_datos_completos()
+                    agrupados = datos['eventos_agrupados']
+                    
+                    if not agrupados:
+                        await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
+                        return
+
+                    mensaje = (
+                        f"🔍 *Resultados para:* _{termino.capitalize()}_\n\n"
+                        "🚨 *¡ATENCIÓN!* 🚨\n"
+                        "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server)._ 🔴\n\n"
+                    )
+                    
+                    total_eventos = 0
+                    LIMITE_EVENTOS = 20
+                    encontrado = False
+                    
+                    for fecha, lista_evs in agrupados.items():
+                        eventos_filtrados = []
+                        for ev in lista_evs:
+                            local_b = ev.get('equipo_local', '').lower()
+                            visitante_b = ev.get('equipo_visitante', '').lower()
+                            liga_b = ev.get('liga', '').lower()
+                            
+                            if termino in local_b or termino in visitante_b or termino in liga_b:
+                                eventos_filtrados.append(ev)
+                        
+                        if not eventos_filtrados:
+                            continue
+                            
+                        encontrado = True
+                        mensaje += f"🗓️ *{fecha}*\n"
+                        
+                        for ev in eventos_filtrados:
+                            if total_eventos >= LIMITE_EVENTOS:
+                                mensaje += "_(Demasiados resultados, mostrando solo los primeros...)_\n"
+                                break
+                                
+                            local_txt = ev.get('equipo_local', '')
+                            visit_txt = ev.get('equipo_visitante', '')
+                            partido_txt = f"{local_txt} vs {visit_txt}" if visit_txt else local_txt
+                            hora = ev.get('hora', '')
+                            liga_txt = ev.get('liga', '')
+                            
+                            tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
+                            mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga_txt})\n"
+                            
+                            if ev.get('has_links'):
+                                canales_html = ev.get('canales_html', '')
+                                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                                
+                                for url_codificada, contenido in enlaces:
+                                    url_real = urllib.parse.unquote(url_codificada)
+                                    nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                    mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                            
+                            mensaje += "\n"
+                            total_eventos += 1
+                        
+                        if total_eventos >= LIMITE_EVENTOS:
+                            break
+
+                    if not encontrado:
+                        await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{termino.capitalize()}*", parse_mode='Markdown')
+                        return
+
+                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+                    
+                    await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
+                except Exception as e:
+                    await msg.edit_text(f"⚠️ Error en la búsqueda: {e}")
+
             application.add_handler(CommandHandler("start", cmd_start))
             application.add_handler(CommandHandler("agenda", cmd_agenda))
+            application.add_handler(CommandHandler("buscar", cmd_buscar))
             application.add_handler(CommandHandler("m3u", cmd_m3u))
 
             data = request.get_json(force=True)
