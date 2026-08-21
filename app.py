@@ -354,7 +354,14 @@ def webhook():
                         await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
                         return
 
-                    mensaje = "📅 *AGENDA Sσcяαм Tν*\n_(Solo eventos con enlaces)_\n\n"
+                    # --- AQUÍ ESTÁ EL MENSAJE DE ALERTA LLAMATIVO ---
+                    mensaje = (
+                        "📅 *AGENDA Sσcяαм Tν*\n"
+                        "_(Solo eventos con enlaces)_\n\n"
+                        "🚨 *¡ATENCIÓN!* 🚨\n"
+                        "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server) para poder ver los eventos._ 🔴\n\n"
+                    )
+                    
                     dias_mostrados = 0
                     total_eventos = 0
                     LIMITE_EVENTOS = 20
