@@ -336,8 +336,7 @@ def webhook():
                 )
 
             async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
-                render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-                url_lista = f"{render_url}/lista.m3u"
+                url_lista = "https://cutt.ly/ZyfrcYEJ"
                 teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U", url=url_lista)]]
                 await update.message.reply_text(
                     "📁 *Tu lista M3U unificada está lista para descargar:*",
@@ -406,14 +405,12 @@ def webhook():
                         await msg.edit_text("❌ Ahora mismo no hay ningún partido con enlaces activos programado.")
                         return
 
-                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
                     await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
                 except Exception as e:
                     await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
 
-            # --- NUEVO COMANDO: /buscar ---
             async def cmd_buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if not context.args:
                     await update.message.reply_text(
@@ -494,8 +491,7 @@ def webhook():
                         await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{termino.capitalize()}*", parse_mode='Markdown')
                         return
 
-                    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://soccer-app-qt60.onrender.com")
-                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url=f"{render_url}/lista.m3u")]]
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
                     await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
                 except Exception as e:
