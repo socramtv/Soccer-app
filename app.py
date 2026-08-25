@@ -369,6 +369,7 @@ def webhook():
                     reply_markup=InlineKeyboardMarkup(teclado)
                 )
 
+            # --- NUEVO SISTEMA DE PAGINACIÓN SIN LÍMITES PARA AGENDA ---
             async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg = await update.message.reply_text("⏳ Buscando eventos con enlaces activos...")
                 try:
@@ -379,7 +380,8 @@ def webhook():
                         await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
                         return
 
-                    mensaje = (
+                    mensajes_a_enviar = []
+                    mensaje_actual = (
                         "📅 *AGENDA Sσcяαм Tν*\n"
                         "_(Solo eventos con enlaces)_\n\n"
                         "🚨 *¡ATENCIÓN!* 🚨\n"
@@ -387,11 +389,9 @@ def webhook():
                     )
                     
                     dias_mostrados = 0
-                    total_eventos = 0
-                    LIMITE_EVENTOS = 20
                     
                     for fecha, lista_evs in agrupados.items():
-                        if dias_mostrados >= 2 or total_eventos >= LIMITE_EVENTOS:
+                        if dias_mostrados >= 2:
                             break
                             
                         partidos_con_enlaces = [ev for ev in lista_evs if ev.get('has_links')]
@@ -399,21 +399,25 @@ def webhook():
                         if not partidos_con_enlaces:
                             continue  
                             
-                        mensaje += f"🗓️ *{fecha}*\n"
+                        bloque_fecha = f"🗓️ *{fecha}*\n"
+                        
+                        # Si añadir la fecha supera los 3500 caracteres, guardamos el mensaje y empezamos uno nuevo
+                        if len(mensaje_actual) + len(bloque_fecha) > 3500:
+                            mensajes_a_enviar.append(mensaje_actual)
+                            mensaje_actual = bloque_fecha
+                        else:
+                            mensaje_actual += bloque_fecha
+
                         dias_mostrados += 1
                         
                         for ev in partidos_con_enlaces:
-                            if total_eventos >= LIMITE_EVENTOS:
-                                mensaje += "_(Y más eventos disponibles en la web...)_\n"
-                                break
-                                
                             local = ev.get('equipo_local', '')
                             visit = ev.get('equipo_visitante', '')
                             partido_txt = f"{local} vs {visit}" if visit else local
                             hora = ev.get('hora', '')
                             liga = ev.get('liga', '')
                             
-                            mensaje += f"• `{hora}` 🟢 *{partido_txt}* ({liga})\n"
+                            bloque_evento = f"• `{hora}` 🟢 *{partido_txt}* ({liga})\n"
                             
                             canales_html = ev.get('canales_html', '')
                             enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
@@ -421,21 +425,41 @@ def webhook():
                             for url_codificada, contenido in enlaces:
                                 url_real = urllib.parse.unquote(url_codificada)
                                 nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
-                                mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                                bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
                             
-                            mensaje += "\n"
-                            total_eventos += 1
+                            bloque_evento += "\n"
+                            
+                            # Comprobamos longitud para no pasarnos del límite de Telegram
+                            if len(mensaje_actual) + len(bloque_evento) > 3500:
+                                mensajes_a_enviar.append(mensaje_actual)
+                                mensaje_actual = bloque_evento
+                            else:
+                                mensaje_actual += bloque_evento
 
                     if dias_mostrados == 0:
                         await msg.edit_text("❌ Ahora mismo no hay ningún partido con enlaces activos programado.")
                         return
 
+                    # Añadimos el último trozo de texto si ha quedado algo pendiente
+                    if mensaje_actual.strip():
+                        mensajes_a_enviar.append(mensaje_actual)
+
                     teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
-                    await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
+                    # Enviar los mensajes (el botón de descarga SOLO va en el último globo de chat)
+                    for i, texto in enumerate(mensajes_a_enviar):
+                        es_ultimo = (i == len(mensajes_a_enviar) - 1)
+                        reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
+                        
+                        if i == 0:
+                            await msg.edit_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                        else:
+                            await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                            
                 except Exception as e:
                     await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
 
+            # --- NUEVO SISTEMA DE PAGINACIÓN SIN LÍMITES PARA BUSCADOR ---
             async def cmd_buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if not context.args:
                     await update.message.reply_text(
@@ -457,14 +481,13 @@ def webhook():
                         await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
                         return
 
-                    mensaje = (
+                    mensajes_a_enviar = []
+                    mensaje_actual = (
                         f"🔍 *Resultados para:* _{termino.capitalize()}_\n\n"
                         "🚨 *¡ATENCIÓN!* 🚨\n"
                         "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server)._ 🔴\n\n"
                     )
                     
-                    total_eventos = 0
-                    LIMITE_EVENTOS = 20
                     encontrado = False
                     
                     for fecha, lista_evs in agrupados.items():
@@ -481,13 +504,15 @@ def webhook():
                             continue
                             
                         encontrado = True
-                        mensaje += f"🗓️ *{fecha}*\n"
+                        bloque_fecha = f"🗓️ *{fecha}*\n"
+                        
+                        if len(mensaje_actual) + len(bloque_fecha) > 3500:
+                            mensajes_a_enviar.append(mensaje_actual)
+                            mensaje_actual = bloque_fecha
+                        else:
+                            mensaje_actual += bloque_fecha
                         
                         for ev in eventos_filtrados:
-                            if total_eventos >= LIMITE_EVENTOS:
-                                mensaje += "_(Demasiados resultados, mostrando solo los primeros...)_\n"
-                                break
-                                
                             local_txt = ev.get('equipo_local', '')
                             visit_txt = ev.get('equipo_visitante', '')
                             partido_txt = f"{local_txt} vs {visit_txt}" if visit_txt else local_txt
@@ -495,7 +520,7 @@ def webhook():
                             liga_txt = ev.get('liga', '')
                             
                             tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
-                            mensaje += f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga_txt})\n"
+                            bloque_evento = f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga_txt})\n"
                             
                             if ev.get('has_links'):
                                 canales_html = ev.get('canales_html', '')
@@ -504,21 +529,35 @@ def webhook():
                                 for url_codificada, contenido in enlaces:
                                     url_real = urllib.parse.unquote(url_codificada)
                                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
-                                    mensaje += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                                    bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
                             
-                            mensaje += "\n"
-                            total_eventos += 1
-                        
-                        if total_eventos >= LIMITE_EVENTOS:
-                            break
+                            bloque_evento += "\n"
+                            
+                            if len(mensaje_actual) + len(bloque_evento) > 3500:
+                                mensajes_a_enviar.append(mensaje_actual)
+                                mensaje_actual = bloque_evento
+                            else:
+                                mensaje_actual += bloque_evento
 
                     if not encontrado:
                         await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{termino.capitalize()}*", parse_mode='Markdown')
                         return
 
+                    if mensaje_actual.strip():
+                        mensajes_a_enviar.append(mensaje_actual)
+
                     teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
-                    await msg.edit_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup(teclado))
+                    # Mandamos todos los mensajes generados
+                    for i, texto in enumerate(mensajes_a_enviar):
+                        es_ultimo = (i == len(mensajes_a_enviar) - 1)
+                        reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
+                        
+                        if i == 0:
+                            await msg.edit_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                        else:
+                            await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+
                 except Exception as e:
                     await msg.edit_text(f"⚠️ Error en la búsqueda: {e}")
 
