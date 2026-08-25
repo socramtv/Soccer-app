@@ -332,8 +332,24 @@ def webhook():
                     "Comandos disponibles:\n"
                     "/agenda - Ver próximos partidos con enlaces\n"
                     "/buscar <texto> - Busca equipos, ligas o deportes\n"
+                    "/apps - Descargar las aplicaciones necesarias\n"
                     "/m3u - Descargar lista M3U completa"
                 )
+
+            async def cmd_apps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                mensaje = (
+                    "📱 *APLICACIONES RECOMENDADAS*\n"
+                    "Aquí tienes los enlaces para descargar las apps necesarias para disfrutar al máximo:\n\n"
+                    "⚙️ *Motor Ace Stream (Imprescindible):*\n"
+                    "• [Descargar para Android](https://play.google.com/store/apps/details?id=org.acestream.media)\n"
+                    "• [Descargar para Windows](https://acestream.org/)\n\n"
+                    "📺 *Reproductores Compatibles:*\n"
+                    "• [VLC Media Player](https://www.videolan.org/)\n"
+                    "• [TiviMate IPTV (Android TV)](https://play.google.com/store/apps/details?id=ar.tvplayer.tv)\n\n"
+                    "📲 *Nuestra App Sσcяαм Tν:*\n"
+                    "• [Descargar APK Oficial](#) _(Próximamente)_\n"
+                )
+                await update.message.reply_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True)
 
             async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 url_lista = "https://cutt.ly/ZyfrcYEJ"
@@ -500,6 +516,7 @@ def webhook():
             application.add_handler(CommandHandler("start", cmd_start))
             application.add_handler(CommandHandler("agenda", cmd_agenda))
             application.add_handler(CommandHandler("buscar", cmd_buscar))
+            application.add_handler(CommandHandler("apps", cmd_apps))
             application.add_handler(CommandHandler("m3u", cmd_m3u))
 
             data = request.get_json(force=True)
