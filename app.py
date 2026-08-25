@@ -336,26 +336,21 @@ def webhook():
                     "/m3u - Descargar lista M3U completa"
                 )
 
-            # --- COMANDO /APPS ACTUALIZADO CON BOTONERA 2x2 ---
+            # --- COMANDO /APPS CON TUS ENLACES DE PIXELDRAIN Y EMOJI ▶️ ---
             async def cmd_apps(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 mensaje = (
                     "📦 *Aplicaciones y Utilidades (APKs)*\n\n"
                     "Descarga las herramientas necesarias para reproducir los eventos directamente a tu dispositivo:"
                 )
                 
-                # Base apuntando a tu GitHub. 
-                # (Si el nombre de la apk cambia ligeramente, ajústalo en el enlace)
-                base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/apks/"
-                
-                # Cuadrícula exacta 2x2 basada en tu web
                 teclado_apps = [
                     [
-                        InlineKeyboardButton("🔄 AceStream Móvil", url=f"{base_url}acestream.apk"),
-                        InlineKeyboardButton("📺 AceStream TV", url=f"{base_url}acestream_tv.apk")
+                        InlineKeyboardButton("▶️ Ace Stream Móvil", url="https://pixeldrain.net/u/FiqCxY3K"),
+                        InlineKeyboardButton("▶️ Ace Stream TV", url="https://pixeldrain.net/u/xFKxFipM")
                     ],
                     [
-                        InlineKeyboardButton("📡 Web Video Caster", url=f"{base_url}wvc.apk"),
-                        InlineKeyboardButton("▶️ Wuffy Player", url=f"{base_url}wuffy.apk")
+                        InlineKeyboardButton("▶️ Web Video Caster", url="https://pixeldrain.net/u/mwtsGZ3W"),
+                        InlineKeyboardButton("▶️ Wuffy Player", url="https://pixeldrain.net/u/f2HGUHVd")
                     ]
                 ]
                 
