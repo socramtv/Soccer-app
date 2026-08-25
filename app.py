@@ -336,20 +336,34 @@ def webhook():
                     "/m3u - Descargar lista M3U completa"
                 )
 
+            # --- COMANDO /APPS ACTUALIZADO CON BOTONERA 2x2 ---
             async def cmd_apps(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 mensaje = (
-                    "📱 *APLICACIONES RECOMENDADAS*\n"
-                    "Aquí tienes los enlaces para descargar las apps necesarias para disfrutar al máximo:\n\n"
-                    "⚙️ *Motor Ace Stream (Imprescindible):*\n"
-                    "• [Descargar para Android](https://play.google.com/store/apps/details?id=org.acestream.media)\n"
-                    "• [Descargar para Windows](https://acestream.org/)\n\n"
-                    "📺 *Reproductores Compatibles:*\n"
-                    "• [VLC Media Player](https://www.videolan.org/)\n"
-                    "• [TiviMate IPTV (Android TV)](https://play.google.com/store/apps/details?id=ar.tvplayer.tv)\n\n"
-                    "📲 *Nuestra App Sσcяαм Tν:*\n"
-                    "• [Descargar APK Oficial](#) _(Próximamente)_\n"
+                    "📦 *Aplicaciones y Utilidades (APKs)*\n\n"
+                    "Descarga las herramientas necesarias para reproducir los eventos directamente a tu dispositivo:"
                 )
-                await update.message.reply_text(mensaje, parse_mode='Markdown', disable_web_page_preview=True)
+                
+                # Base apuntando a tu GitHub. 
+                # (Si el nombre de la apk cambia ligeramente, ajústalo en el enlace)
+                base_url = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/apks/"
+                
+                # Cuadrícula exacta 2x2 basada en tu web
+                teclado_apps = [
+                    [
+                        InlineKeyboardButton("🔄 AceStream Móvil", url=f"{base_url}acestream.apk"),
+                        InlineKeyboardButton("📺 AceStream TV", url=f"{base_url}acestream_tv.apk")
+                    ],
+                    [
+                        InlineKeyboardButton("📡 Web Video Caster", url=f"{base_url}wvc.apk"),
+                        InlineKeyboardButton("▶️ Wuffy Player", url=f"{base_url}wuffy.apk")
+                    ]
+                ]
+                
+                await update.message.reply_text(
+                    mensaje, 
+                    parse_mode='Markdown', 
+                    reply_markup=InlineKeyboardMarkup(teclado_apps)
+                )
 
             async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 url_lista = "https://cutt.ly/ZyfrcYEJ"
