@@ -804,7 +804,7 @@
         {% if canales_directos %}
         <div class="competition-card" id="card-canales-directos" style="margin-top: 25px;">
             <div class="competition-header" style="background-color: #122438; color: #00aaff;">
-                📡 Canales Directos M3U8 / HLS (Sin AceStream)
+                📡 Canales Directos M3U8 / HLS (Sin AceStream) ({{ canales_directos|length }})
             </div>
             <div class="grid-canales">
                 {% for canal in canales_directos %}
@@ -824,7 +824,7 @@
         <!-- SECCIÓN CANALES ACESTREAM PUROS -->
         <div class="competition-card" id="card-canales-sistema" style="margin-top: 15px;">
             <div class="competition-header" style="background-color: #182a20; color: #00ff88;">
-                📺 Canales AceStream (Acceso Directo Manual)
+                📺 Canales AceStream (Acceso Directo Manual) ({{ canales_puros|length }})
             </div>
             <div class="grid-canales">
                 {% for canal in canales_puros %}
@@ -845,7 +845,7 @@
         <div class="competition-card" id="card-otros-canales" style="margin-top: 15px;">
             <details class="acordeon-otros">
                 <summary class="competition-header" style="background-color: #3a2218; color: #ffaa00; cursor: pointer;">
-                    <span>📂 Otros Canales (Alternativos)</span>
+                    <span>📂 Otros Canales (Alternativos) ({{ otros_canales|length }})</span>
                     <span class="icono-desplegable">▼</span>
                 </summary>
                 <div class="grid-canales">
