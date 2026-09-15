@@ -1,7 +1,175 @@
 {
-  "generated": "2026-09-14T17:00:39Z",
-  "count": 19,
+  "generated": "2026-09-15T17:26:01Z",
+  "count": 34,
   "hashes": [
+    {
+      "title": "M. Liga N",
+      "hash": "31c19ffb3472c289c5bbbbc174449c8ed0d19e38",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 1080p *",
+      "hash": "d3b11d6c18ad43df5cd42c1dafb4dd12d8f829e8",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 1080p **",
+      "hash": "0febfb5cac3384f487d55c559bbfc877db2d0357",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 1080p ***",
+      "hash": "a64e02a6d914f098cbe1b724ff4f7aef83419a4a",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 1080p ****",
+      "hash": "3ce95bc9d6fc63676d828bb2cfc7a1f1854fd259",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 720p *",
+      "hash": "f863873de9f7b2996dde19a0657dd89835af3007",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 720p **",
+      "hash": "3ace1463a7cad979c3a4002b245487e9982e9f1a",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 720p ***",
+      "hash": "5ad75216a63a31fef23ddc3532edc66c2fc0936c",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LALIGA 2 N",
+      "hash": "b8eb9c9868d487402569bba2d97a8af113d033fe",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 2 720p *",
+      "hash": "d16a9b50042cb9d6e648cae3b1472f655c4def61",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 2 1080p *",
+      "hash": "67966d205968de9cf95dcffe3b2ff6888b106634",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "M+ LaLiga 2 *",
+      "hash": "448551642d9c7d0de53aa35d1ee41788909b6c0c",
+      "group": "LA LIGA",
+      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
+      "tvg_id": "M+ LaLiga HD"
+    },
+    {
+      "title": "Dazn Liga N",
+      "hash": "dda5d2cace9bc4cb0918e62bc50d657d4a10496a",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
+    {
+      "title": "DAZN LaLiga 720p *",
+      "hash": "385abcf801b787eec6ed6624908758bb165c0a55",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-2-es.png",
+      "tvg_id": "DAZN LaLiga 2 HD"
+    },
+    {
+      "title": "DAZN LaLiga 720p **",
+      "hash": "eb4975702ceadca7ed74f8707e17a9f55569dbb9",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-2-es.png",
+      "tvg_id": "DAZN LaLiga 2 HD"
+    },
+    {
+      "title": "DAZN LaLiga 1080p *",
+      "hash": "7f9857c45764ef2c7cdfb619b89db3056a57a51f",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-es.png",
+      "tvg_id": "DAZN LaLiga HD"
+    },
+    {
+      "title": "DAZN LaLiga 1080p **",
+      "hash": "cc108ae39f92c48f6c946763047bd1c9b7b7d889",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-es.png",
+      "tvg_id": "DAZN LaLiga HD"
+    },
+    {
+      "title": "DAZN LaLiga 1080p ***",
+      "hash": "9c588ac92554746c489bc553773d959f6d2dfd8e",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-es.png",
+      "tvg_id": "DAZN LaLiga HD"
+    },
+    {
+      "title": "DAZN LaLiga **",
+      "hash": "9c75f1d190c518cfe0f236415b8dccc1f676ef3b",
+      "group": "LA LIGA",
+      "logo": "https://raw.githubusercontent.com/tv-logo/tv-logos/refs/heads/main/countries/spain/dazn-laliga-es.png",
+      "tvg_id": "DAZN LaLiga HD"
+    },
+    {
+      "title": "M+ plus 1080p **",
+      "hash": "1ab443f5b4beb6d586f19e8b25b9f9646cf2ab78",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
+    {
+      "title": "M+ plus 1080p",
+      "hash": "ed74406ccdb3c21941b919db6bffca7f1de015bb",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
+    {
+      "title": "M+ plus 1080 ***",
+      "hash": "8c67cdb5ba81976662c3a67984a9545d9cfb0f70",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
+    {
+      "title": "M+ plus 720p *",
+      "hash": "d23497596720b47b096ec0f850d6d26a19d1a336",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
+    {
+      "title": "Match football 2 RU",
+      "hash": "ffbf8c687c788d9a1a7c651e24802ee773ff3f04",
+      "group": "OTROS",
+      "logo": "",
+      "tvg_id": ""
+    },
     {
       "title": "DAZN 1 720p *",
       "hash": "a116ce3ff95c41c60e987e2b1aa247007f707884",
@@ -50,69 +218,6 @@
       "group": "HYPERMOTION",
       "logo": "https://i.ibb.co/CBdGc9f/hypermotion1.png",
       "tvg_id": "LaLiga TV Hypermotion HD"
-    },
-    {
-      "title": "M+ LaLiga 720p *",
-      "hash": "f863873de9f7b2996dde19a0657dd89835af3007",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 720p *",
-      "hash": "3ace1463a7cad979c3a4002b245487e9982e9f1a",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 720p **",
-      "hash": "5ad75216a63a31fef23ddc3532edc66c2fc0936c",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 1080p *",
-      "hash": "0febfb5cac3384f487d55c559bbfc877db2d0357",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 1080p **",
-      "hash": "d3b11d6c18ad43df5cd42c1dafb4dd12d8f829e8",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 1080p **",
-      "hash": "3ce95bc9d6fc63676d828bb2cfc7a1f1854fd259",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "M+ LaLiga 1080p **",
-      "hash": "a64e02a6d914f098cbe1b724ff4f7aef83419a4a",
-      "group": "LA LIGA",
-      "logo": "https://i.ibb.co/yfV1Q8n/liga.png",
-      "tvg_id": "M+ LaLiga HD"
-    },
-    {
-      "title": "MOVISTAR PLUS 720p *",
-      "hash": "d23497596720b47b096ec0f850d6d26a19d1a336",
-      "group": "MOVISTAR",
-      "logo": "https://i.ibb.co/hFYPWbpJ/plus.png",
-      "tvg_id": "Movistar Plus+ HD"
-    },
-    {
-      "title": "MOVISTAR PLUS 1080p **",
-      "hash": "1ab443f5b4beb6d586f19e8b25b9f9646cf2ab78",
-      "group": "MOVISTAR",
-      "logo": "https://i.ibb.co/hFYPWbpJ/plus.png",
-      "tvg_id": "Movistar Plus+ HD"
     },
     {
       "title": "Sky Sport Tennis 1080p *",
