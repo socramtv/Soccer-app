@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Socram TV Mobile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Disable text selection for native app feel */
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+            background-color: #090a0f;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased pb-8">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 left-4 right-4 z-50 flex flex-col items-center pointer-events-none"></div>
+
+    <!-- Mobile Header Container -->
+    <header class="w-full bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-800 px-4 py-3.5 shadow-md">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-lg shadow-red-600/30">
+                    <i class="fa-solid fa-tv text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white tracking-wide">SOCRAM TV</h1>
+                    <p class="text-[11px] text-slate-400 font-medium">Enlaces Cortos Oficiales</p>
+                </div>
+            </div>
+            <div class="bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-full text-[10px] font-semibold text-red-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                <span>Móvil App</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Mobile Content Area -->
+    <main class="w-full max-w-md mx-auto px-4 mt-4 space-y-3.5">
+
+        <!-- Card Item 1 -->
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl active:scale-[0.99] transition-transform">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>🔴</span> Socram TV +
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Cutt.ly</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800/50 flex items-center justify-between gap-2 mb-3">
+                <div class="text-xs text-sky-400 truncate font-mono select-all">https://cutt.ly/0ybYDZOC</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="https://cutt.ly/0ybYDZOC" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Abrir
+                </a>
+                <button onclick="copyToClipboard('https://cutt.ly/0ybYDZOC', this)" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 transition-all">
+                    <i class="fa-regular fa-copy text-[11px]"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Card Item 2 -->
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl active:scale-[0.99] transition-transform">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>🔴</span> Cine by Socram Tv
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Cutt.ly</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800/50 flex items-center justify-between gap-2 mb-3">
+                <div class="text-xs text-sky-400 truncate font-mono select-all">https://cutt.ly/yybYFMlD</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="https://cutt.ly/yybYFMlD" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Abrir
+                </a>
+                <button onclick="copyToClipboard('https://cutt.ly/yybYFMlD', this)" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 transition-all">
+                    <i class="fa-regular fa-copy text-[11px]"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Card Item 3 -->
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl active:scale-[0.99] transition-transform">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>🔴</span> Lista M3u de Sσcяαм Tν + Acεѕтяεαм
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Cutt.ly</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800/50 flex items-center justify-between gap-2 mb-3">
+                <div class="text-xs text-sky-400 truncate font-mono select-all">https://cutt.ly/ZyfrcYEJ</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="https://cutt.ly/ZyfrcYEJ" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Abrir
+                </a>
+                <button onclick="copyToClipboard('https://cutt.ly/ZyfrcYEJ', this)" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 transition-all">
+                    <i class="fa-regular fa-copy text-[11px]"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Card Item 4 -->
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl active:scale-[0.99] transition-transform">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>🔴</span> TDT
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Cutt.ly</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800/50 flex items-center justify-between gap-2 mb-3">
+                <div class="text-xs text-sky-400 truncate font-mono select-all">https://cutt.ly/3ybYGHzl</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="https://cutt.ly/3ybYGHzl" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Abrir
+                </a>
+                <button onclick="copyToClipboard('https://cutt.ly/3ybYGHzl', this)" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 transition-all">
+                    <i class="fa-regular fa-copy text-[11px]"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Card Item 5 -->
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl active:scale-[0.99] transition-transform">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <span>🔴</span> RADIO
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Cutt.ly</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-xl p-2.5 border border-slate-800/50 flex items-center justify-between gap-2 mb-3">
+                <div class="text-xs text-sky-400 truncate font-mono select-all">https://cutt.ly/sybYHdBo</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="https://cutt.ly/sybYHdBo" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Abrir
+                </a>
+                <button onclick="copyToClipboard('https://cutt.ly/sybYHdBo', this)" class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/30 transition-all">
+                    <i class="fa-regular fa-copy text-[11px]"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile Footer Note -->
+    <footer class="w-full text-center mt-6 text-[11px] text-slate-500">
+        <p>Socram TV &bull; Optimizado para dispositivos móviles</p>
+    </footer>
+
+    <!-- Copy Script & Notifications -->
+    <script>
+        function copyToClipboard(text, btnElement) {
+            // Using fallback command support for secure contexts/iframes
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    triggerSuccess(btnElement);
+                }).catch(() => {
+                    fallbackCopy(text, btnElement);
+                });
+            } else {
+                fallbackCopy(text, btnElement);
+            }
+        }
+
+        function fallbackCopy(text, btnElement) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";  // Avoid scrolling to bottom
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    triggerSuccess(btnElement);
+                } else {
+                    showToast("No se pudo copiar", "error");
+                }
+            } catch (err) {
+                showToast("Error al copiar enlace", "error");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function triggerSuccess(btnElement) {
+            showToast("¡Enlace copiado!");
+            
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fa-solid fa-check text-[11px]"></i> ¡Copiado!';
+            btnElement.classList.remove('bg-red-600', 'hover:bg-red-500', 'active:bg-red-700');
+            btnElement.classList.add('bg-emerald-600');
+            
+            setTimeout(() => {
+                btnElement.innerHTML = originalHTML;
+                btnElement.classList.remove('bg-emerald-600');
+                btnElement.classList.add('bg-red-600', 'hover:bg-red-500', 'active:bg-red-700');
+            }, 2000);
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.className = `pointer-events-auto bg-slate-800 text-slate-100 border border-slate-700 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 animate-pop`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                toast.style.transition = 'all 0.2s ease-in';
+                setTimeout(() => toast.remove(), 200);
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
+```
+eof
