@@ -4,6 +4,7 @@ import urllib.parse
 import requests
 import asyncio
 import os
+import traceback
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta
 from flask import Flask, render_template, redirect, url_for, request
@@ -320,6 +321,11 @@ def obtener_datos_completos():
 # ==========================================
 # 🤖 RUTA WEBHOOK DE TELEGRAM (AISLADA PARA GUNICORN)
 # ==========================================
+
+def limpiar_md(texto):
+    """Limpia caracteres especiales que rompen el Markdown de Telegram"""
+    return str(texto).replace('*', '').replace('_', '').replace('[', '').replace(']', '').replace('`', '')
+
 @app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
 def webhook():
     if TELEGRAM_DISPONIBLE:
@@ -336,7 +342,6 @@ def webhook():
                     "/m3u - Descargar lista M3U completa"
                 )
 
-            # --- COMANDO /APPS CON TUS ENLACES DE PIXELDRAIN Y EMOJI ▶️ ---
             async def cmd_apps(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 mensaje = (
                     "📦 *Aplicaciones y Utilidades (APKs)*\n\n"
@@ -369,7 +374,6 @@ def webhook():
                     reply_markup=InlineKeyboardMarkup(teclado)
                 )
 
-            # --- NUEVO SISTEMA DE PAGINACIÓN SIN LÍMITES PARA AGENDA ---
             async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 msg = await update.message.reply_text("⏳ Buscando eventos con enlaces activos...")
                 try:
@@ -399,9 +403,8 @@ def webhook():
                         if not partidos_con_enlaces:
                             continue  
                             
-                        bloque_fecha = f"🗓️ *{fecha}*\n"
+                        bloque_fecha = f"🗓️ *{limpiar_md(fecha)}*\n"
                         
-                        # Si añadir la fecha supera los 3500 caracteres, guardamos el mensaje y empezamos uno nuevo
                         if len(mensaje_actual) + len(bloque_fecha) > 3500:
                             mensajes_a_enviar.append(mensaje_actual)
                             mensaje_actual = bloque_fecha
@@ -411,11 +414,11 @@ def webhook():
                         dias_mostrados += 1
                         
                         for ev in partidos_con_enlaces:
-                            local = ev.get('equipo_local', '')
-                            visit = ev.get('equipo_visitante', '')
+                            local = limpiar_md(ev.get('equipo_local', ''))
+                            visit = limpiar_md(ev.get('equipo_visitante', ''))
                             partido_txt = f"{local} vs {visit}" if visit else local
-                            hora = ev.get('hora', '')
-                            liga = ev.get('liga', '')
+                            hora = limpiar_md(ev.get('hora', ''))
+                            liga = limpiar_md(ev.get('liga', ''))
                             
                             bloque_evento = f"• `{hora}` 🟢 *{partido_txt}* ({liga})\n"
                             
@@ -425,11 +428,13 @@ def webhook():
                             for url_codificada, contenido in enlaces:
                                 url_real = urllib.parse.unquote(url_codificada)
                                 nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                # ¡AQUÍ ESTABA EL FALLO! Limpiamos el nombre del canal de asteriscos para que no rompa el Markdown
+                                nombre_canal = limpiar_md(nombre_canal) 
+                                
                                 bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
                             
                             bloque_evento += "\n"
                             
-                            # Comprobamos longitud para no pasarnos del límite de Telegram
                             if len(mensaje_actual) + len(bloque_evento) > 3500:
                                 mensajes_a_enviar.append(mensaje_actual)
                                 mensaje_actual = bloque_evento
@@ -440,13 +445,11 @@ def webhook():
                         await msg.edit_text("❌ Ahora mismo no hay ningún partido con enlaces activos programado.")
                         return
 
-                    # Añadimos el último trozo de texto si ha quedado algo pendiente
                     if mensaje_actual.strip():
                         mensajes_a_enviar.append(mensaje_actual)
 
                     teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
-                    # Enviar los mensajes (el botón de descarga SOLO va en el último globo de chat)
                     for i, texto in enumerate(mensajes_a_enviar):
                         es_ultimo = (i == len(mensajes_a_enviar) - 1)
                         reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
@@ -457,9 +460,9 @@ def webhook():
                             await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
                             
                 except Exception as e:
-                    await msg.edit_text(f"⚠️ Error al obtener la agenda: {e}")
+                    await msg.edit_text(f"⚠️ Error al obtener la agenda: Por favor intenta más tarde.")
+                    print(f"Error interno en cmd_agenda: {e}")
 
-            # --- NUEVO SISTEMA DE PAGINACIÓN SIN LÍMITES PARA BUSCADOR ---
             async def cmd_buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if not context.args:
                     await update.message.reply_text(
@@ -471,7 +474,7 @@ def webhook():
                     return
 
                 termino = " ".join(context.args).lower()
-                msg = await update.message.reply_text(f"🔍 Buscando '{termino}' en la cartelera...")
+                msg = await update.message.reply_text(f"🔍 Buscando '{limpiar_md(termino)}' en la cartelera...")
                 
                 try:
                     datos = obtener_datos_completos()
@@ -483,7 +486,7 @@ def webhook():
 
                     mensajes_a_enviar = []
                     mensaje_actual = (
-                        f"🔍 *Resultados para:* _{termino.capitalize()}_\n\n"
+                        f"🔍 *Resultados para:* _{limpiar_md(termino).capitalize()}_\n\n"
                         "🚨 *¡ATENCIÓN!* 🚨\n"
                         "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server)._ 🔴\n\n"
                     )
@@ -504,7 +507,7 @@ def webhook():
                             continue
                             
                         encontrado = True
-                        bloque_fecha = f"🗓️ *{fecha}*\n"
+                        bloque_fecha = f"🗓️ *{limpiar_md(fecha)}*\n"
                         
                         if len(mensaje_actual) + len(bloque_fecha) > 3500:
                             mensajes_a_enviar.append(mensaje_actual)
@@ -513,11 +516,11 @@ def webhook():
                             mensaje_actual += bloque_fecha
                         
                         for ev in eventos_filtrados:
-                            local_txt = ev.get('equipo_local', '')
-                            visit_txt = ev.get('equipo_visitante', '')
+                            local_txt = limpiar_md(ev.get('equipo_local', ''))
+                            visit_txt = limpiar_md(ev.get('equipo_visitante', ''))
                             partido_txt = f"{local_txt} vs {visit_txt}" if visit_txt else local_txt
-                            hora = ev.get('hora', '')
-                            liga_txt = ev.get('liga', '')
+                            hora = limpiar_md(ev.get('hora', ''))
+                            liga_txt = limpiar_md(ev.get('liga', ''))
                             
                             tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
                             bloque_evento = f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga_txt})\n"
@@ -529,6 +532,8 @@ def webhook():
                                 for url_codificada, contenido in enlaces:
                                     url_real = urllib.parse.unquote(url_codificada)
                                     nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                    nombre_canal = limpiar_md(nombre_canal)
+                                    
                                     bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
                             
                             bloque_evento += "\n"
@@ -540,7 +545,7 @@ def webhook():
                                 mensaje_actual += bloque_evento
 
                     if not encontrado:
-                        await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{termino.capitalize()}*", parse_mode='Markdown')
+                        await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{limpiar_md(termino).capitalize()}*", parse_mode='Markdown')
                         return
 
                     if mensaje_actual.strip():
@@ -548,7 +553,6 @@ def webhook():
 
                     teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
                     
-                    # Mandamos todos los mensajes generados
                     for i, texto in enumerate(mensajes_a_enviar):
                         es_ultimo = (i == len(mensajes_a_enviar) - 1)
                         reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
@@ -559,7 +563,8 @@ def webhook():
                             await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
 
                 except Exception as e:
-                    await msg.edit_text(f"⚠️ Error en la búsqueda: {e}")
+                    await msg.edit_text(f"⚠️ Error en la búsqueda: Por favor intenta más tarde.")
+                    print(f"Error interno en cmd_buscar: {e}")
 
             application.add_handler(CommandHandler("start", cmd_start))
             application.add_handler(CommandHandler("agenda", cmd_agenda))
@@ -579,7 +584,8 @@ def webhook():
         try:
             asyncio.run(procesar_peticion())
         except Exception as e:
-            print(f"Error procesando webhook en async: {e}")
+            print(f"❌ ERROR CRÍTICO EN EL WEBHOOK DE TELEGRAM: {e}")
+            traceback.print_exc()
             
     return 'OK', 200
 
