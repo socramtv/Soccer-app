@@ -428,7 +428,8 @@ def webhook():
                             for url_codificada, contenido in enlaces:
                                 url_real = urllib.parse.unquote(url_codificada)
                                 nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
-                                # ¡AQUÍ ESTABA EL FALLO! Limpiamos el nombre del canal de asteriscos para que no rompa el Markdown
+                                
+                                # Limpieza del nombre para Markdown
                                 nombre_canal = limpiar_md(nombre_canal) 
                                 
                                 bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
@@ -685,5 +686,3 @@ def recargar():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
-# --- FIN DEL ARCHIVO app.py ---
