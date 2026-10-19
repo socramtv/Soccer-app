@@ -183,4 +183,512 @@ def vincular_canales_automatico(canales_evento, lista_enlaces, dict_m3u_unificad
             return False
 
         # Coincidencia base
-        if limpio_a in
+        if limpio_a in limpio_b or limpio_b in limpio_a: return True
+
+        # Sinónimos si logran pasar los candados
+        if ('laliga' in limpio_a or 'movistarlaliga' in limpio_a) and ('laliga' in limpio_b or 'laligatv' in limpio_b):
+            return True
+        if 'campeones' in limpio_a and 'campeones' in limpio_b: return True
+        if 'vamos' in limpio_a and 'vamos' in limpio_b: return True
+
+        return False
+
+    for canal in canales_evento:
+        canal_limpio = canal.strip()
+        encontro_algo = False
+
+        for nombre_m3u, datos_m3u in dict_m3u_unificado.items():
+            if son_canales_equivalentes(nombre_m3u, canal_limpio):
+                encontro_algo = True
+                url_m3u = datos_m3u['url']
+                if url_m3u not in urls_agregadas:
+                    logo_m3u = datos_m3u['logo']
+                    icono_html = f'<img src="{logo_m3u}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'🔸\'">' if logo_m3u else "🔸"
+                    url_reproductor = f"/reproductor?url={urllib.parse.quote(url_m3u)}&name={urllib.parse.quote(nombre_m3u)}"
+                    
+                    matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_m3u}">{icono_html} {nombre_m3u}</a>')
+                    urls_agregadas.add(url_m3u)
+
+        for enc in lista_enlaces:
+            nombre_json = enc.get('name', '') or enc.get('title', '')
+            if son_canales_equivalentes(nombre_json, canal_limpio):
+                encontro_algo = True
+                hash_val = enc.get('id', '') or enc.get('hash', '')
+                hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
+                if hash_match:
+                    hash_puro = hash_match.group(1)
+                    if "infohash=" in hash_val.lower():
+                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+                    else:
+                        stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                        
+                    if stream_url not in urls_agregadas:
+                        logo_ace = enc.get('logo', '')
+                        icono_char = "🔸" if "**" in nombre_json else "🔹"
+                        icono_html = f'<img src="{logo_ace}" class="icono-canal-peq" loading="lazy" onerror="this.outerHTML=\'{icono_char}\'">' if logo_ace else icono_char
+                        url_reproductor = f"/reproductor?url={urllib.parse.quote(stream_url)}&name={urllib.parse.quote(nombre_json)}"
+                        
+                        matches_encontrados.append(f'<a href="{url_reproductor}" class="btn-canal" title="{nombre_json}">{icono_html} {nombre_json}</a>')
+                        urls_agregadas.add(stream_url)
+        
+        if not encontro_algo:
+            textos_vacios.append(canal_limpio)
+            
+    html_resultado = "".join(sorted(matches_encontrados))
+    for vacio in set(textos_vacios):
+        html_resultado += f'<span class="canal-texto-vacio">{vacio}</span>'
+        
+    return html_resultado
+
+def obtener_datos_completos():
+    global cache_datos, ultimo_scraping
+    ahora = time.time()
+    
+    if cache_datos and (ahora - ultimo_scraping < CACHE_EXPIRACION):
+        return cache_datos
+        
+    print("🌐 Cargando cartelera unificada por días, M3U dinámico y hashes AceStream...")
+    enlaces = extraer_enlaces(URL_ENLACES)
+    eventos = extraer_eventos(URL_EVENTOS)
+    canales_m3u, dict_m3u = extraer_canales_m3u(URL_NOACE)
+    otros_canales, dict_otros = extraer_canales_m3u(URL_OTROS_CANALES)
+    
+    dict_m3u_unificado = {**dict_m3u, **dict_otros}
+    
+    destacados = []
+    eventos_agrupados = {}
+    
+    ahora_dt = datetime.now(TIMEZONE_ES)
+    limite_tiempo = ahora_dt - timedelta(hours=2)
+    str_slash = ahora_dt.strftime("%d/%m")
+    str_dash = ahora_dt.strftime("%d-%m")
+    
+    for i in range(len(eventos)):
+        fecha_texto = eventos[i].get('fecha', 'Hoy').strip().lower()
+        es_hoy = "hoy" in fecha_texto or str_slash in fecha_texto or str_dash in fecha_texto
+        
+        if es_hoy:
+            hora_ev = eventos[i].get('hora', '00:00')
+            try:
+                h_partes = hora_ev.split(':')
+                if len(h_partes) >= 2:
+                    hora_ev_int = int(h_partes[0])
+                    min_ev_int = int(h_partes[1])
+                    ev_dt = ahora_dt.replace(hour=hora_ev_int, minute=min_ev_int, second=0, microsecond=0)
+                    
+                    if ev_dt < limite_tiempo:
+                        continue
+            except Exception:
+                pass
+
+        eventos[i]['canales_html'] = vincular_canales_automatico(eventos[i]['canales'], enlaces, dict_m3u_unificado)
+        eventos[i]['logo_deporte'] = asignar_logo_deporte(eventos[i])
+        
+        if 'equipo_local' not in eventos[i] or 'equipo_visitante' not in eventos[i]:
+            partes = eventos[i]['equipos'].split(' - ')
+            eventos[i]['equipo_local'] = partes[0].strip() if len(partes) >= 1 else eventos[i]['equipos']
+            eventos[i]['equipo_visitante'] = partes[1].strip() if len(partes) == 2 else ""
+            
+        if not eventos[i].get('logo_local'):
+            eventos[i]['logo_local'] = ""
+        if not eventos[i].get('logo_visitante'):
+            eventos[i]['logo_visitante'] = ""
+
+        eventos[i]['has_links'] = 'btn-canal' in eventos[i]['canales_html']
+
+        nombre_local_norm = normalizar_cadena(eventos[i]['equipo_local'])
+        nombre_vis_norm = normalizar_cadena(eventos[i]['equipo_visitante'])
+        
+        if "sevilla" in nombre_local_norm or "sevilla" in nombre_vis_norm or "betis" in nombre_local_norm or "betis" in nombre_vis_norm:
+            destacados.append(eventos[i])
+
+        fecha = eventos[i].get('fecha', 'Hoy').strip()
+        if fecha not in eventos_agrupados:
+            eventos_agrupados[fecha] = []
+        eventos_agrupados[fecha].append(eventos[i])
+        
+    cache_datos = {
+        'eventos_agrupados': eventos_agrupados,
+        'destacados': destacados,
+        'canales_puros': enlaces,
+        'canales_directos_m3u8': canales_m3u,
+        'otros_canales': otros_canales
+    }
+    ultimo_scraping = ahora
+    return cache_datos
+
+
+# ==========================================
+# 🤖 RUTA WEBHOOK DE TELEGRAM (AISLADA PARA GUNICORN)
+# ==========================================
+
+def limpiar_md(texto):
+    """Limpia caracteres especiales que rompen el Markdown de Telegram"""
+    return str(texto).replace('*', '').replace('_', '').replace('[', '').replace(']', '').replace('`', '')
+
+@app.route(f'/webhook/{TELEGRAM_TOKEN}', methods=['POST'])
+def webhook():
+    if TELEGRAM_DISPONIBLE and TELEGRAM_TOKEN:
+        async def procesar_peticion():
+            application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+            
+            async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                await update.message.reply_text(
+                    "⚽ ¡Hola Marco! El bot de Sσcяαм Tν está activo.\n\n"
+                    "Comandos disponibles:\n"
+                    "/agenda - Ver próximos partidos con enlaces\n"
+                    "/buscar <texto> - Busca equipos, ligas o deportes\n"
+                    "/apps - Descargar las aplicaciones necesarias\n"
+                    "/m3u - Descargar lista M3U completa"
+                )
+
+            async def cmd_apps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                mensaje = (
+                    "📦 *Aplicaciones y Utilidades (APKs)*\n\n"
+                    "Descarga las herramientas necesarias para reproducir los eventos directamente a tu dispositivo:"
+                )
+                
+                teclado_apps = [
+                    [
+                        InlineKeyboardButton("▶️ Ace Stream Móvil", url="https://pixeldrain.net/u/FiqCxY3K"),
+                        InlineKeyboardButton("▶️ Ace Stream TV", url="https://pixeldrain.net/u/xFKxFipM")
+                    ],
+                    [
+                        InlineKeyboardButton("▶️ Web Video Caster", url="https://pixeldrain.net/u/mwtsGZ3W"),
+                        InlineKeyboardButton("▶️ Wuffy Player", url="https://pixeldrain.net/u/f2HGUHVd")
+                    ]
+                ]
+                
+                await update.message.reply_text(
+                    mensaje, 
+                    parse_mode='Markdown', 
+                    reply_markup=InlineKeyboardMarkup(teclado_apps)
+                )
+
+            async def cmd_m3u(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                url_lista = "https://cutt.ly/ZyfrcYEJ"
+                teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U", url=url_lista)]]
+                mensaje = (
+                    "📁 *Tu lista M3U unificada está lista.*\n\n"
+                    "📋 *Para copiar el enlace directamente (toca el texto en verde):*\n"
+                    f"`{url_lista}`\n\n"
+                    "⬇️ *Si prefieres descargar el archivo, usa este botón:*"
+                )
+                await update.message.reply_text(
+                    mensaje,
+                    parse_mode='Markdown',
+                    reply_markup=InlineKeyboardMarkup(teclado)
+                )
+
+            async def cmd_agenda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                msg = await update.message.reply_text("⏳ Buscando eventos con enlaces activos...")
+                try:
+                    datos = obtener_datos_completos()
+                    agrupados = datos['eventos_agrupados']
+                    
+                    if not agrupados:
+                        await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
+                        return
+
+                    mensajes_a_enviar = []
+                    mensaje_actual = (
+                        "📅 *AGENDA Sσcяαм Tν*\n"
+                        "_(Solo eventos con enlaces)_\n\n"
+                        "🚨 *¡ATENCIÓN!* 🚨\n"
+                        "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server) para poder ver los eventos._ 🔴\n\n"
+                    )
+                    
+                    dias_mostrados = 0
+                    
+                    for fecha, lista_evs in agrupados.items():
+                        if dias_mostrados >= 2:
+                            break
+                            
+                        partidos_con_enlaces = [ev for ev in lista_evs if ev.get('has_links')]
+                        
+                        if not partidos_con_enlaces:
+                            continue  
+                            
+                        bloque_fecha = f"🗓️ *{limpiar_md(fecha)}*\n"
+                        
+                        if len(mensaje_actual) + len(bloque_fecha) > 3500:
+                            mensajes_a_enviar.append(mensaje_actual)
+                            mensaje_actual = bloque_fecha
+                        else:
+                            mensaje_actual += bloque_fecha
+
+                        dias_mostrados += 1
+                        
+                        for ev in partidos_con_enlaces:
+                            local = limpiar_md(ev.get('equipo_local', ''))
+                            visit = limpiar_md(ev.get('equipo_visitante', ''))
+                            partido_txt = f"{local} vs {visit}" if visit else local
+                            hora = limpiar_md(ev.get('hora', ''))
+                            liga = limpiar_md(ev.get('liga', ''))
+                            
+                            bloque_evento = f"• `{hora}` 🟢 *{partido_txt}* ({liga})\n"
+                            
+                            canales_html = ev.get('canales_html', '')
+                            enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                            
+                            for url_codificada, contenido in enlaces:
+                                url_real = urllib.parse.unquote(url_codificada)
+                                nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                
+                                # Limpieza del nombre para Markdown
+                                nombre_canal = limpiar_md(nombre_canal) 
+                                
+                                bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                            
+                            bloque_evento += "\n"
+                            
+                            if len(mensaje_actual) + len(bloque_evento) > 3500:
+                                mensajes_a_enviar.append(mensaje_actual)
+                                mensaje_actual = bloque_evento
+                            else:
+                                mensaje_actual += bloque_evento
+
+                    if dias_mostrados == 0:
+                        await msg.edit_text("❌ Ahora mismo no hay ningún partido con enlaces activos programado.")
+                        return
+
+                    if mensaje_actual.strip():
+                        mensajes_a_enviar.append(mensaje_actual)
+
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
+                    
+                    for i, texto in enumerate(mensajes_a_enviar):
+                        es_ultimo = (i == len(mensajes_a_enviar) - 1)
+                        reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
+                        
+                        if i == 0:
+                            await msg.edit_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                        else:
+                            await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                            
+                except Exception as e:
+                    await msg.edit_text(f"⚠️ Error al obtener la agenda: Por favor intenta más tarde.")
+                    print(f"Error interno en cmd_agenda: {e}")
+
+            async def cmd_buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                if not context.args:
+                    await update.message.reply_text(
+                        "⚠️ *Falta el término de búsqueda.*\n\n"
+                        "💡 *Uso:* `/buscar <equipo, liga o deporte>`\n"
+                        "📌 *Ejemplo:* `/buscar sevilla` o `/buscar f1`", 
+                        parse_mode='Markdown'
+                    )
+                    return
+
+                termino = " ".join(context.args).lower()
+                msg = await update.message.reply_text(f"🔍 Buscando '{limpiar_md(termino)}' en la cartelera...")
+                
+                try:
+                    datos = obtener_datos_completos()
+                    agrupados = datos['eventos_agrupados']
+                    
+                    if not agrupados:
+                        await msg.edit_text("❌ No hay cartelera disponible ahora mismo.")
+                        return
+
+                    mensajes_a_enviar = []
+                    mensaje_actual = (
+                        f"🔍 *Resultados para:* _{limpiar_md(termino).capitalize()}_\n\n"
+                        "🚨 *¡ATENCIÓN!* 🚨\n"
+                        "🔴 _Recuerda arrancar primero el motor Ace Stream (Ace Server)._ 🔴\n\n"
+                    )
+                    
+                    encontrado = False
+                    
+                    for fecha, lista_evs in agrupados.items():
+                        eventos_filtrados = []
+                        for ev in lista_evs:
+                            local_b = ev.get('equipo_local', '').lower()
+                            visitante_b = ev.get('equipo_visitante', '').lower()
+                            liga_b = ev.get('liga', '').lower()
+                            
+                            if termino in local_b or termino in visitante_b or termino in liga_b:
+                                eventos_filtrados.append(ev)
+                        
+                        if not eventos_filtrados:
+                            continue
+                            
+                        encontrado = True
+                        bloque_fecha = f"🗓️ *{limpiar_md(fecha)}*\n"
+                        
+                        if len(mensaje_actual) + len(bloque_fecha) > 3500:
+                            mensajes_a_enviar.append(mensaje_actual)
+                            mensaje_actual = bloque_fecha
+                        else:
+                            mensaje_actual += bloque_fecha
+                        
+                        for ev in eventos_filtrados:
+                            local_txt = limpiar_md(ev.get('equipo_local', ''))
+                            visit_txt = limpiar_md(ev.get('equipo_visitante', ''))
+                            partido_txt = f"{local_txt} vs {visit_txt}" if visit_txt else local_txt
+                            hora = limpiar_md(ev.get('hora', ''))
+                            liga_txt = limpiar_md(ev.get('liga', ''))
+                            
+                            tiene_enlace = "🟢" if ev.get('has_links') else "⚪"
+                            bloque_evento = f"• `{hora}` {tiene_enlace} *{partido_txt}* ({liga_txt})\n"
+                            
+                            if ev.get('has_links'):
+                                canales_html = ev.get('canales_html', '')
+                                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                                
+                                for url_codificada, contenido in enlaces:
+                                    url_real = urllib.parse.unquote(url_codificada)
+                                    nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                                    nombre_canal = limpiar_md(nombre_canal)
+                                    
+                                    bloque_evento += f"   └ 📺 [{nombre_canal}]({url_real})\n"
+                            
+                            bloque_evento += "\n"
+                            
+                            if len(mensaje_actual) + len(bloque_evento) > 3500:
+                                mensajes_a_enviar.append(mensaje_actual)
+                                mensaje_actual = bloque_evento
+                            else:
+                                mensaje_actual += bloque_evento
+
+                    if not encontrado:
+                        await msg.edit_text(f"❌ No se encontraron partidos ni competiciones para: *{limpiar_md(termino).capitalize()}*", parse_mode='Markdown')
+                        return
+
+                    if mensaje_actual.strip():
+                        mensajes_a_enviar.append(mensaje_actual)
+
+                    teclado = [[InlineKeyboardButton("📥 Descargar Lista M3U Completa", url="https://cutt.ly/ZyfrcYEJ")]]
+                    
+                    for i, texto in enumerate(mensajes_a_enviar):
+                        es_ultimo = (i == len(mensajes_a_enviar) - 1)
+                        reply_markup = InlineKeyboardMarkup(teclado) if es_ultimo else None
+                        
+                        if i == 0:
+                            await msg.edit_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+                        else:
+                            await update.message.reply_text(texto, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=reply_markup)
+
+                except Exception as e:
+                    await msg.edit_text(f"⚠️ Error en la búsqueda: Por favor intenta más tarde.")
+                    print(f"Error interno en cmd_buscar: {e}")
+
+            application.add_handler(CommandHandler("start", cmd_start))
+            application.add_handler(CommandHandler("agenda", cmd_agenda))
+            application.add_handler(CommandHandler("buscar", cmd_buscar))
+            application.add_handler(CommandHandler("apps", cmd_apps))
+            application.add_handler(CommandHandler("m3u", cmd_m3u))
+
+            data = request.get_json(force=True)
+            update = Update.de_json(data, application.bot)
+            
+            await application.initialize()
+            await application.start()
+            await application.process_update(update)
+            await application.stop()
+            await application.shutdown()
+
+        try:
+            asyncio.run(procesar_peticion())
+        except Exception as e:
+            print(f"❌ ERROR CRÍTICO EN EL WEBHOOK DE TELEGRAM: {e}")
+            traceback.print_exc()
+            
+    return 'OK', 200
+
+
+# ==========================================
+# RUTAS DE FLASK
+# ==========================================
+@app.route('/lista.m3u')
+def descargar_lista_m3u():
+    datos = obtener_datos_completos()
+    
+    epg_url = "https://raw.githubusercontent.com/davidmuma/EPG_dobleM/master/guiaiptv.xml"
+    m3u_texto = f'#EXTM3U tvg-url="{epg_url}"\n'
+    
+    ahora_esp = datetime.now(TIMEZONE_ES)
+    ahora_str = ahora_esp.strftime("%d/%m/%Y %H:%M")
+    logo_update = "https://raw.githubusercontent.com/socramtv/Soccer-app/main/templates/update.png"
+    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo_update}" group-logo="{logo_update}" tvg-group-logo="{logo_update}" group-art="{logo_update}" group-title="Actualizada",{ahora_str}\n'
+    m3u_texto += 'http://update.local\n'
+    
+    for fecha, eventos in datos['eventos_agrupados'].items():
+        for evento in eventos:
+            if evento.get('has_links'):
+                local = evento.get('equipo_local', '')
+                visit = evento.get('equipo_visitante', '')
+                nombre_partido = f"{local} vs {visit}" if visit else local
+                liga = evento.get('liga', 'Otros Deportes')
+                logo = evento.get('logo_deporte', '')
+                
+                hora = evento.get('hora', '')
+                prefijo_hora = f"⏰ {hora} - " if hora else ""
+                
+                canales_html = evento.get('canales_html', '')
+                
+                enlaces = re.findall(r'href="/reproductor\?url=([^"&]+)[^>]*>(.*?)</a>', canales_html)
+                
+                for url_codificada, contenido in enlaces:
+                    url_real = urllib.parse.unquote(url_codificada)
+                    nombre_canal = re.sub(r'<[^>]+>', '', contenido).replace('🔸', '').replace('🔹', '').strip()
+                    
+                    m3u_texto += f'#EXTINF:-1 tvg-logo="{logo}" group-logo="{logo}" tvg-group-logo="{logo}" group-art="{logo}" group-title="{liga}",{prefijo_hora}{nombre_partido} ({nombre_canal})\n'
+                    m3u_texto += f'{url_real}\n'
+                    
+    respuesta = app.response_class(m3u_texto, mimetype='audio/x-mpegurl')
+    hoy_str = ahora_esp.strftime("%d-%m-%Y")
+    nombre_archivo = f"SocramTv_Acestream_{hoy_str}.m3u"
+    respuesta.headers['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+    return respuesta
+
+@app.route('/')
+def home():
+    datos = obtener_datos_completos()
+    fecha_actual = datetime.now(TIMEZONE_ES).strftime("%d-%m-%Y")
+    
+    canales_directos_limpios = []
+    for c in datos['canales_puros']:
+        hash_val = c.get('id', '') or c.get('hash', '')
+        hash_match = re.search(r'([a-fA-F0-9]{40})', hash_val)
+        if hash_match:
+            hash_puro = hash_match.group(1)
+            
+            if "infohash=" in hash_val.lower():
+                stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?infohash={hash_puro}"
+            else:
+                stream_url = f"http://127.0.0.1:6878/ace/manifest.m3u8?id={hash_puro}"
+                
+            nombre_c = c.get('name', '') or c.get('title', '')
+            logo_c = c.get('logo', '')
+            canales_directos_limpios.append({
+                'name': nombre_c,
+                'stream_url': stream_url,
+                'logo': logo_c
+            })
+            
+    return render_template(
+        'index.html', 
+        eventos_agrupados=datos['eventos_agrupados'], 
+        destacados=datos['destacados'],
+        canales_puros=canales_directos_limpios,
+        canales_directos=datos['canales_directos_m3u8'],
+        otros_canales=datos['otros_canales'],
+        fecha=fecha_actual
+    )
+
+@app.route('/reproductor')
+def reproductor():
+    stream_url = request.args.get('url', '')
+    canal_name = request.args.get('name', 'Canal Deportivo')
+    return render_template('reproductor.html', stream_url=stream_url, canal_name=canal_name)
+
+@app.route('/recargar')
+def recargar():
+    global cache_datos, ultimo_scraping
+    cache_datos = None
+    ultimo_scraping = 0
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
