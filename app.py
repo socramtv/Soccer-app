@@ -31,8 +31,9 @@ URL_EVENTOS = 'https://www.futbolenlatv.es/deporte'
 URL_NOACE = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/noace.m3u'
 URL_OTROS_CANALES = 'https://raw.githubusercontent.com/socramtv/Soccer-app/refs/heads/main/hashes_2.txt'
 
-# Token de tu Bot de Telegram
-TELEGRAM_TOKEN = '8948215840:AAHCbocnBx2Wk4Nq9vPnMrq49V2FHZyO94g'
+# Token de tu Bot de Telegram (Oculto y seguro)
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+ 
 
 # Sistema de Caché Unificado (30 minutos)
 cache_datos = None
